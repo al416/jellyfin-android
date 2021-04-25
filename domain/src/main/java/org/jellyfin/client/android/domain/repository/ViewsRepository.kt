@@ -11,4 +11,7 @@ interface ViewsRepository {
 
     suspend fun getContinueWatchingSection(userId: UUID, mediaTypes: List<String>?): Flow<Resource<List<HomeSectionCard>>>
 
+    suspend fun getNextUpSection(userId: UUID): Flow<Resource<List<HomeSectionCard>>>
+
+    suspend fun getLatestSection(userId: UUID, libraryIds: List<UUID>): Flow<Resource<List<HomeSectionCard>>>
 }
