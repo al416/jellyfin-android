@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.R
-import org.jellyfin.client.android.display_model.HomeSectionRow
+import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.ui.home.adapter.HomeRowRecyclerViewAdapter
 
 

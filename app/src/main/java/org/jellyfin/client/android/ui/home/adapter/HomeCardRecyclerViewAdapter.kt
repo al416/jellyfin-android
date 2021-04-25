@@ -8,7 +8,7 @@ import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import org.jellyfin.client.android.R
-import org.jellyfin.client.android.display_model.HomeSectionCard
+import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 
 class HomeCardRecyclerViewAdapter(var cardList: List<HomeSectionCard>) :
     RecyclerView.Adapter<HomeCardRecyclerViewAdapter.CardViewHolder>() {
