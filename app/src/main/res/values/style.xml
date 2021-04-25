@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- TODO: These styles need to be fixed -->
+    <style name="TextViewTitle" parent="TextAppearance.AppCompat.Body1">
+
+    </style>
+    <style name="TextViewSubtitle" parent="TextAppearance.AppCompat.Body2">
+
+    </style>
+    <style name="TextViewHeader" parent="TextAppearance.AppCompat.Headline">
+
+    </style>
+</resources>
