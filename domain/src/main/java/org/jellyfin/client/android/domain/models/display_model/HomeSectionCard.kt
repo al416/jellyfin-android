@@ -1,4 +1,4 @@
-package org.jellyfin.client.android.display_model
+package org.jellyfin.client.android.domain.models.display_model
 
 data class HomeSectionCard(
     val id: Int,

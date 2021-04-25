@@ -9,9 +9,9 @@ import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.jellyfin.client.android.R
-import org.jellyfin.client.android.display_model.HomeCardType
-import org.jellyfin.client.android.display_model.HomeSectionCard
-import org.jellyfin.client.android.display_model.HomeSectionRow
+import org.jellyfin.client.android.domain.models.display_model.HomeCardType
+import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
+import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 
 
 class HomeRowRecyclerViewAdapter(private val rowList: ArrayList<HomeSectionRow>,
