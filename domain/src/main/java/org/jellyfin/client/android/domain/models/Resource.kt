@@ -1,4 +1,5 @@
-package org.jellyfin.client.android.network
+package org.jellyfin.client.android.domain.models
+
 
 enum class Status {
     LOADING,
@@ -7,9 +8,9 @@ enum class Status {
 }
 
 data class Error(val httpErrorResponseCode: Int?,
-                        val code: Int?,
-                        val message: String?,
-                        val exception: Throwable?)
+                 val code: Int?,
+                 val message: String?,
+                 val exception: Throwable?)
 
 data class Resource<T>(val status: Status, val data: T?, val messages: List<Error>?) {
     companion object {

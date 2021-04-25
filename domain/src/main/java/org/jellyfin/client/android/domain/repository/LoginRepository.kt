@@ -1,8 +1,8 @@
-package org.jellyfin.client.android.repository
+package org.jellyfin.client.android.domain.repository
 
 import kotlinx.coroutines.flow.Flow
-import org.jellyfin.client.android.display_model.Login
-import org.jellyfin.client.android.network.Resource
+import org.jellyfin.client.android.domain.models.Login
+import org.jellyfin.client.android.domain.models.Resource
 
 interface LoginRepository {
 

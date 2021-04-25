@@ -7,9 +7,9 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import org.jellyfin.client.android.display_model.Login
-import org.jellyfin.client.android.network.Resource
-import org.jellyfin.client.android.usecase.DoUserLogin
+import org.jellyfin.client.android.domain.models.Login
+import org.jellyfin.client.android.domain.models.Resource
+import org.jellyfin.client.android.domain.usecase.DoUserLogin
 import javax.inject.Inject
 import javax.inject.Named
 
