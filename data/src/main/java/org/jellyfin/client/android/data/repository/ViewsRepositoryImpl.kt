@@ -65,4 +65,52 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
             }
         }.flowOn(computationDispatcher)
     }
+
+    override suspend fun getNextUpSection(userId: UUID): Flow<Resource<List<HomeSectionCard>>> {
+        return flow<Resource<List<HomeSectionCard>>> {
+            emit(Resource.loading())
+            try {
+                val response = mutableListOf<HomeSectionCard>()
+                val result by tvShowsApi.getNextUp(userId = userId,
+                    limit = 24,
+                    fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.BASIC_SYNC_INFO),
+                    imageTypeLimit = 1,
+                    enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.BANNER, ImageType.THUMB),
+                    disableFirstEpisode = true)
+                result.items?.forEach {item ->
+
+                }
+                emit(Resource.success(response))
+            } catch (e: Exception) {
+                // TODO: Need to catch httpException and pass along correct error message
+                val error = e.message
+                emit(Resource.error(listOf(Error(1, 1, "Error", null))))
+            }
+        }.flowOn(computationDispatcher)
+    }
+
+    override suspend fun getLatestSection(userId: UUID, libraryIds: List<UUID>): Flow<Resource<List<HomeSectionCard>>> {
+        return flow<Resource<List<HomeSectionCard>>> {
+            emit(Resource.loading())
+            try {
+                val response = mutableListOf<HomeSectionCard>()
+                for (libraryId in libraryIds) {
+                    val result by userLibraryApi.getLatestMedia(userId = userId,
+                        parentId = libraryId,
+                        limit = 16,
+                        fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.BASIC_SYNC_INFO, ItemFields.PATH),
+                        imageTypeLimit = 1,
+                        enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.THUMB))
+                    result.forEach {item ->
+
+                    }
+                }
+                emit(Resource.success(response))
+            } catch (e: Exception) {
+                // TODO: Need to catch httpException and pass along correct error message
+                val error = e.message
+                emit(Resource.error(listOf(Error(1, 1, "Error", null))))
+            }
+        }.flowOn(computationDispatcher)
+    }
 }
