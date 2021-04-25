@@ -12,7 +12,11 @@ import javax.inject.Singleton
         AndroidInjectionModule::class,
         AppModule::class,
         ActivityModule::class,
-        FragmentModule::class]
+        FragmentModule::class,
+        ThreadModule::class,
+        JellyfinModule::class,
+        RepositoryModule::class,
+        ViewModelModule::class]
 )
 interface AppComponent : AndroidInjector<App> {
     override fun inject(app: App)
