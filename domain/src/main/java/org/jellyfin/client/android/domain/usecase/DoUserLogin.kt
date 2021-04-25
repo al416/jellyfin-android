@@ -1,12 +1,13 @@
-package org.jellyfin.client.android.usecase
+package org.jellyfin.client.android.domain.usecase
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import org.jellyfin.client.android.display_model.Login
-import org.jellyfin.client.android.network.Resource
-import org.jellyfin.client.android.repository.LoginRepository
+import org.jellyfin.client.android.domain.models.Login
+import org.jellyfin.client.android.domain.models.Resource
+import org.jellyfin.client.android.domain.repository.LoginRepository
 import javax.inject.Inject
 import javax.inject.Named
+
 
 class DoUserLogin @Inject constructor(@Named("network") dispatcher: CoroutineDispatcher,
                                       private val loginRepository: LoginRepository

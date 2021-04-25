@@ -1,0 +1,21 @@
+// This module holds all the application's business logic. This module has NO awareness of the app or data module.
+// This module holds the application's use cases and business models.
+// This module is the innermost layer in the Clean Architecture onion
+// This module is independent of any framework and does NOT reference any Android components
+
+plugins {
+    id 'kotlin'
+    id 'kotlin-kapt'
+}
+
+dependencies {
+    // Dagger 2
+    implementation "com.google.dagger:dagger:$dagger2_version"
+    kapt "com.google.dagger:dagger-compiler:$dagger2_version"
+
+    // Kotlin Coroutines
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
+    testImplementation 'junit:junit:4.+'
+}

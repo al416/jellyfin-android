@@ -13,8 +13,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.textfield.TextInputEditText
 import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.R
-import org.jellyfin.client.android.network.Error
-import org.jellyfin.client.android.network.Status
+import org.jellyfin.client.android.domain.models.Error
+import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.ui.home.HomeActivity
 import javax.inject.Inject
 

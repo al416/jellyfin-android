@@ -1,11 +1,9 @@
 package org.jellyfin.client.android.di
 
-import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.Reusable
 import org.jellyfin.sdk.Jellyfin
-import org.jellyfin.sdk.android
 import org.jellyfin.sdk.api.client.KtorClient
 import org.jellyfin.sdk.api.operations.ItemsApi
 import org.jellyfin.sdk.api.operations.TvShowsApi
@@ -13,6 +11,8 @@ import org.jellyfin.sdk.api.operations.UserApi
 import org.jellyfin.sdk.api.operations.UserLibraryApi
 import org.jellyfin.sdk.api.operations.UserViewsApi
 import org.jellyfin.sdk.model.ClientInfo
+import org.jellyfin.sdk.model.DeviceInfo
+import java.util.*
 
 @Module
 @Suppress("unused")
@@ -20,10 +20,11 @@ object JellyfinModule {
 
     @Provides
     @Reusable
-    internal fun provideJellyfin(context: Context): Jellyfin {
+    internal fun provideJellyfin(): Jellyfin {
         return Jellyfin {
+            // TODO: Set correct client and device info
             clientInfo = ClientInfo(name = "My awesome client!", version = "1.33.7")
-            android(context)
+            deviceInfo = DeviceInfo(id = UUID.randomUUID().toString(), name = "Awesome device")
         }
     }
 

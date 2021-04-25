@@ -1,15 +1,16 @@
-package org.jellyfin.client.android.repository
+package org.jellyfin.client.android.data.repository
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import org.jellyfin.client.android.display_model.Login
-import org.jellyfin.client.android.network.Resource
+import org.jellyfin.client.android.domain.models.Login
+import org.jellyfin.client.android.domain.models.Resource
+import org.jellyfin.client.android.domain.models.Error
+import org.jellyfin.client.android.domain.repository.LoginRepository
 import org.jellyfin.sdk.api.client.KtorClient
 import org.jellyfin.sdk.api.operations.UserApi
 import org.jellyfin.sdk.model.api.AuthenticateUserByName
-import org.jellyfin.client.android.network.Error
 import javax.inject.Inject
 import javax.inject.Named
 
