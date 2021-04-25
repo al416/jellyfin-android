@@ -1,5 +1,6 @@
 package org.jellyfin.client.android.ui.login
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,7 @@ import androidx.core.view.ViewCompat
 import com.google.android.material.textfield.TextInputEditText
 import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.R
+import org.jellyfin.client.android.ui.home.HomeActivity
 
 class LoginFragment : DaggerFragment(), View.OnClickListener {
 
@@ -35,7 +37,8 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
     override fun onClick(view: View?) {
         when (view?.id) {
             R.id.buttonLogin -> {
-
+                val intent = Intent(requireActivity(), HomeActivity::class.java)
+                startActivity(intent)
             }
         }
     }
