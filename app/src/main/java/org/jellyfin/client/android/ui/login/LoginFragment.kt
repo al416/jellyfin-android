@@ -6,11 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.core.view.ViewCompat
-import androidx.fragment.app.Fragment
 import com.google.android.material.textfield.TextInputEditText
+import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.R
 
-class LoginFragment : Fragment(), View.OnClickListener {
+class LoginFragment : DaggerFragment(), View.OnClickListener {
 
     private lateinit var textBaseUrl: TextInputEditText
     private lateinit var textUsername: TextInputEditText
