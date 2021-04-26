@@ -4,3 +4,10 @@ data class HomeSectionRow(
     val id: Int,
     val title: String
 )
+
+enum class HomeSectionType {
+    MY_MEDIA,
+    CONTINUE_WATCHING,
+    NEXT_UP,
+    LATEST_MEDIA
+}
