@@ -7,6 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import org.jellyfin.client.android.R
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 
@@ -26,7 +27,11 @@ class HomeCardRecyclerViewAdapter(var cardList: List<HomeSectionCard>) :
 
     override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
         val card = cardList[position]
-        holder.cardBackgroundImage.setImageResource(card.backgroundImage)
+        // TODO: Add the correct placeholder and error images
+        holder.cardBackgroundImage.load(card.imageUrl) {
+            placeholder(R.drawable.ic_launcher_foreground)
+            error(R.drawable.ic_launcher_background)
+        }
         holder.title.text = card.title
         holder.subtitle.text = card.subtitle
     }

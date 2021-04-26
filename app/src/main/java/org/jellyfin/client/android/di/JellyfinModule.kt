@@ -5,6 +5,7 @@ import dagger.Provides
 import dagger.Reusable
 import org.jellyfin.sdk.Jellyfin
 import org.jellyfin.sdk.api.client.KtorClient
+import org.jellyfin.sdk.api.operations.ImageApi
 import org.jellyfin.sdk.api.operations.ItemsApi
 import org.jellyfin.sdk.api.operations.TvShowsApi
 import org.jellyfin.sdk.api.operations.UserApi
@@ -62,6 +63,12 @@ object JellyfinModule {
     @Reusable
     internal fun providesUserLibraryApi(api: KtorClient): UserLibraryApi {
         return UserLibraryApi(api)
+    }
+
+    @Provides
+    @Reusable
+    internal fun providesImageApi(api: KtorClient): ImageApi {
+        return ImageApi(api)
     }
 
 }
