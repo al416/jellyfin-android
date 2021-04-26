@@ -40,7 +40,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                 val result by userViewsApi.getUserViews(userId)
                 result.items?.forEachIndexed {index, item ->
                     val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP, fillWidth = 354, fillHeight = 200)
-                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS))
+                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
                 }
                 emit(Resource.success(response))
             } catch (e: Exception) {
@@ -64,7 +64,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                     mediaTypes = mediaTypes)
                 result.items?.forEachIndexed {index, item ->
                     val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP, fillWidth = 354, fillHeight = 200)
-                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS))
+                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
                 }
                 emit(Resource.success(response))
             } catch (e: Exception) {
@@ -88,7 +88,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                     disableFirstEpisode = true)
                 result.items?.forEachIndexed {index, item ->
                     val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP, fillWidth = 354, fillHeight = 200)
-                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS))
+                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
                 }
                 emit(Resource.success(response))
             } catch (e: Exception) {
@@ -117,8 +117,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                         // TODO: Use a string repository to get the "Latest x" string
                         rows.add(HomeSectionRow(id = index, title = "Latest " + library.title))
                         result.forEachIndexed { resultIndex, item ->
-                            val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP, fillWidth = 354, fillHeight = 200)
-                            cards.add(HomeSectionCard(id = resultIndex, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS, rowId = index))
+                            val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.PRIMARY, fillWidth = 223, fillHeight = 335)
+                            cards.add(HomeSectionCard(id = resultIndex, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.POSTER, rowId = index))
                         }
                         index++
                     }

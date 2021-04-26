@@ -6,15 +6,27 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.view.ViewCompat
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import org.jellyfin.client.android.R
 import org.jellyfin.client.android.domain.models.display_model.HomeContents
+import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 
 
 class HomeRowRecyclerViewAdapter(private val contents: HomeContents,
-                                 private val context: Context) :
-    RecyclerView.Adapter<HomeRowRecyclerViewAdapter.RowViewHolder>() {
+                                 private val context: Context) : ListAdapter<HomeSectionRow, HomeRowRecyclerViewAdapter.RowViewHolder>(Companion) {
+
+    companion object: DiffUtil.ItemCallback<HomeSectionRow>() {
+        override fun areItemsTheSame(oldItem: HomeSectionRow, newItem: HomeSectionRow): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: HomeSectionRow, newItem: HomeSectionRow): Boolean {
+            return oldItem == newItem
+        }
+    }
 
     class RowViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var rowTitle: TextView = ViewCompat.requireViewById(itemView, R.id.row_title)
