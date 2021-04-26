@@ -13,6 +13,7 @@ import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionType
 import org.jellyfin.client.android.domain.repository.ViewsRepository
+import org.jellyfin.sdk.api.operations.ImageApi
 import org.jellyfin.sdk.api.operations.ItemsApi
 import org.jellyfin.sdk.api.operations.TvShowsApi
 import org.jellyfin.sdk.api.operations.UserLibraryApi
@@ -28,7 +29,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                                               private val userViewsApi: UserViewsApi,
                                               private val itemsApi: ItemsApi,
                                               private val tvShowsApi: TvShowsApi,
-                                              private val userLibraryApi: UserLibraryApi
+                                              private val userLibraryApi: UserLibraryApi,
+                                              private val imageApi: ImageApi
 ) : ViewsRepository {
     override suspend fun getMyMediaSection(userId: UUID): Flow<Resource<List<HomeSectionCard>>> {
         return flow<Resource<List<HomeSectionCard>>> {
@@ -37,7 +39,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                 val response = mutableListOf<HomeSectionCard>()
                 val result by userViewsApi.getUserViews(userId)
                 result.items?.forEachIndexed {index, item ->
-                    response.add(HomeSectionCard(id = index, backgroundImage = 0, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS))
+                    val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP, fillWidth = 354, fillHeight = 200)
+                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS))
                 }
                 emit(Resource.success(response))
             } catch (e: Exception) {
@@ -60,7 +63,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                     enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.THUMB),
                     mediaTypes = mediaTypes)
                 result.items?.forEachIndexed {index, item ->
-                    response.add(HomeSectionCard(id = index, backgroundImage = 0, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS))
+                    val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP, fillWidth = 354, fillHeight = 200)
+                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS))
                 }
                 emit(Resource.success(response))
             } catch (e: Exception) {
@@ -83,7 +87,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                     enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.BANNER, ImageType.THUMB),
                     disableFirstEpisode = true)
                 result.items?.forEachIndexed {index, item ->
-                    response.add(HomeSectionCard(id = index, backgroundImage = 0, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS))
+                    val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP, fillWidth = 354, fillHeight = 200)
+                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS))
                 }
                 emit(Resource.success(response))
             } catch (e: Exception) {
@@ -112,7 +117,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                         // TODO: Use a string repository to get the "Latest x" string
                         rows.add(HomeSectionRow(id = index, title = "Latest " + library.title))
                         result.forEachIndexed { resultIndex, item ->
-                            cards.add(HomeSectionCard(id = resultIndex, backgroundImage = 0, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS, rowId = index))
+                            val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP, fillWidth = 354, fillHeight = 200)
+                            cards.add(HomeSectionCard(id = resultIndex, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS, rowId = index))
                         }
                         index++
                     }

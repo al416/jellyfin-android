@@ -4,7 +4,7 @@ import java.util.*
 
 data class HomeSectionCard(
     var id: Int,
-    val backgroundImage: Int,
+    val imageUrl: String,
     val title: String?,
     val subtitle: String? = null,
     val homeCardType: HomeCardType,

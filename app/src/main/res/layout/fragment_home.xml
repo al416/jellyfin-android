@@ -6,6 +6,7 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
+        android:background="@drawable/home_recyclerview_background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scrollbars="vertical"
