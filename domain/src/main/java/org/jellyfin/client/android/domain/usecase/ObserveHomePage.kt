@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import org.jellyfin.client.android.domain.models.Error
+import org.jellyfin.client.android.domain.models.LibraryDto
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.domain.models.display_model.HomeContents
@@ -60,24 +61,27 @@ class ObserveHomePage @Inject constructor(@Named("network") dispatcher: Coroutin
                                 resultCards.forEach { it.rowId = rowId }
                                 cards.addAll(resultCards)
                             }
-                            val libraryIds = mutableListOf<UUID>()
+                            val libraries = mutableListOf<LibraryDto>()
                             resource.data?.forEach {
-                                libraryIds.add(it.uuid)
+                                libraries.add(LibraryDto(id = it.uuid, title = it.title))
                             }
-                            rows.add(HomeSectionRow(id = rowId, title = "My Media"))
-                            loadContinueWatching(params, sections, rows, cards, libraryIds)
+                            if (!resource.data.isNullOrEmpty()) {
+                                // TODO: Remove hardcoded title
+                                rows.add(HomeSectionRow(id = rowId, title = "My Media"))
+                            }
+                            loadContinueWatching(params, sections, rows, cards, libraries)
                         }
                     }
                 }
         } else {
-            val libraryIds = mutableListOf<UUID>()
-            return loadContinueWatching(params, sections, rows, cards, libraryIds)
+            val libraries = mutableListOf<LibraryDto>()
+            return loadContinueWatching(params, sections, rows, cards, libraries)
         }
     }
 
     private suspend fun loadContinueWatching(params: RequestParams, sections: List<HomeSectionType>,
                                              rows: MutableList<HomeSectionRow>, cards: MutableList<HomeSectionCard>,
-                                             libraryIds: List<UUID>): Flow<Resource<HomeContents>> {
+                                             libraries: List<LibraryDto>): Flow<Resource<HomeContents>> {
         if (sections.contains(HomeSectionType.CONTINUE_WATCHING)) {
             val rowId = sections.indexOf(HomeSectionType.CONTINUE_WATCHING)
             return observeContinueWatchingSection.invoke(ObserveContinueWatchingSection.RequestParams(params.userId, listOf("Video")))
@@ -92,19 +96,21 @@ class ObserveHomePage @Inject constructor(@Named("network") dispatcher: Coroutin
                                 resultCards.forEach { it.rowId = rowId }
                                 cards.addAll(resultCards)
                             }
-                            rows.add(HomeSectionRow(id = rowId, title = "Continue Watching"))
-                            loadNextUp(params, sections, rows, cards, libraryIds)
+                            if (!resource.data.isNullOrEmpty()) {
+                                rows.add(HomeSectionRow(id = rowId, title = "Continue Watching"))
+                            }
+                            loadNextUp(params, sections, rows, cards, libraries)
                         }
                     }
                 }
         } else {
-            return loadNextUp(params, sections, rows, cards, libraryIds)
+            return loadNextUp(params, sections, rows, cards, libraries)
         }
     }
 
     private suspend fun loadNextUp(params: RequestParams, sections: List<HomeSectionType>,
                                    rows: MutableList<HomeSectionRow>, cards: MutableList<HomeSectionCard>,
-                                   libraryIds: List<UUID>): Flow<Resource<HomeContents>> {
+                                   libraries: List<LibraryDto>): Flow<Resource<HomeContents>> {
         if (sections.contains(HomeSectionType.NEXT_UP)) {
             val rowId = sections.indexOf(HomeSectionType.NEXT_UP)
             return observeNextUpSection.invoke(ObserveNextUpSection.RequestParams(params.userId))
@@ -119,22 +125,24 @@ class ObserveHomePage @Inject constructor(@Named("network") dispatcher: Coroutin
                                 resultCards.forEach { it.rowId = rowId }
                                 cards.addAll(resultCards)
                             }
-                            rows.add(HomeSectionRow(id = rowId, title = "Next Up"))
-                            loadLatest(params, sections, rows, cards, libraryIds)
+                            if (!resource.data.isNullOrEmpty()) {
+                                rows.add(HomeSectionRow(id = rowId, title = "Next Up"))
+                            }
+                            loadLatest(params, sections, rows, cards, libraries)
                         }
                     }
                 }
         } else {
-            return loadLatest(params, sections, rows, cards, libraryIds)
+            return loadLatest(params, sections, rows, cards, libraries)
         }
     }
 
     private suspend fun loadLatest(params: RequestParams, sections: List<HomeSectionType>,
                                    rows: MutableList<HomeSectionRow>, cards: MutableList<HomeSectionCard>,
-                                   libraryIds: List<UUID>): Flow<Resource<HomeContents>> {
+                                   libraries: List<LibraryDto>): Flow<Resource<HomeContents>> {
         if (sections.contains(HomeSectionType.LATEST_MEDIA)) {
-            val rowId = sections.indexOf(HomeSectionType.CONTINUE_WATCHING)
-            return observeLatestSection.invoke(ObserveLatestSection.RequestParams(params.userId, libraryIds))
+            val rowId = sections.indexOf(HomeSectionType.LATEST_MEDIA)
+            return observeLatestSection.invoke(ObserveLatestSection.RequestParams(params.userId, libraries))
                 .flatMapLatest {resource ->
                     when (resource.status) {
                         Status.ERROR -> flow { emit(Resource.error<HomeContents>(resource.messages)) }
@@ -142,11 +150,18 @@ class ObserveHomePage @Inject constructor(@Named("network") dispatcher: Coroutin
                             // Don't emit another LOADING resource because the first request in the chain already emitted a LOADING resource
                         }
                         Status.SUCCESS -> flow {
-                            resource.data?.let {resultCards ->
-                                resultCards.forEach { it.rowId = rowId }
-                                cards.addAll(resultCards)
+                            resource.data?.let {homeContent ->
+                                homeContent.sections.forEach {
+                                    val currentId = it.id
+                                    it.id = currentId + rowId
+                                }
+                                homeContent.cards.forEach {
+                                    val currentRowId = it.rowId
+                                    it.rowId = currentRowId + rowId
+                                }
+                                rows.addAll(homeContent.sections)
+                                cards.addAll(homeContent.cards)
                             }
-                            rows.add(HomeSectionRow(id = rowId, title = "Latest Media"))
                             emit(Resource.success(HomeContents(rows.toList(), cards.toList())))
                         }
                     }

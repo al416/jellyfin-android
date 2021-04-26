@@ -39,7 +39,7 @@ class HomeFragment : DaggerFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        homeFragmentViewModel.getHomeCardsList().observe(viewLifecycleOwner, Observer {resource ->
+        homeFragmentViewModel.getHomeContents().observe(viewLifecycleOwner, Observer { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
                     resource.data?.let {
@@ -50,6 +50,14 @@ class HomeFragment : DaggerFragment() {
                         recyclerView.adapter = homeRowAdapter
                         homeRowAdapter.notifyDataSetChanged()
                     }
+                }
+                // TODO: Display error message
+                Status.ERROR -> {
+
+                }
+                // TODO: Display loading indicator
+                Status.LOADING -> {
+
                 }
             }
         })

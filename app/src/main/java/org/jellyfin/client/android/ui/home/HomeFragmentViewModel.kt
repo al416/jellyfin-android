@@ -20,15 +20,15 @@ class HomeFragmentViewModel @Inject constructor(
     private val userApi: UserApi
 ) : ViewModel() {
 
-    private val homeCardList: MutableLiveData<Resource<HomeContents>> by lazy {
+    private val homeContents: MutableLiveData<Resource<HomeContents>> by lazy {
         val data = MutableLiveData<Resource<HomeContents>>()
-        loadHomeCardList(data)
+        loadHomeContents(data)
         data
     }
 
-    fun getHomeCardsList(): LiveData<Resource<HomeContents>> = homeCardList
+    fun getHomeContents(): LiveData<Resource<HomeContents>> = homeContents
 
-    private fun loadHomeCardList(data: MutableLiveData<Resource<HomeContents>>) {
+    private fun loadHomeContents(data: MutableLiveData<Resource<HomeContents>>) {
         viewModelScope.launch(computationDispatcher) {
             val uuid = userApi.getCurrentUser().content.id
 

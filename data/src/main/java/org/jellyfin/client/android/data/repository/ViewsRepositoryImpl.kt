@@ -5,9 +5,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.jellyfin.client.android.domain.models.Error
+import org.jellyfin.client.android.domain.models.LibraryDto
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.display_model.HomeCardType
+import org.jellyfin.client.android.domain.models.display_model.HomeContents
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
+import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionType
 import org.jellyfin.client.android.domain.repository.ViewsRepository
 import org.jellyfin.sdk.api.operations.ItemsApi
@@ -91,23 +94,30 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
         }.flowOn(computationDispatcher)
     }
 
-    override suspend fun getLatestSection(userId: UUID, libraryIds: List<UUID>): Flow<Resource<List<HomeSectionCard>>> {
-        return flow<Resource<List<HomeSectionCard>>> {
+    override suspend fun getLatestSection(userId: UUID, libraries: List<LibraryDto>): Flow<Resource<HomeContents>> {
+        return flow<Resource<HomeContents>> {
             emit(Resource.loading())
             try {
-                val response = mutableListOf<HomeSectionCard>()
-                for (libraryId in libraryIds) {
+                val rows = mutableListOf<HomeSectionRow>()
+                val cards = mutableListOf<HomeSectionCard>()
+                var index = 0
+                libraries.forEach { library ->
                     val result by userLibraryApi.getLatestMedia(userId = userId,
-                        parentId = libraryId,
+                        parentId = library.id,
                         limit = 16,
                         fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.BASIC_SYNC_INFO, ItemFields.PATH),
                         imageTypeLimit = 1,
                         enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.THUMB))
-                    result.forEachIndexed {index, item ->
-                        response.add(HomeSectionCard(id = index, backgroundImage = 0, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS))
+                    if (result.isNotEmpty()) {
+                        // TODO: Use a string repository to get the "Latest x" string
+                        rows.add(HomeSectionRow(id = index, title = "Latest " + library.title))
+                        result.forEachIndexed { resultIndex, item ->
+                            cards.add(HomeSectionCard(id = resultIndex, backgroundImage = 0, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS, rowId = index))
+                        }
+                        index++
                     }
                 }
-                emit(Resource.success(response))
+                emit(Resource.success(HomeContents(rows, cards)))
             } catch (e: Exception) {
                 // TODO: Need to catch httpException and pass along correct error message
                 val error = e.message

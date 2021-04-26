@@ -3,7 +3,7 @@ package org.jellyfin.client.android.domain.models.display_model
 import java.util.*
 
 data class HomeSectionCard(
-    val id: Int,
+    var id: Int,
     val backgroundImage: Int,
     val title: String?,
     val subtitle: String? = null,
