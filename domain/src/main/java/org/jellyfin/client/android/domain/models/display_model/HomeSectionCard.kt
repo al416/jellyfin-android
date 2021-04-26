@@ -14,7 +14,6 @@ data class HomeSectionCard(
 )
 
 enum class HomeCardType {
-    SECTION,    // clicking this card will take the user to Movies/TV Shows list page
-    PLAYABLE_ITEM,  // clicking this card will play the item (i.e. cards under Continue Watching/Next Up)
-    DETAILS // clicking this card will take user to Movie/TV Shows Details page (i.e. under Latest Movies)
+    POSTER,
+    BACKDROP
 }

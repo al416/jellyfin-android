@@ -2,15 +2,15 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
+    android:layout_width="112dp"
     android:layout_height="wrap_content"
     android:layout_marginStart="12dp"
     android:layout_marginEnd="12dp"
     android:orientation="vertical">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="177dp"
-        android:layout_height="100dp"
+        android:layout_width="match_parent"
+        android:layout_height="168dp"
         app:cardCornerRadius="8dp"
         app:cardElevation="4dp">
 
@@ -18,8 +18,8 @@
             android:id="@+id/card_background_image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_constraintTop_toTopOf="parent"
             android:scaleType="fitXY"
+            app:layout_constraintTop_toTopOf="parent"
             tools:src="@drawable/ic_launcher_background" />
     </androidx.cardview.widget.CardView>
 
@@ -30,6 +30,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="5dp"
+        android:ellipsize="end"
+        android:singleLine="true"
         android:textColor="?colorOnPrimary"
         tools:text="Some TV Show" />
 
@@ -40,6 +42,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="5dp"
+        android:ellipsize="end"
+        android:singleLine="true"
         android:textColor="?colorOnPrimary"
         tools:text="2020" />
 
