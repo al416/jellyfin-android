@@ -1,12 +1,15 @@
 package org.jellyfin.client.android.domain.models.display_model
 
+import java.util.*
+
 data class HomeSectionCard(
     val id: Int,
     val backgroundImage: Int,
-    val title: String,
+    val title: String?,
     val subtitle: String? = null,
-    val rowId: Int,
-    val homeCardType: HomeCardType
+    val homeCardType: HomeCardType,
+    val uuid: UUID,
+    var rowId: Int = 0
     //val clickListener: View.OnClickListener? = null
 )
 

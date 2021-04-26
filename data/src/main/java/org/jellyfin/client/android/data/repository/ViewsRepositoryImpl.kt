@@ -6,7 +6,9 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.Resource
+import org.jellyfin.client.android.domain.models.display_model.HomeCardType
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
+import org.jellyfin.client.android.domain.models.display_model.HomeSectionType
 import org.jellyfin.client.android.domain.repository.ViewsRepository
 import org.jellyfin.sdk.api.operations.ItemsApi
 import org.jellyfin.sdk.api.operations.TvShowsApi
@@ -31,8 +33,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
             try {
                 val response = mutableListOf<HomeSectionCard>()
                 val result by userViewsApi.getUserViews(userId)
-                result.items?.forEach {item ->
-                    // TODO: add items to response
+                result.items?.forEachIndexed {index, item ->
+                    response.add(HomeSectionCard(id = index, backgroundImage = 0, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS))
                 }
                 emit(Resource.success(response))
             } catch (e: Exception) {
@@ -54,8 +56,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                     imageTypeLimit = 1,
                     enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.THUMB),
                     mediaTypes = mediaTypes)
-                result.items?.forEach {item ->
-                    // TODO: add items to response
+                result.items?.forEachIndexed {index, item ->
+                    response.add(HomeSectionCard(id = index, backgroundImage = 0, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS))
                 }
                 emit(Resource.success(response))
             } catch (e: Exception) {
@@ -77,8 +79,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                     imageTypeLimit = 1,
                     enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.BANNER, ImageType.THUMB),
                     disableFirstEpisode = true)
-                result.items?.forEach {item ->
-
+                result.items?.forEachIndexed {index, item ->
+                    response.add(HomeSectionCard(id = index, backgroundImage = 0, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS))
                 }
                 emit(Resource.success(response))
             } catch (e: Exception) {
@@ -101,8 +103,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                         fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.BASIC_SYNC_INFO, ItemFields.PATH),
                         imageTypeLimit = 1,
                         enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.THUMB))
-                    result.forEach {item ->
-
+                    result.forEachIndexed {index, item ->
+                        response.add(HomeSectionCard(id = index, backgroundImage = 0, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.DETAILS))
                     }
                 }
                 emit(Resource.success(response))
@@ -110,6 +112,23 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                 // TODO: Need to catch httpException and pass along correct error message
                 val error = e.message
                 emit(Resource.error(listOf(Error(1, 1, "Error", null))))
+            }
+        }.flowOn(computationDispatcher)
+    }
+
+    override suspend fun getHomeSections(userId: UUID): Flow<Resource<List<HomeSectionType>>> {
+        return flow<Resource<List<HomeSectionType>>> {
+            emit(Resource.loading())
+            try {
+                // TODO: Figure out the API call the returns the actual list of home sections and add them to the response in the correct order
+                val response = mutableListOf<HomeSectionType>()
+                response.add(HomeSectionType.MY_MEDIA)
+                response.add(HomeSectionType.CONTINUE_WATCHING)
+                response.add(HomeSectionType.NEXT_UP)
+                response.add(HomeSectionType.LATEST_MEDIA)
+                emit(Resource.success(response))
+            } catch (e: Exception) {
+                emit(Resource.error(listOf(Error(null, 1, "Error", null))))
             }
         }.flowOn(computationDispatcher)
     }
