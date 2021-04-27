@@ -32,17 +32,18 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                                               private val userLibraryApi: UserLibraryApi,
                                               private val imageApi: ImageApi
 ) : ViewsRepository {
-    override suspend fun getMyMediaSection(userId: UUID): Flow<Resource<List<HomeSectionCard>>> {
-        return flow<Resource<List<HomeSectionCard>>> {
+    override suspend fun getMyMediaSection(userId: UUID): Flow<Resource<HomeSectionRow>> {
+        return flow<Resource<HomeSectionRow>> {
             emit(Resource.loading())
             try {
-                val response = mutableListOf<HomeSectionCard>()
+                val cards = mutableListOf<HomeSectionCard>()
                 val result by userViewsApi.getUserViews(userId)
                 result.items?.forEachIndexed {index, item ->
                     val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP, fillWidth = 354, fillHeight = 200)
-                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
+                    cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
                 }
-                emit(Resource.success(response))
+                // TODO: Use a repo to get My Media string
+                emit(Resource.success(HomeSectionRow(id = HomeSectionType.MY_MEDIA.ordinal, title = "My Media", cards = cards)))
             } catch (e: Exception) {
                 // TODO: Need to catch httpException and pass along correct error message
                 val error = e.message
@@ -51,11 +52,11 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
         }.flowOn(computationDispatcher)
     }
 
-    override suspend fun getContinueWatchingSection(userId: UUID, mediaTypes: List<String>?): Flow<Resource<List<HomeSectionCard>>> {
-        return flow<Resource<List<HomeSectionCard>>> {
+    override suspend fun getContinueWatchingSection(userId: UUID, mediaTypes: List<String>?): Flow<Resource<HomeSectionRow>> {
+        return flow<Resource<HomeSectionRow>> {
             emit(Resource.loading())
             try {
-                val response = mutableListOf<HomeSectionCard>()
+                val cards = mutableListOf<HomeSectionCard>()
                 val result by itemsApi.getResumeItems(userId = userId,
                     limit = 12,
                     fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.BASIC_SYNC_INFO),
@@ -64,9 +65,10 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                     mediaTypes = mediaTypes)
                 result.items?.forEachIndexed {index, item ->
                     val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP, fillWidth = 354, fillHeight = 200)
-                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
+                    cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
                 }
-                emit(Resource.success(response))
+                // TODO: Use a repo to get Continue Watching string
+                emit(Resource.success(HomeSectionRow(id = HomeSectionType.CONTINUE_WATCHING.ordinal, title = "Continue Watching", cards = cards)))
             } catch (e: Exception) {
                 // TODO: Need to catch httpException and pass along correct error message
                 val error = e.message
@@ -75,11 +77,11 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
         }.flowOn(computationDispatcher)
     }
 
-    override suspend fun getNextUpSection(userId: UUID): Flow<Resource<List<HomeSectionCard>>> {
-        return flow<Resource<List<HomeSectionCard>>> {
+    override suspend fun getNextUpSection(userId: UUID): Flow<Resource<HomeSectionRow>> {
+        return flow<Resource<HomeSectionRow>> {
             emit(Resource.loading())
             try {
-                val response = mutableListOf<HomeSectionCard>()
+                val cards = mutableListOf<HomeSectionCard>()
                 val result by tvShowsApi.getNextUp(userId = userId,
                     limit = 24,
                     fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.BASIC_SYNC_INFO),
@@ -88,9 +90,10 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                     disableFirstEpisode = true)
                 result.items?.forEachIndexed {index, item ->
                     val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP, fillWidth = 354, fillHeight = 200)
-                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
+                    cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
                 }
-                emit(Resource.success(response))
+                // TODO: Use a repo to get Next Up string
+                emit(Resource.success(HomeSectionRow(id = HomeSectionType.NEXT_UP.ordinal, title = "Next Up", cards = cards)))
             } catch (e: Exception) {
                 // TODO: Need to catch httpException and pass along correct error message
                 val error = e.message
@@ -99,14 +102,12 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
         }.flowOn(computationDispatcher)
     }
 
-    override suspend fun getLatestSection(userId: UUID, libraries: List<LibraryDto>): Flow<Resource<HomeContents>> {
-        return flow<Resource<HomeContents>> {
+    override suspend fun getLatestSection(userId: UUID, libraries: List<LibraryDto>): Flow<Resource<List<HomeSectionRow>>> {
+        return flow<Resource<List<HomeSectionRow>>> {
             emit(Resource.loading())
             try {
                 val rows = mutableListOf<HomeSectionRow>()
-                val cards = mutableListOf<HomeSectionCard>()
-                var index = 0
-                libraries.forEach { library ->
+                libraries.forEachIndexed { libraryIndex, library ->
                     val result by userLibraryApi.getLatestMedia(userId = userId,
                         parentId = library.id,
                         limit = 16,
@@ -114,16 +115,17 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                         imageTypeLimit = 1,
                         enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.THUMB))
                     if (result.isNotEmpty()) {
+                        val cards = mutableListOf<HomeSectionCard>()
                         // TODO: Use a string repository to get the "Latest x" string
-                        rows.add(HomeSectionRow(id = index, title = "Latest " + library.title))
                         result.forEachIndexed { resultIndex, item ->
                             val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.PRIMARY, fillWidth = 223, fillHeight = 335)
-                            cards.add(HomeSectionCard(id = resultIndex, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.POSTER, rowId = index))
+                            cards.add(HomeSectionCard(id = resultIndex, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.POSTER))
                         }
-                        index++
+                        rows.add(HomeSectionRow(id = HomeSectionType.LATEST_MEDIA.ordinal + libraryIndex, title = "Latest " + library.title, cards = cards))
                     }
                 }
-                emit(Resource.success(HomeContents(rows, cards)))
+                // TODO: Use a repo to get My Media string
+                emit(Resource.success(rows))
             } catch (e: Exception) {
                 // TODO: Need to catch httpException and pass along correct error message
                 val error = e.message

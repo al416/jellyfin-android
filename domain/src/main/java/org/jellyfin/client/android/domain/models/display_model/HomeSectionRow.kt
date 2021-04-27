@@ -2,7 +2,8 @@ package org.jellyfin.client.android.domain.models.display_model
 
 data class HomeSectionRow(
     var id: Int,
-    val title: String?
+    val title: String?,
+    val cards: List<HomeSectionCard>
 )
 
 enum class HomeSectionType {

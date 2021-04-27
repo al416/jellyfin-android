@@ -4,13 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.ViewCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import dagger.android.support.DaggerFragment
-import org.jellyfin.client.android.R
+import org.jellyfin.client.android.databinding.FragmentHomeBinding
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.ui.home.adapter.HomeRowRecyclerViewAdapter
 import javax.inject.Inject
@@ -18,8 +16,7 @@ import javax.inject.Inject
 
 class HomeFragment : DaggerFragment() {
 
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var homeRowAdapter: RecyclerView.Adapter<HomeRowRecyclerViewAdapter.RowViewHolder>
+    private lateinit var binding: FragmentHomeBinding
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -33,22 +30,27 @@ class HomeFragment : DaggerFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_home, container, false)
+        binding = FragmentHomeBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        homeFragmentViewModel.getHomeContents().observe(viewLifecycleOwner, Observer { resource ->
+        val adapter = HomeRowRecyclerViewAdapter(requireActivity())
+        binding.adapter = adapter
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireActivity())
+
+        homeFragmentViewModel.getRows().observe(viewLifecycleOwner, Observer { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
-                    resource.data?.let {
-                        homeRowAdapter = HomeRowRecyclerViewAdapter(it, requireActivity())
-
-                        recyclerView = ViewCompat.requireViewById(view, R.id.recyclerView)
-                        recyclerView.layoutManager = LinearLayoutManager(requireActivity())
-                        recyclerView.adapter = homeRowAdapter
-                        homeRowAdapter.notifyDataSetChanged()
+                    resource.data?.let {rows ->
+                        if (adapter.currentList == rows) {
+                            // A duplicate list has been submitted so the adapter won't check if the list has been changed so force a redraw
+                            adapter.notifyDataSetChanged()
+                        } else {
+                            adapter.submitList(rows)
+                        }
                     }
                 }
                 // TODO: Display error message

@@ -22,25 +22,24 @@ class ObserveHomePage @Inject constructor(@Named("network") dispatcher: Coroutin
                                           private val observeMyMediaSection: ObserveMyMediaSection,
                                           private val observeContinueWatchingSection: ObserveContinueWatchingSection,
                                           private val observeNextUpSection: ObserveNextUpSection,
-                                          private val observeLatestSection: ObserveLatestSection) : BaseUseCase<HomeContents, ObserveHomePage.RequestParams>(dispatcher) {
+                                          private val observeLatestSection: ObserveLatestSection) : BaseUseCase<List<HomeSectionRow>, ObserveHomePage.RequestParams>(dispatcher) {
 
-    override suspend fun invokeInternal(params: RequestParams?): Flow<Resource<HomeContents>> {
+    override suspend fun invokeInternal(params: RequestParams?): Flow<Resource<List<HomeSectionRow>>> {
         if (params == null) {
             throw IllegalArgumentException("Expecting valid parameters")
         }
 
         return getHomeSections.invoke(GetHomeSections.RequestParams(params.userId)).flatMapLatest {
             when (it.status) {
-                Status.ERROR -> flow { emit(Resource.error<HomeContents>(it.messages)) }
-                Status.LOADING -> flow {emit(Resource.loading<HomeContents>())}
+                Status.ERROR -> flow { emit(Resource.error<List<HomeSectionRow>>(it.messages)) }
+                Status.LOADING -> flow {emit(Resource.loading<List<HomeSectionRow>>())}
                 Status.SUCCESS -> {
                     if (it.data.isNullOrEmpty()) {
                         // TODO: Use correct error
-                        flow { emit(Resource.error<HomeContents>(listOf(Error(0, 0, "Could not retrieve home sections", null)))) }
+                        flow { emit(Resource.error<List<HomeSectionRow>>(listOf(Error(0, 0, "Could not retrieve home sections", null)))) }
                     } else {
                         val rows = mutableListOf<HomeSectionRow>()
-                        val cards= mutableListOf<HomeSectionCard>()
-                        loadMyMedia(params, it.data, rows, cards)
+                        loadMyMedia(params, it.data, rows)
                     }
                 }
             }
@@ -48,126 +47,110 @@ class ObserveHomePage @Inject constructor(@Named("network") dispatcher: Coroutin
     }
 
     private suspend fun loadMyMedia(params: RequestParams, sections: List<HomeSectionType>,
-                                    rows: MutableList<HomeSectionRow>, cards: MutableList<HomeSectionCard>): Flow<Resource<HomeContents>> {
+                                    rows: MutableList<HomeSectionRow>): Flow<Resource<List<HomeSectionRow>>> {
+        val libraries = mutableListOf<LibraryDto>()
         if (sections.contains(HomeSectionType.MY_MEDIA)) {
-            val rowId = sections.indexOf(HomeSectionType.MY_MEDIA)
             return observeMyMediaSection.invoke(ObserveMyMediaSection.RequestParams(params.userId))
                 .flatMapLatest { resource ->
                     when (resource.status) {
-                        Status.ERROR -> flow { emit(Resource.error<HomeContents>(resource.messages)) }
-                        Status.LOADING -> flow {emit(Resource.loading<HomeContents>())}
+                        Status.ERROR -> flow { emit(Resource.error<List<HomeSectionRow>>(resource.messages)) }
+                        Status.LOADING -> flow {
+                            // Don't emit another LOADING resource because the first request in the chain already emitted a LOADING resource
+                        }
                         Status.SUCCESS -> {
-                            resource.data?.let {resultCards ->
-                                resultCards.forEach { it.rowId = rowId }
-                                cards.addAll(resultCards)
+                            resource.data?.let {
+                                // Only add a row if the row has cards
+                                if (it.cards.isNotEmpty()) {
+                                    rows.add(it)
+                                    it.cards.forEach {card ->
+                                        libraries.add(LibraryDto(id = card.uuid, title = card.title))
+                                    }
+                                }
                             }
-                            val libraries = mutableListOf<LibraryDto>()
-                            resource.data?.forEach {
-                                libraries.add(LibraryDto(id = it.uuid, title = it.title))
-                            }
-                            if (!resource.data.isNullOrEmpty()) {
-                                // TODO: Remove hardcoded title
-                                rows.add(HomeSectionRow(id = rowId, title = "My Media"))
-                            }
-                            loadContinueWatching(params, sections, rows, cards, libraries)
+                            loadContinueWatching(params, sections, rows, libraries)
                         }
                     }
                 }
         } else {
-            val libraries = mutableListOf<LibraryDto>()
-            return loadContinueWatching(params, sections, rows, cards, libraries)
+            return loadContinueWatching(params, sections, rows, libraries)
         }
     }
 
     private suspend fun loadContinueWatching(params: RequestParams, sections: List<HomeSectionType>,
-                                             rows: MutableList<HomeSectionRow>, cards: MutableList<HomeSectionCard>,
-                                             libraries: List<LibraryDto>): Flow<Resource<HomeContents>> {
+                                             rows: MutableList<HomeSectionRow>,
+                                             libraries: List<LibraryDto>): Flow<Resource<List<HomeSectionRow>>> {
         if (sections.contains(HomeSectionType.CONTINUE_WATCHING)) {
-            val rowId = sections.indexOf(HomeSectionType.CONTINUE_WATCHING)
             return observeContinueWatchingSection.invoke(ObserveContinueWatchingSection.RequestParams(params.userId, listOf("Video")))
                 .flatMapLatest { resource ->
                     when (resource.status) {
-                        Status.ERROR -> flow { emit(Resource.error<HomeContents>(resource.messages)) }
+                        Status.ERROR -> flow { emit(Resource.error<List<HomeSectionRow>>(resource.messages)) }
                         Status.LOADING -> flow {
                             // Don't emit another LOADING resource because the first request in the chain already emitted a LOADING resource
                         }
                         Status.SUCCESS -> {
-                            resource.data?.let {resultCards ->
-                                resultCards.forEach { it.rowId = rowId }
-                                cards.addAll(resultCards)
+                            resource.data?.let {
+                                if (it.cards.isNotEmpty()) {
+                                    rows.add(it)
+                                }
                             }
-                            if (!resource.data.isNullOrEmpty()) {
-                                rows.add(HomeSectionRow(id = rowId, title = "Continue Watching"))
-                            }
-                            loadNextUp(params, sections, rows, cards, libraries)
+                            loadNextUp(params, sections, rows, libraries)
                         }
                     }
                 }
         } else {
-            return loadNextUp(params, sections, rows, cards, libraries)
+            return loadNextUp(params, sections, rows, libraries)
         }
     }
 
     private suspend fun loadNextUp(params: RequestParams, sections: List<HomeSectionType>,
-                                   rows: MutableList<HomeSectionRow>, cards: MutableList<HomeSectionCard>,
-                                   libraries: List<LibraryDto>): Flow<Resource<HomeContents>> {
+                                   rows: MutableList<HomeSectionRow>,
+                                   libraries: List<LibraryDto>): Flow<Resource<List<HomeSectionRow>>> {
         if (sections.contains(HomeSectionType.NEXT_UP)) {
-            val rowId = sections.indexOf(HomeSectionType.NEXT_UP)
             return observeNextUpSection.invoke(ObserveNextUpSection.RequestParams(params.userId))
                 .flatMapLatest {resource ->
                     when (resource.status) {
-                        Status.ERROR -> flow { emit(Resource.error<HomeContents>(resource.messages)) }
+                        Status.ERROR -> flow { emit(Resource.error<List<HomeSectionRow>>(resource.messages)) }
                         Status.LOADING -> flow {
                             // Don't emit another LOADING resource because the first request in the chain already emitted a LOADING resource
                         }
                         Status.SUCCESS -> {
-                            resource.data?.let {resultCards ->
-                                resultCards.forEach { it.rowId = rowId }
-                                cards.addAll(resultCards)
+                            resource.data?.let {
+                                if (it.cards.isNotEmpty()) {
+                                    rows.add(it)
+                                }
                             }
-                            if (!resource.data.isNullOrEmpty()) {
-                                rows.add(HomeSectionRow(id = rowId, title = "Next Up"))
-                            }
-                            loadLatest(params, sections, rows, cards, libraries)
+                            loadLatest(params, sections, rows, libraries)
                         }
                     }
                 }
         } else {
-            return loadLatest(params, sections, rows, cards, libraries)
+            return loadLatest(params, sections, rows, libraries)
         }
     }
 
     private suspend fun loadLatest(params: RequestParams, sections: List<HomeSectionType>,
-                                   rows: MutableList<HomeSectionRow>, cards: MutableList<HomeSectionCard>,
-                                   libraries: List<LibraryDto>): Flow<Resource<HomeContents>> {
+                                   rows: MutableList<HomeSectionRow>,
+                                   libraries: List<LibraryDto>): Flow<Resource<List<HomeSectionRow>>> {
         if (sections.contains(HomeSectionType.LATEST_MEDIA)) {
-            val rowId = sections.indexOf(HomeSectionType.LATEST_MEDIA)
             return observeLatestSection.invoke(ObserveLatestSection.RequestParams(params.userId, libraries))
                 .flatMapLatest {resource ->
                     when (resource.status) {
-                        Status.ERROR -> flow { emit(Resource.error<HomeContents>(resource.messages)) }
+                        Status.ERROR -> flow { emit(Resource.error<List<HomeSectionRow>>(resource.messages)) }
                         Status.LOADING -> flow {
                             // Don't emit another LOADING resource because the first request in the chain already emitted a LOADING resource
                         }
                         Status.SUCCESS -> flow {
-                            resource.data?.let {homeContent ->
-                                homeContent.sections.forEach {
-                                    val currentId = it.id
-                                    it.id = currentId + rowId
+                            resource.data?.let {
+                                if (it.isNotEmpty()) {
+                                    rows.addAll(it)
                                 }
-                                homeContent.cards.forEach {
-                                    val currentRowId = it.rowId
-                                    it.rowId = currentRowId + rowId
-                                }
-                                rows.addAll(homeContent.sections)
-                                cards.addAll(homeContent.cards)
                             }
-                            emit(Resource.success(HomeContents(rows.toList(), cards.toList())))
+                            emit(Resource.success(rows.toList()))
                         }
                     }
                 }
         } else {
-            return flow { emit(Resource.success(HomeContents(rows.toList(), cards.toList()))) }
+            return flow { emit(Resource.success(rows.toList())) }
         }
     }
 

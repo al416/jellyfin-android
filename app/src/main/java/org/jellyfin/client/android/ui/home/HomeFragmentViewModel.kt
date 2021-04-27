@@ -8,7 +8,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.jellyfin.client.android.domain.models.Resource
-import org.jellyfin.client.android.domain.models.display_model.HomeContents
+import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.domain.usecase.ObserveHomePage
 import org.jellyfin.sdk.api.operations.UserApi
 import javax.inject.Inject
@@ -20,15 +20,15 @@ class HomeFragmentViewModel @Inject constructor(
     private val userApi: UserApi
 ) : ViewModel() {
 
-    private val homeContents: MutableLiveData<Resource<HomeContents>> by lazy {
-        val data = MutableLiveData<Resource<HomeContents>>()
-        loadHomeContents(data)
+    private val rows: MutableLiveData<Resource<List<HomeSectionRow>>> by lazy {
+        val data = MutableLiveData<Resource<List<HomeSectionRow>>>()
+        loadRows(data)
         data
     }
 
-    fun getHomeContents(): LiveData<Resource<HomeContents>> = homeContents
+    fun getRows(): LiveData<Resource<List<HomeSectionRow>>> = rows
 
-    private fun loadHomeContents(data: MutableLiveData<Resource<HomeContents>>) {
+    private fun loadRows(data: MutableLiveData<Resource<List<HomeSectionRow>>>) {
         viewModelScope.launch(computationDispatcher) {
             val uuid = userApi.getCurrentUser().content.id
 

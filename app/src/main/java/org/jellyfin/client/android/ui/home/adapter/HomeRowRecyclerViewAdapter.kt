@@ -2,21 +2,16 @@ package org.jellyfin.client.android.ui.home.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import org.jellyfin.client.android.R
-import org.jellyfin.client.android.domain.models.display_model.HomeContents
+import org.jellyfin.client.android.databinding.HomeDetailsSectionRowBinding
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 
 
-class HomeRowRecyclerViewAdapter(private val contents: HomeContents,
-                                 private val context: Context) : ListAdapter<HomeSectionRow, HomeRowRecyclerViewAdapter.RowViewHolder>(Companion) {
+class HomeRowRecyclerViewAdapter(private val context: Context) : ListAdapter<HomeSectionRow, HomeRowRecyclerViewAdapter.RowViewHolder>(Companion) {
 
     companion object: DiffUtil.ItemCallback<HomeSectionRow>() {
         override fun areItemsTheSame(oldItem: HomeSectionRow, newItem: HomeSectionRow): Boolean {
@@ -28,28 +23,22 @@ class HomeRowRecyclerViewAdapter(private val contents: HomeContents,
         }
     }
 
-    class RowViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var rowTitle: TextView = ViewCompat.requireViewById(itemView, R.id.row_title)
-        var cardRecyclerView: RecyclerView = ViewCompat.requireViewById(itemView, R.id.cards_recycler_view)
-    }
+    class RowViewHolder(val binding: HomeDetailsSectionRowBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RowViewHolder {
-        val view: View = LayoutInflater.from(parent.context).inflate(R.layout.home_details_section_row, parent, false)
-        return RowViewHolder(view)
-    }
-
-    override fun getItemCount(): Int {
-        return contents.sections.size
+        val layoutInflater = LayoutInflater.from(parent.context)
+        val binding = HomeDetailsSectionRowBinding.inflate(layoutInflater)
+        return RowViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: RowViewHolder, position: Int) {
         val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        holder.cardRecyclerView.layoutManager = layoutManager
+        holder.binding.cardsRecyclerView.layoutManager = layoutManager
 
-        val rowType = contents.sections[position]
-        val filteredList = contents.cards.filter { it.rowId == rowType.id}
+        val row = getItem(position)
+        holder.binding.row = row
+        holder.binding.cardsRecyclerView.adapter = HomeCardRecyclerViewAdapter(row.cards)
 
-        holder.rowTitle.text = rowType.title
-        holder.cardRecyclerView.adapter = HomeCardRecyclerViewAdapter(filteredList)
+        holder.binding.executePendingBindings()
     }
 }
