@@ -40,6 +40,12 @@ class HomeFragment : DaggerFragment() {
         val adapter = HomeRowRecyclerViewAdapter(requireActivity())
         binding.adapter = adapter
         binding.recyclerView.layoutManager = LinearLayoutManager(requireActivity())
+        binding.executePendingBindings()
+
+        adapter.onCardClick = {
+            // TODO: Send this card's info to the viewmodel so it can start playing the item/display details page
+            val card = it
+        }
 
         homeFragmentViewModel.getRows().observe(viewLifecycleOwner, Observer { resource ->
             when (resource.status) {
