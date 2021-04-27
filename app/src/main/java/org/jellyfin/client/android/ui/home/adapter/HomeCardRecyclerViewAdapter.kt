@@ -14,8 +14,10 @@ import org.jellyfin.client.android.R
 import org.jellyfin.client.android.domain.models.display_model.HomeCardType
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 
-class HomeCardRecyclerViewAdapter(var cardList: List<HomeSectionCard>) :
+class HomeCardRecyclerViewAdapter() :
     ListAdapter<HomeSectionCard, HomeCardRecyclerViewAdapter.CardViewHolder>(Companion) {
+
+    var onCardClick: ((HomeSectionCard) -> Unit)? = null
 
     companion object: DiffUtil.ItemCallback<HomeSectionCard>() {
         override fun areItemsTheSame(oldItem: HomeSectionCard, newItem: HomeSectionCard): Boolean {
@@ -25,7 +27,6 @@ class HomeCardRecyclerViewAdapter(var cardList: List<HomeSectionCard>) :
         override fun areContentsTheSame(oldItem: HomeSectionCard, newItem: HomeSectionCard): Boolean {
             return oldItem == newItem
         }
-
     }
 
     class CardViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -41,21 +42,20 @@ class HomeCardRecyclerViewAdapter(var cardList: List<HomeSectionCard>) :
     }
 
     override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
-        val card = cardList[position]
+        val card = getItem(position)
         // TODO: Add the correct placeholder and error images
         holder.cardBackgroundImage.load(card.imageUrl) {
             placeholder(R.drawable.ic_launcher_foreground)
             error(R.drawable.ic_launcher_background)
         }
+        holder.itemView.setOnClickListener {
+            onCardClick?.invoke(card)
+        }
         holder.title.text = card.title
         holder.subtitle.text = card.subtitle
     }
 
-    override fun getItemCount(): Int {
-        return cardList.size
-    }
-
     override fun getItemViewType(position: Int): Int {
-        return cardList[position].homeCardType.ordinal
+        return getItem(position).homeCardType.ordinal
     }
 }
