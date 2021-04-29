@@ -8,12 +8,13 @@ import dagger.Module
 import dagger.multibindings.IntoMap
 import org.jellyfin.client.android.ui.home.HomeFragmentViewModel
 import org.jellyfin.client.android.ui.login.LoginFragmentViewModel
+import org.jellyfin.client.android.ui.player.PlayerViewModel
 import kotlin.reflect.KClass
 
 @Module
 abstract class ViewModelModule {
     @Binds
-    abstract fun bindViewModelFactory(factory: ViewModelFactory): ViewModelProvider.Factory
+    abstract fun bindsViewModelFactory(factory: ViewModelFactory): ViewModelProvider.Factory
 
     @Binds
     @IntoMap
@@ -24,6 +25,11 @@ abstract class ViewModelModule {
     @IntoMap
     @ViewModelKey(HomeFragmentViewModel::class)
     abstract fun bindsHomeFragmentViewModel(homeFragmentViewModel: HomeFragmentViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(PlayerViewModel::class)
+    abstract fun bindsPlayerFragmentViewModel(playerViewModel: PlayerViewModel): ViewModel
 }
 
 @MustBeDocumented

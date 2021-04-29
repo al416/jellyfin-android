@@ -1,5 +1,6 @@
 package org.jellyfin.client.android.ui.home
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,8 +10,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.databinding.FragmentHomeBinding
+import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_MEDIA_UUID
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.ui.home.adapter.HomeRowRecyclerViewAdapter
+import org.jellyfin.client.android.ui.player.PlayerActivity
 import javax.inject.Inject
 
 
@@ -43,8 +46,10 @@ class HomeFragment : DaggerFragment() {
         binding.executePendingBindings()
 
         adapter.onCardClick = {
-            // TODO: Send this card's info to the viewmodel so it can start playing the item/display details page
             val card = it
+            val intent = Intent(requireActivity(), PlayerActivity::class.java)
+            intent.putExtra(BUNDLE_TAG_MEDIA_UUID, card.uuid.toString())
+            startActivity(intent)
         }
 
         homeFragmentViewModel.getRows().observe(viewLifecycleOwner, Observer { resource ->

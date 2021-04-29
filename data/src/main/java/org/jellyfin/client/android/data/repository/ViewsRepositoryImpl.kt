@@ -8,7 +8,6 @@ import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.LibraryDto
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.display_model.HomeCardType
-import org.jellyfin.client.android.domain.models.display_model.HomeContents
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionType
@@ -25,7 +24,7 @@ import javax.inject.Inject
 import javax.inject.Named
 
 
-class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val computationDispatcher: CoroutineDispatcher,
+class ViewsRepositoryImpl @Inject constructor(@Named("network") private val networkDispatcher: CoroutineDispatcher,
                                               private val userViewsApi: UserViewsApi,
                                               private val itemsApi: ItemsApi,
                                               private val tvShowsApi: TvShowsApi,
@@ -49,7 +48,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                 val error = e.message
                 emit(Resource.error(listOf(Error(null, 1, "Error", null))))
             }
-        }.flowOn(computationDispatcher)
+        }.flowOn(networkDispatcher)
     }
 
     override suspend fun getContinueWatchingSection(userId: UUID, mediaTypes: List<String>?): Flow<Resource<HomeSectionRow>> {
@@ -74,7 +73,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                 val error = e.message
                 emit(Resource.error(listOf(Error(1, 1, "Error", null))))
             }
-        }.flowOn(computationDispatcher)
+        }.flowOn(networkDispatcher)
     }
 
     override suspend fun getNextUpSection(userId: UUID): Flow<Resource<HomeSectionRow>> {
@@ -99,7 +98,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                 val error = e.message
                 emit(Resource.error(listOf(Error(1, 1, "Error", null))))
             }
-        }.flowOn(computationDispatcher)
+        }.flowOn(networkDispatcher)
     }
 
     override suspend fun getLatestSection(userId: UUID, libraries: List<LibraryDto>): Flow<Resource<List<HomeSectionRow>>> {
@@ -131,7 +130,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
                 val error = e.message
                 emit(Resource.error(listOf(Error(1, 1, "Error", null))))
             }
-        }.flowOn(computationDispatcher)
+        }.flowOn(networkDispatcher)
     }
 
     override suspend fun getHomeSections(userId: UUID): Flow<Resource<List<HomeSectionType>>> {
@@ -148,6 +147,6 @@ class ViewsRepositoryImpl @Inject constructor(@Named("computation") private val 
             } catch (e: Exception) {
                 emit(Resource.error(listOf(Error(null, 1, "Error", null))))
             }
-        }.flowOn(computationDispatcher)
+        }.flowOn(networkDispatcher)
     }
 }
