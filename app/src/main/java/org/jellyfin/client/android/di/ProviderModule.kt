@@ -12,7 +12,6 @@ import javax.inject.Singleton
 @Suppress("unused")
 class ProviderModule {
 
-    @Singleton
     @Provides
     internal fun providesExoPlayer(context: Context): ExoPlayer {
         return SimpleExoPlayer.Builder(context).build()

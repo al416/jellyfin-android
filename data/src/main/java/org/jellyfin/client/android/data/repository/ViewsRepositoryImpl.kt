@@ -11,6 +11,7 @@ import org.jellyfin.client.android.domain.models.display_model.HomeCardType
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionType
+import org.jellyfin.client.android.domain.repository.CurrentUserRepository
 import org.jellyfin.client.android.domain.repository.ViewsRepository
 import org.jellyfin.sdk.api.operations.ImageApi
 import org.jellyfin.sdk.api.operations.ItemsApi
@@ -29,16 +30,18 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                                               private val itemsApi: ItemsApi,
                                               private val tvShowsApi: TvShowsApi,
                                               private val userLibraryApi: UserLibraryApi,
-                                              private val imageApi: ImageApi
+                                              private val imageApi: ImageApi,
+                                              private val currentUserRepository: CurrentUserRepository
 ) : ViewsRepository {
-    override suspend fun getMyMediaSection(userId: UUID): Flow<Resource<HomeSectionRow>> {
+    override suspend fun getMyMediaSection(): Flow<Resource<HomeSectionRow>> {
+        val userId = currentUserRepository.getCurrentUserId()
         return flow<Resource<HomeSectionRow>> {
             emit(Resource.loading())
             try {
                 val cards = mutableListOf<HomeSectionCard>()
                 val result by userViewsApi.getUserViews(userId)
                 result.items?.forEachIndexed {index, item ->
-                    val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP, fillWidth = 354, fillHeight = 200)
+                    val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.PRIMARY)
                     cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
                 }
                 // TODO: Use a repo to get My Media string
@@ -51,7 +54,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
         }.flowOn(networkDispatcher)
     }
 
-    override suspend fun getContinueWatchingSection(userId: UUID, mediaTypes: List<String>?): Flow<Resource<HomeSectionRow>> {
+    override suspend fun getContinueWatchingSection(mediaTypes: List<String>?): Flow<Resource<HomeSectionRow>> {
+        val userId = currentUserRepository.getCurrentUserId()
         return flow<Resource<HomeSectionRow>> {
             emit(Resource.loading())
             try {
@@ -63,7 +67,12 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                     enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.THUMB),
                     mediaTypes = mediaTypes)
                 result.items?.forEachIndexed {index, item ->
-                    val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP, fillWidth = 354, fillHeight = 200)
+                    var itemId = item.id
+                    if (item.backdropImageTags.isNullOrEmpty() && !item.parentBackdropItemId.isNullOrBlank() && item.seriesId != null) {
+                        itemId = item.seriesId!!
+                    }
+                    val imageUrl = imageApi.getItemImageUrl(itemId = itemId, imageType = ImageType.BACKDROP)
+
                     cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
                 }
                 // TODO: Use a repo to get Continue Watching string
@@ -76,7 +85,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
         }.flowOn(networkDispatcher)
     }
 
-    override suspend fun getNextUpSection(userId: UUID): Flow<Resource<HomeSectionRow>> {
+    override suspend fun getNextUpSection(): Flow<Resource<HomeSectionRow>> {
+        val userId = currentUserRepository.getCurrentUserId()
         return flow<Resource<HomeSectionRow>> {
             emit(Resource.loading())
             try {
@@ -88,7 +98,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                     enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.BANNER, ImageType.THUMB),
                     disableFirstEpisode = true)
                 result.items?.forEachIndexed {index, item ->
-                    val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP, fillWidth = 354, fillHeight = 200)
+                    val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP)
                     cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
                 }
                 // TODO: Use a repo to get Next Up string
@@ -101,7 +111,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
         }.flowOn(networkDispatcher)
     }
 
-    override suspend fun getLatestSection(userId: UUID, libraries: List<LibraryDto>): Flow<Resource<List<HomeSectionRow>>> {
+    override suspend fun getLatestSection(libraries: List<LibraryDto>): Flow<Resource<List<HomeSectionRow>>> {
+        val userId = currentUserRepository.getCurrentUserId()
         return flow<Resource<List<HomeSectionRow>>> {
             emit(Resource.loading())
             try {
@@ -133,7 +144,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
         }.flowOn(networkDispatcher)
     }
 
-    override suspend fun getHomeSections(userId: UUID): Flow<Resource<List<HomeSectionType>>> {
+    override suspend fun getHomeSections(): Flow<Resource<List<HomeSectionType>>> {
         return flow<Resource<List<HomeSectionType>>> {
             emit(Resource.loading())
             try {

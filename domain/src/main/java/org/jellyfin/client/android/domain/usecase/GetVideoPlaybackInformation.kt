@@ -23,9 +23,12 @@ class GetVideoPlaybackInformation @Inject constructor(@Named("network") dispatch
             throw IllegalArgumentException("No parameters passed! Please pass the required parameters.")
         }
 
-        return getTranscodingUrl.invoke(GetTranscodingUrl.RequestParams(params.mediaId, params.userId)).flatMapLatest {
+        return getTranscodingUrl.invoke(GetTranscodingUrl.RequestParams(params.mediaId)).flatMapLatest {
             when (it.status) {
-                Status.ERROR -> flow { emit(Resource.error<VideoPlaybackInformation>(it.messages)) }
+                Status.ERROR -> {
+                    // There is an error with getting the transcoding URL so try to get the direct play URL
+                    getDirectPlayUrl(params.mediaId)
+                }
                 Status.LOADING -> flow {emit(Resource.loading<VideoPlaybackInformation>())}
                 Status.SUCCESS -> {
                     // The server did not provide a valid transcoding URL so try to get a direct play URL
@@ -57,5 +60,5 @@ class GetVideoPlaybackInformation @Inject constructor(@Named("network") dispatch
         }
     }
 
-    data class RequestParams(val mediaId: UUID, val userId: UUID)
+    data class RequestParams(val mediaId: UUID)
 }

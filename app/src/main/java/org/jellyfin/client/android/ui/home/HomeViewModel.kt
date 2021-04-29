@@ -14,7 +14,7 @@ import org.jellyfin.sdk.api.operations.UserApi
 import javax.inject.Inject
 import javax.inject.Named
 
-class HomeFragmentViewModel @Inject constructor(
+class HomeViewModel @Inject constructor(
     @Named("computation") private val computationDispatcher: CoroutineDispatcher,
     private val observeHomePage: ObserveHomePage,
     private val userApi: UserApi
@@ -30,9 +30,7 @@ class HomeFragmentViewModel @Inject constructor(
 
     private fun loadRows(data: MutableLiveData<Resource<List<HomeSectionRow>>>) {
         viewModelScope.launch(computationDispatcher) {
-            val uuid = userApi.getCurrentUser().content.id
-
-            observeHomePage.invoke(ObserveHomePage.RequestParams(uuid)).collectLatest {
+            observeHomePage.invoke().collectLatest {
                 data.postValue(it)
             }
 

@@ -13,7 +13,7 @@ import org.jellyfin.client.android.domain.usecase.DoUserLogin
 import javax.inject.Inject
 import javax.inject.Named
 
-class LoginFragmentViewModel @Inject constructor(
+class LoginViewModel @Inject constructor(
     @Named("computation") private val computationDispatcher: CoroutineDispatcher,
     private val doUserLogin: DoUserLogin
 ) : ViewModel() {
