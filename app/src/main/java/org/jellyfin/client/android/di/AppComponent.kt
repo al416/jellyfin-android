@@ -16,7 +16,8 @@ import javax.inject.Singleton
         ThreadModule::class,
         JellyfinModule::class,
         RepositoryModule::class,
-        ViewModelModule::class]
+        ViewModelModule::class,
+        ProviderModule::class]
 )
 interface AppComponent : AndroidInjector<App> {
     override fun inject(app: App)

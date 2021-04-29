@@ -8,8 +8,6 @@ import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.LibraryDto
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.Status
-import org.jellyfin.client.android.domain.models.display_model.HomeContents
-import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionType
 import java.util.*

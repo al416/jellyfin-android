@@ -3,6 +3,7 @@ plugins {
     id 'kotlin-android'
     id 'kotlin-android-extensions'
     id 'kotlin-kapt'
+    id 'androidx.navigation.safeargs.kotlin'
 }
 
 android {
@@ -10,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "org.jellyfin.client.android"
-        minSdkVersion 26
+        minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -82,12 +83,26 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout:2.0.4"
 
     // Jellyfin Kotlin SDK
-    implementation "org.jellyfin.sdk:jellyfin-core:1.0.0-beta.3"
+    implementation "org.jellyfin.sdk:jellyfin-core:$jellyfin_sdk_version"
 
     // Multidex
     implementation 'androidx.multidex:multidex:2.0.1'
 
     // Coil Image Loading library
-    implementation "io.coil-kt:coil:1.2.0"
+    implementation "io.coil-kt:coil:$coil_version"
+
+    // Exoplayer
+    implementation "com.google.android.exoplayer:exoplayer-core:$exoplayer_version"
+    implementation "com.google.android.exoplayer:exoplayer-dash:$exoplayer_version"
+    implementation "com.google.android.exoplayer:exoplayer-ui:$exoplayer_version"
+    implementation "com.google.android.exoplayer:exoplayer-hls:$exoplayer_version"
+
+    // Navigation
+    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
+    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
+
+    // Navigation - Feature module support
+    implementation "androidx.navigation:navigation-dynamic-features-fragment:$nav_version"
+
 
 }
