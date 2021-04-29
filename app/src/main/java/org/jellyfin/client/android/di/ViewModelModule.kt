@@ -6,8 +6,8 @@ import dagger.Binds
 import dagger.MapKey
 import dagger.Module
 import dagger.multibindings.IntoMap
-import org.jellyfin.client.android.ui.home.HomeFragmentViewModel
-import org.jellyfin.client.android.ui.login.LoginFragmentViewModel
+import org.jellyfin.client.android.ui.home.HomeViewModel
+import org.jellyfin.client.android.ui.login.LoginViewModel
 import org.jellyfin.client.android.ui.player.PlayerViewModel
 import kotlin.reflect.KClass
 
@@ -18,18 +18,18 @@ abstract class ViewModelModule {
 
     @Binds
     @IntoMap
-    @ViewModelKey(LoginFragmentViewModel::class)
-    abstract fun bindsLoginFragmentViewModel(loginFragmentViewModel: LoginFragmentViewModel): ViewModel
+    @ViewModelKey(LoginViewModel::class)
+    abstract fun bindsLoginViewModel(loginViewModel: LoginViewModel): ViewModel
 
     @Binds
     @IntoMap
-    @ViewModelKey(HomeFragmentViewModel::class)
-    abstract fun bindsHomeFragmentViewModel(homeFragmentViewModel: HomeFragmentViewModel): ViewModel
+    @ViewModelKey(HomeViewModel::class)
+    abstract fun bindsHomeViewModel(homeViewModel: HomeViewModel): ViewModel
 
     @Binds
     @IntoMap
     @ViewModelKey(PlayerViewModel::class)
-    abstract fun bindsPlayerFragmentViewModel(playerViewModel: PlayerViewModel): ViewModel
+    abstract fun bindsPlayerViewModel(playerViewModel: PlayerViewModel): ViewModel
 }
 
 @MustBeDocumented

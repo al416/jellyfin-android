@@ -7,7 +7,7 @@ import java.util.*
 
 interface MediaRepository {
 
-    suspend fun getTranscodingUrl(mediaId: UUID, userId: UUID): Flow<Resource<VideoPlaybackInformation>>
+    suspend fun getTranscodingUrl(mediaId: UUID): Flow<Resource<VideoPlaybackInformation>>
 
     suspend fun getDirectPlayUrl(mediaId: UUID): Flow<Resource<VideoPlaybackInformation>>
 

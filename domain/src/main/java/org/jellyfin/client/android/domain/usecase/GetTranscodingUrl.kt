@@ -18,8 +18,8 @@ class GetTranscodingUrl @Inject constructor(@Named("network") dispatcher: Corout
             throw IllegalArgumentException("No parameters passed! Please pass the required parameters.")
         }
 
-        return mediaRepository.getTranscodingUrl(params.mediaId, params.userId)
+        return mediaRepository.getTranscodingUrl(params.mediaId)
     }
 
-    data class RequestParams(val mediaId: UUID, val userId: UUID)
+    data class RequestParams(val mediaId: UUID)
 }

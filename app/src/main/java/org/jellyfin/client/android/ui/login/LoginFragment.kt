@@ -28,8 +28,8 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
 
-    private val loginFragmentViewModel: LoginFragmentViewModel by lazy {
-        ViewModelProvider(requireActivity(), viewModelFactory).get(LoginFragmentViewModel::class.java)
+    private val loginViewModel: LoginViewModel by lazy {
+        ViewModelProvider(requireActivity(), viewModelFactory).get(LoginViewModel::class.java)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) : View? {
@@ -46,7 +46,7 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
         buttonLogin = ViewCompat.requireViewById(view, R.id.buttonLogin)
         buttonLogin.setOnClickListener(this)
 
-        loginFragmentViewModel.getLoginState().observe(viewLifecycleOwner, Observer {
+        loginViewModel.getLoginState().observe(viewLifecycleOwner, Observer {
             it?.let {resource ->
                 when (resource.status) {
                     // Login successful so move to Home screen
@@ -72,7 +72,7 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
         when (view?.id) {
             R.id.buttonLogin -> {
                 view.isEnabled = false
-                loginFragmentViewModel.doUserLogin(baseUrl = textBaseUrl.text.toString(),
+                loginViewModel.doUserLogin(baseUrl = textBaseUrl.text.toString(),
                     username = textUsername.text.toString(),
                     password = textPassword.text.toString())
             }

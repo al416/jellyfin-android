@@ -20,14 +20,10 @@ class ObserveHomePage @Inject constructor(@Named("network") dispatcher: Coroutin
                                           private val observeMyMediaSection: ObserveMyMediaSection,
                                           private val observeContinueWatchingSection: ObserveContinueWatchingSection,
                                           private val observeNextUpSection: ObserveNextUpSection,
-                                          private val observeLatestSection: ObserveLatestSection) : BaseUseCase<List<HomeSectionRow>, ObserveHomePage.RequestParams>(dispatcher) {
+                                          private val observeLatestSection: ObserveLatestSection) : BaseUseCase<List<HomeSectionRow>, Any?>(dispatcher) {
 
-    override suspend fun invokeInternal(params: RequestParams?): Flow<Resource<List<HomeSectionRow>>> {
-        if (params == null) {
-            throw IllegalArgumentException("Expecting valid parameters")
-        }
-
-        return getHomeSections.invoke(GetHomeSections.RequestParams(params.userId)).flatMapLatest {
+    override suspend fun invokeInternal(params: Any?): Flow<Resource<List<HomeSectionRow>>> {
+        return getHomeSections.invoke().flatMapLatest {
             when (it.status) {
                 Status.ERROR -> flow { emit(Resource.error<List<HomeSectionRow>>(it.messages)) }
                 Status.LOADING -> flow {emit(Resource.loading<List<HomeSectionRow>>())}
@@ -37,18 +33,18 @@ class ObserveHomePage @Inject constructor(@Named("network") dispatcher: Coroutin
                         flow { emit(Resource.error<List<HomeSectionRow>>(listOf(Error(0, 0, "Could not retrieve home sections", null)))) }
                     } else {
                         val rows = mutableListOf<HomeSectionRow>()
-                        loadMyMedia(params, it.data, rows)
+                        loadMyMedia(it.data, rows)
                     }
                 }
             }
         }
     }
 
-    private suspend fun loadMyMedia(params: RequestParams, sections: List<HomeSectionType>,
+    private suspend fun loadMyMedia(sections: List<HomeSectionType>,
                                     rows: MutableList<HomeSectionRow>): Flow<Resource<List<HomeSectionRow>>> {
         val libraries = mutableListOf<LibraryDto>()
         if (sections.contains(HomeSectionType.MY_MEDIA)) {
-            return observeMyMediaSection.invoke(ObserveMyMediaSection.RequestParams(params.userId))
+            return observeMyMediaSection.invoke()
                 .flatMapLatest { resource ->
                     when (resource.status) {
                         Status.ERROR -> flow { emit(Resource.error<List<HomeSectionRow>>(resource.messages)) }
@@ -65,20 +61,20 @@ class ObserveHomePage @Inject constructor(@Named("network") dispatcher: Coroutin
                                     }
                                 }
                             }
-                            loadContinueWatching(params, sections, rows, libraries)
+                            loadContinueWatching(sections, rows, libraries)
                         }
                     }
                 }
         } else {
-            return loadContinueWatching(params, sections, rows, libraries)
+            return loadContinueWatching(sections, rows, libraries)
         }
     }
 
-    private suspend fun loadContinueWatching(params: RequestParams, sections: List<HomeSectionType>,
+    private suspend fun loadContinueWatching(sections: List<HomeSectionType>,
                                              rows: MutableList<HomeSectionRow>,
                                              libraries: List<LibraryDto>): Flow<Resource<List<HomeSectionRow>>> {
         if (sections.contains(HomeSectionType.CONTINUE_WATCHING)) {
-            return observeContinueWatchingSection.invoke(ObserveContinueWatchingSection.RequestParams(params.userId, listOf("Video")))
+            return observeContinueWatchingSection.invoke(ObserveContinueWatchingSection.RequestParams(listOf("Video")))
                 .flatMapLatest { resource ->
                     when (resource.status) {
                         Status.ERROR -> flow { emit(Resource.error<List<HomeSectionRow>>(resource.messages)) }
@@ -91,20 +87,20 @@ class ObserveHomePage @Inject constructor(@Named("network") dispatcher: Coroutin
                                     rows.add(it)
                                 }
                             }
-                            loadNextUp(params, sections, rows, libraries)
+                            loadNextUp(sections, rows, libraries)
                         }
                     }
                 }
         } else {
-            return loadNextUp(params, sections, rows, libraries)
+            return loadNextUp(sections, rows, libraries)
         }
     }
 
-    private suspend fun loadNextUp(params: RequestParams, sections: List<HomeSectionType>,
+    private suspend fun loadNextUp(sections: List<HomeSectionType>,
                                    rows: MutableList<HomeSectionRow>,
                                    libraries: List<LibraryDto>): Flow<Resource<List<HomeSectionRow>>> {
         if (sections.contains(HomeSectionType.NEXT_UP)) {
-            return observeNextUpSection.invoke(ObserveNextUpSection.RequestParams(params.userId))
+            return observeNextUpSection.invoke()
                 .flatMapLatest {resource ->
                     when (resource.status) {
                         Status.ERROR -> flow { emit(Resource.error<List<HomeSectionRow>>(resource.messages)) }
@@ -117,20 +113,20 @@ class ObserveHomePage @Inject constructor(@Named("network") dispatcher: Coroutin
                                     rows.add(it)
                                 }
                             }
-                            loadLatest(params, sections, rows, libraries)
+                            loadLatest(sections, rows, libraries)
                         }
                     }
                 }
         } else {
-            return loadLatest(params, sections, rows, libraries)
+            return loadLatest(sections, rows, libraries)
         }
     }
 
-    private suspend fun loadLatest(params: RequestParams, sections: List<HomeSectionType>,
+    private suspend fun loadLatest(sections: List<HomeSectionType>,
                                    rows: MutableList<HomeSectionRow>,
                                    libraries: List<LibraryDto>): Flow<Resource<List<HomeSectionRow>>> {
         if (sections.contains(HomeSectionType.LATEST_MEDIA)) {
-            return observeLatestSection.invoke(ObserveLatestSection.RequestParams(params.userId, libraries))
+            return observeLatestSection.invoke(ObserveLatestSection.RequestParams(libraries))
                 .flatMapLatest {resource ->
                     when (resource.status) {
                         Status.ERROR -> flow { emit(Resource.error<List<HomeSectionRow>>(resource.messages)) }
@@ -151,6 +147,4 @@ class ObserveHomePage @Inject constructor(@Named("network") dispatcher: Coroutin
             return flow { emit(Resource.success(rows.toList())) }
         }
     }
-
-    data class RequestParams(val userId: UUID)
 }

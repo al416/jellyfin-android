@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.flowOn
 import org.jellyfin.client.android.domain.models.Login
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.Error
+import org.jellyfin.client.android.domain.repository.CurrentUserRepository
 import org.jellyfin.client.android.domain.repository.LoginRepository
 import org.jellyfin.sdk.api.client.KtorClient
 import org.jellyfin.sdk.api.operations.UserApi
@@ -16,7 +17,8 @@ import javax.inject.Named
 
 class LoginRepositoryImpl @Inject constructor(@Named("computation") private val computationDispatcher: CoroutineDispatcher,
                                               private val api: KtorClient,
-                                              private val userApi: UserApi
+                                              private val userApi: UserApi,
+                                              private val currentUserRepository: CurrentUserRepository
 ) : LoginRepository {
 
     override suspend fun doUserLogin(baseUrl: String, username: String, password: String): Flow<Resource<Login>> {
@@ -28,6 +30,10 @@ class LoginRepositoryImpl @Inject constructor(@Named("computation") private val 
             try {
                 val authenticationResult by userApi.authenticateUserByName(user)
                 api.accessToken = authenticationResult.accessToken
+                authenticationResult.user?.let {
+                    currentUserRepository.setCurrentUserId(it.id)
+                    currentUserRepository.setBaseUrl(baseUrl)
+                }
                 emit(Resource.success(Login(authenticationResult.accessToken)))
             } catch (e: Exception) {
                 // TODO: Need to catch httpException and pass along correct error message

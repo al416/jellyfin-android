@@ -24,8 +24,8 @@ class HomeFragment : DaggerFragment() {
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
 
-    private val homeFragmentViewModel: HomeFragmentViewModel by lazy {
-        ViewModelProvider(requireActivity(), viewModelFactory).get(HomeFragmentViewModel::class.java)
+    private val homeViewModel: HomeViewModel by lazy {
+        ViewModelProvider(requireActivity(), viewModelFactory).get(HomeViewModel::class.java)
     }
 
     override fun onCreateView(
@@ -52,7 +52,7 @@ class HomeFragment : DaggerFragment() {
             startActivity(intent)
         }
 
-        homeFragmentViewModel.getRows().observe(viewLifecycleOwner, Observer { resource ->
+        homeViewModel.getRows().observe(viewLifecycleOwner, Observer { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
                     resource.data?.let {rows ->

@@ -19,8 +19,8 @@ class ObserveLatestSection @Inject constructor(@Named("network") dispatcher: Cor
             throw IllegalArgumentException("Expecting valid parameters")
         }
 
-        return viewsRepository.getLatestSection(params.userId, params.libraries)
+        return viewsRepository.getLatestSection(params.libraries)
     }
 
-    data class RequestParams(val userId: UUID, val libraries: List<LibraryDto>)
+    data class RequestParams(val libraries: List<LibraryDto>)
 }

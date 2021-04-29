@@ -12,15 +12,9 @@ import javax.inject.Named
 
 class GetHomeSections @Inject constructor(@Named("network") dispatcher: CoroutineDispatcher,
                                                private val viewsRepository: ViewsRepository
-) : BaseUseCase<List<HomeSectionType>, GetHomeSections.RequestParams>(dispatcher) {
+) : BaseUseCase<List<HomeSectionType>, Any>(dispatcher) {
 
-    override suspend fun invokeInternal(params: RequestParams?): Flow<Resource<List<HomeSectionType>>> {
-        if (params == null) {
-            throw IllegalArgumentException("Expecting valid parameters")
-        }
-
-        return viewsRepository.getHomeSections(params.userId)
+    override suspend fun invokeInternal(params: Any?): Flow<Resource<List<HomeSectionType>>> {
+        return viewsRepository.getHomeSections()
     }
-
-    data class RequestParams(val userId: UUID)
 }

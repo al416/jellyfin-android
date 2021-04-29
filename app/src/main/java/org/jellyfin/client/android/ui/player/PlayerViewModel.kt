@@ -21,11 +21,9 @@ class PlayerViewModel @Inject constructor(
 ) : ViewModel() {
 
     private lateinit var mediaId: UUID
-    private lateinit var userId: UUID
 
-    fun initialize(mediaId: String, userId: String) {
+    fun initialize(mediaId: String) {
         this.mediaId = UUID.fromString(mediaId)
-        this.userId = UUID.fromString(userId)
     }
 
     private val videoPlaybackInformation: MutableLiveData<Resource<VideoPlaybackInformation>> by lazy {
@@ -38,7 +36,7 @@ class PlayerViewModel @Inject constructor(
 
     private fun loadVideoPlaybackInformation(data: MutableLiveData<Resource<VideoPlaybackInformation>>) {
         viewModelScope.launch(computationDispatcher) {
-            getVideoPlaybackInformation.invoke(GetVideoPlaybackInformation.RequestParams(mediaId, userId)).collectLatest {
+            getVideoPlaybackInformation.invoke(GetVideoPlaybackInformation.RequestParams(mediaId)).collectLatest {
                 data.postValue(it)
             }
         }

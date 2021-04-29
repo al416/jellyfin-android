@@ -28,14 +28,13 @@ class PlayerActivity : DaggerAppCompatActivity() {
 
     private lateinit var playerView: PlayerView
     private lateinit var mediaId: String
-    private lateinit var userId: String
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
 
     private val playerViewModel: PlayerViewModel by lazy {
         val model = ViewModelProvider(this, viewModelFactory).get(PlayerViewModel::class.java)
-        model.initialize(mediaId, userId)
+        model.initialize(mediaId)
         model
     }
 
@@ -44,7 +43,6 @@ class PlayerActivity : DaggerAppCompatActivity() {
         setContentView(R.layout.activity_player)
 
         mediaId = intent.getStringExtra(BUNDLE_TAG_MEDIA_UUID) ?: ""
-        userId = "" // TODO: retrieve the userId from a user repository
         playerView = findViewById(R.id.player_view)
         playerView.player = exoPlayer
 
