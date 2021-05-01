@@ -8,27 +8,27 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.jellyfin.client.android.domain.models.Resource
-import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
-import org.jellyfin.client.android.domain.usecase.ObserveHomePage
+import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
+import org.jellyfin.client.android.domain.usecase.ObserveRecentItems
 import javax.inject.Inject
 import javax.inject.Named
 
-class HomeViewModel @Inject constructor(
+class RecentItemViewModel @Inject constructor(
     @Named("computation") private val computationDispatcher: CoroutineDispatcher,
-    private val observeHomePage: ObserveHomePage
+    private val observeRecentItems: ObserveRecentItems
 ) : ViewModel() {
 
-    private val rows: MutableLiveData<Resource<List<HomeSectionRow>>> by lazy {
-        val data = MutableLiveData<Resource<List<HomeSectionRow>>>()
-        loadRows(data)
+    private val recentItems: MutableLiveData<Resource<List<HomeSectionCard>>> by lazy {
+        val data = MutableLiveData<Resource<List<HomeSectionCard>>>()
+        loadRecentItems(data)
         data
     }
 
-    fun getRows(): LiveData<Resource<List<HomeSectionRow>>> = rows
+    fun getRecentItems(): LiveData<Resource<List<HomeSectionCard>>> = recentItems
 
-    private fun loadRows(data: MutableLiveData<Resource<List<HomeSectionRow>>>) {
+    private fun loadRecentItems(data: MutableLiveData<Resource<List<HomeSectionCard>>>) {
         viewModelScope.launch(computationDispatcher) {
-            observeHomePage.invoke().collectLatest {
+            observeRecentItems.invoke().collectLatest {
                 data.postValue(it)
             }
         }

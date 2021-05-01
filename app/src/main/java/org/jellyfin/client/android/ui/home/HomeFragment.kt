@@ -8,10 +8,12 @@ import android.view.ViewGroup
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.tabs.TabLayoutMediator
 import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.databinding.FragmentHomeBinding
 import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_MEDIA_UUID
 import org.jellyfin.client.android.domain.models.Status
+import org.jellyfin.client.android.ui.home.adapter.HomeRecentItemsFragmentAdapter
 import org.jellyfin.client.android.ui.home.adapter.HomeRowRecyclerViewAdapter
 import org.jellyfin.client.android.ui.player.PlayerActivity
 import javax.inject.Inject
@@ -28,6 +30,10 @@ class HomeFragment : DaggerFragment() {
         ViewModelProvider(requireActivity(), viewModelFactory).get(HomeViewModel::class.java)
     }
 
+    private val recentItemViewModel: RecentItemViewModel by lazy {
+        ViewModelProvider(requireActivity(), viewModelFactory).get(RecentItemViewModel::class.java)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -39,10 +45,14 @@ class HomeFragment : DaggerFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupRecentItems()
+        setupSections()
+    }
 
+    private fun setupSections() {
         val adapter = HomeRowRecyclerViewAdapter(requireActivity())
-        binding.adapter = adapter
-        binding.recyclerView.layoutManager = LinearLayoutManager(requireActivity())
+        binding.sectionAdapter = adapter
+        binding.sectionsRecyclerView.layoutManager = LinearLayoutManager(requireActivity())
         binding.executePendingBindings()
 
         adapter.onCardClick = {
@@ -62,6 +72,33 @@ class HomeFragment : DaggerFragment() {
                         } else {
                             adapter.submitList(rows)
                         }
+                    }
+                }
+                // TODO: Display error message
+                Status.ERROR -> {
+
+                }
+                // TODO: Display loading indicator
+                Status.LOADING -> {
+
+                }
+            }
+        })
+    }
+
+    private fun setupRecentItems() {
+        binding.recentItemsAdapter = HomeRecentItemsFragmentAdapter(this, 0)
+        binding.executePendingBindings()
+
+        TabLayoutMediator(binding.tabLayout, binding.recentItemsViewPager) { tab, position ->
+        }.attach()
+
+        recentItemViewModel.getRecentItems().observe(viewLifecycleOwner, Observer { resource ->
+            when (resource.status) {
+                Status.SUCCESS -> {
+                    resource.data?.let {recentItems ->
+                        (binding.recentItemsViewPager.adapter as HomeRecentItemsFragmentAdapter).totalItems = recentItems.size
+                        (binding.recentItemsViewPager.adapter as HomeRecentItemsFragmentAdapter).notifyDataSetChanged()
                     }
                 }
                 // TODO: Display error message

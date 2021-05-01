@@ -3,6 +3,7 @@ package org.jellyfin.client.android.domain.repository
 import kotlinx.coroutines.flow.Flow
 import org.jellyfin.client.android.domain.models.LibraryDto
 import org.jellyfin.client.android.domain.models.Resource
+import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionType
 import java.util.*
@@ -18,4 +19,6 @@ interface ViewsRepository {
     suspend fun getLatestSection(libraries: List<LibraryDto>): Flow<Resource<List<HomeSectionRow>>>
 
     suspend fun getHomeSections(): Flow<Resource<List<HomeSectionType>>>
+
+    suspend fun getRecentItems(): Flow<Resource<List<HomeSectionCard>>>
 }

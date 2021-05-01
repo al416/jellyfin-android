@@ -1,4 +1,5 @@
 <resources>
+    <!-- Application wide -->
     <string name="app_name">Jellyfin</string>
 
     <!-- Login Fragment -->
@@ -8,5 +9,17 @@
     <string name="login_fragment_username">Username</string>
     <string name="login_fragment_password">Password</string>
     <string name="login_fragment_login_button_text">Login</string>
+
+    <!-- Home Left Drawer Navigation -->
+    <string name="home_activity_navigation_open_drawer">Open left navigation drawer</string>
+    <string name="home_activity_navigation_close_drawer">Close left navigation drawer</string>
+
+    <!-- Home Bottom Navigation -->
+    <string name="home_activity_navigation_home">Home</string>
+    <string name="home_activity_navigation_search">Search</string>
+
+    <!-- Home -> Recent Items -->
+    <string name="home_recent_items_play">Play</string>
+    <string name="home_recent_items_view_details">View Details</string>
 
 </resources>

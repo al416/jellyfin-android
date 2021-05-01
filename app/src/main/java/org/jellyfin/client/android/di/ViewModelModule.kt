@@ -7,6 +7,7 @@ import dagger.MapKey
 import dagger.Module
 import dagger.multibindings.IntoMap
 import org.jellyfin.client.android.ui.home.HomeViewModel
+import org.jellyfin.client.android.ui.home.RecentItemViewModel
 import org.jellyfin.client.android.ui.login.LoginViewModel
 import org.jellyfin.client.android.ui.player.PlayerViewModel
 import kotlin.reflect.KClass
@@ -30,6 +31,11 @@ abstract class ViewModelModule {
     @IntoMap
     @ViewModelKey(PlayerViewModel::class)
     abstract fun bindsPlayerViewModel(playerViewModel: PlayerViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(RecentItemViewModel::class)
+    abstract fun bindsRecentItemViewModel(recentItemViewModel: RecentItemViewModel): ViewModel
 }
 
 @MustBeDocumented

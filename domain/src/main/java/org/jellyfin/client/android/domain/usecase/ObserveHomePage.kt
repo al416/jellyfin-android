@@ -53,12 +53,8 @@ class ObserveHomePage @Inject constructor(@Named("network") dispatcher: Coroutin
                         }
                         Status.SUCCESS -> {
                             resource.data?.let {
-                                // Only add a row if the row has cards
-                                if (it.cards.isNotEmpty()) {
-                                    rows.add(it)
-                                    it.cards.forEach {card ->
-                                        libraries.add(LibraryDto(id = card.uuid, title = card.title))
-                                    }
+                                it.cards.forEach {card ->
+                                    libraries.add(LibraryDto(id = card.uuid, title = card.title))
                                 }
                             }
                             loadContinueWatching(sections, rows, libraries)
