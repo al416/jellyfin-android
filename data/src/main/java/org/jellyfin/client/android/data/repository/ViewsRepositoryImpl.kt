@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import org.jellyfin.client.android.domain.constants.LibraryType
 import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.LibraryDto
 import org.jellyfin.client.android.domain.models.Resource
@@ -154,6 +155,31 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                 response.add(HomeSectionType.CONTINUE_WATCHING)
                 response.add(HomeSectionType.NEXT_UP)
                 response.add(HomeSectionType.LATEST_MEDIA)
+                emit(Resource.success(response))
+            } catch (e: Exception) {
+                emit(Resource.error(listOf(Error(null, 1, "Error", null))))
+            }
+        }.flowOn(networkDispatcher)
+    }
+
+    override suspend fun getRecentItems(): Flow<Resource<List<HomeSectionCard>>> {
+        val userId = currentUserRepository.getCurrentUserId()
+        return flow<Resource<List<HomeSectionCard>>> {
+            emit(Resource.loading())
+            try {
+                val result by userLibraryApi.getLatestMedia(userId = userId,
+                    limit = 10,
+                    fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.OVERVIEW),
+                    imageTypeLimit = 1,
+                    enableImageTypes = listOf(ImageType.LOGO, ImageType.BACKDROP))
+                // TODO: This filters out any item that was added recently if it does not have a backdrop image.
+                //  Is this desirable or should a placeholder be loaded if there is no backdrop image?
+                val filteredResult = result.filter { it.backdropImageTags?.isNotEmpty() ?: false }
+                val response = mutableListOf<HomeSectionCard>()
+                filteredResult.forEachIndexed { index, item ->
+                    val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP)
+                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, homeCardType = HomeCardType.BACKDROP, uuid = item.id))
+                }
                 emit(Resource.success(response))
             } catch (e: Exception) {
                 emit(Resource.error(listOf(Error(null, 1, "Error", null))))

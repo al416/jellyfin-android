@@ -3,25 +3,54 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
+
         <variable
-            name="adapter"
+            name="sectionAdapter"
             type="org.jellyfin.client.android.ui.home.adapter.HomeRowRecyclerViewAdapter" />
+
+        <variable
+            name="recentItemsAdapter"
+            type="org.jellyfin.client.android.ui.home.adapter.HomeRecentItemsFragmentAdapter" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerView"
-            android:background="@drawable/home_recyclerview_background"
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/recentItemsViewPager"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/home_recyclerview_background"
+            android:scrollbars="horizontal"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_weight="1"
+            app:setAdapter="@{recentItemsAdapter}" />
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="6dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/recentItemsViewPager"
+            app:tabIndicatorHeight="6dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/sectionsRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="@drawable/home_recyclerview_background"
             android:scrollbars="vertical"
-            app:setAdapter="@{adapter}"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tab_layout"
+            app:layout_constraintVertical_weight="2"
+            app:setAdapter="@{sectionAdapter}" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
