@@ -6,6 +6,7 @@
     <string name="login_fragment_server_url">Server URL</string>
     <string name="login_fragment_demo_base_url" comment="This will be removed once testing is complete">https://demo.jellyfin.org/stable/</string>
     <string name="login_fragment_demo_username" comment="This will be removed once testing is complete">demo</string>
+    <string name="login_fragment_demo_password" comment="This will be removed once testing is complete"></string>
     <string name="login_fragment_username">Username</string>
     <string name="login_fragment_password">Password</string>
     <string name="login_fragment_login_button_text">Login</string>
