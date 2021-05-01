@@ -5,21 +5,29 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.databinding.FragmentHomeBinding
+import org.jellyfin.client.android.domain.constants.Constants.ASPECT_RATIO_16_9
 import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_MEDIA_UUID
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.ui.home.adapter.HomeRecentItemsFragmentAdapter
 import org.jellyfin.client.android.ui.home.adapter.HomeRowRecyclerViewAdapter
 import org.jellyfin.client.android.ui.player.PlayerActivity
 import javax.inject.Inject
+import kotlin.concurrent.fixedRateTimer
 
 
 class HomeFragment : DaggerFragment() {
+
+    companion object {
+        private const val RECENT_ITEM_AUTO_ROTATE_TIME_IN_SECOND = 3
+    }
 
     private lateinit var binding: FragmentHomeBinding
 
@@ -65,7 +73,7 @@ class HomeFragment : DaggerFragment() {
         homeViewModel.getRows().observe(viewLifecycleOwner, Observer { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
-                    resource.data?.let {rows ->
+                    resource.data?.let { rows ->
                         if (adapter.currentList == rows) {
                             // A duplicate list has been submitted so the adapter won't check if the list has been changed so force a redraw
                             adapter.notifyDataSetChanged()
@@ -87,6 +95,12 @@ class HomeFragment : DaggerFragment() {
     }
 
     private fun setupRecentItems() {
+        val displayMetrics = requireActivity().resources.displayMetrics
+        val dpWidth = displayMetrics.widthPixels
+        val dpHeight = (dpWidth / ASPECT_RATIO_16_9).toInt()
+        binding.recentItemsViewPager.layoutParams =
+            ConstraintLayout.LayoutParams(displayMetrics.widthPixels, dpHeight)
+
         binding.recentItemsAdapter = HomeRecentItemsFragmentAdapter(this, 0)
         binding.executePendingBindings()
 
@@ -111,5 +125,26 @@ class HomeFragment : DaggerFragment() {
                 }
             }
         })
+
+        fixedRateTimer(
+            "Rotate recent items",
+            true,
+            0L,
+            RECENT_ITEM_AUTO_ROTATE_TIME_IN_SECOND * 1000L
+        ) {
+            requireActivity().runOnUiThread {
+                val itemCount = binding.recentItemsViewPager.adapter?.itemCount ?: 0
+                var scrollTo = binding.recentItemsViewPager.currentItem++
+                if (scrollTo == itemCount - 1) {
+                    scrollTo = 0
+                    binding.recentItemsViewPager.currentItem = 0
+                }
+                binding.recentItemsViewPager.viewTreeObserver.addOnGlobalLayoutListener {
+                    ViewTreeObserver.OnGlobalLayoutListener {
+                        binding.recentItemsViewPager.setCurrentItem(scrollTo, true)
+                    }
+                }
+            }
+        }
     }
 }
