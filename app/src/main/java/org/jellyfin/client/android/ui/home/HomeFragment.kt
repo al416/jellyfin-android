@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
-import androidx.constraintlayout.widget.ConstraintLayout
+import android.widget.LinearLayout
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -26,7 +26,7 @@ import kotlin.concurrent.fixedRateTimer
 class HomeFragment : DaggerFragment() {
 
     companion object {
-        private const val RECENT_ITEM_AUTO_ROTATE_TIME_IN_SECOND = 3
+        private const val RECENT_ITEM_AUTO_ROTATE_TIME_IN_SECOND = 10
     }
 
     private lateinit var binding: FragmentHomeBinding
@@ -73,6 +73,8 @@ class HomeFragment : DaggerFragment() {
         homeViewModel.getRows().observe(viewLifecycleOwner, Observer { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
+                    binding.contentView.visibility = View.VISIBLE
+                    binding.statusView.visibility = View.GONE
                     resource.data?.let { rows ->
                         if (adapter.currentList == rows) {
                             // A duplicate list has been submitted so the adapter won't check if the list has been changed so force a redraw
@@ -82,13 +84,11 @@ class HomeFragment : DaggerFragment() {
                         }
                     }
                 }
-                // TODO: Display error message
                 Status.ERROR -> {
-
+                    showError()
                 }
-                // TODO: Display loading indicator
                 Status.LOADING -> {
-
+                    showLoading()
                 }
             }
         })
@@ -99,7 +99,7 @@ class HomeFragment : DaggerFragment() {
         val dpWidth = displayMetrics.widthPixels
         val dpHeight = (dpWidth / ASPECT_RATIO_16_9).toInt()
         binding.recentItemsViewPager.layoutParams =
-            ConstraintLayout.LayoutParams(displayMetrics.widthPixels, dpHeight)
+            LinearLayout.LayoutParams(displayMetrics.widthPixels, dpHeight)
 
         binding.recentItemsAdapter = HomeRecentItemsFragmentAdapter(this, 0)
         binding.executePendingBindings()
@@ -113,15 +113,15 @@ class HomeFragment : DaggerFragment() {
                     resource.data?.let {recentItems ->
                         (binding.recentItemsViewPager.adapter as HomeRecentItemsFragmentAdapter).totalItems = recentItems.size
                         (binding.recentItemsViewPager.adapter as HomeRecentItemsFragmentAdapter).notifyDataSetChanged()
+                        binding.recentItemsViewPager.visibility = View.VISIBLE
+                        binding.tabLayout.visibility = View.VISIBLE
                     }
                 }
-                // TODO: Display error message
                 Status.ERROR -> {
-
+                    showError()
                 }
-                // TODO: Display loading indicator
                 Status.LOADING -> {
-
+                    showLoading()
                 }
             }
         })
@@ -146,5 +146,19 @@ class HomeFragment : DaggerFragment() {
                 }
             }
         }
+    }
+
+    private fun showLoading() {
+        binding.contentView.visibility = View.GONE
+        binding.statusView.visibility = View.VISIBLE
+        binding.statusView.setStatusText("")
+        binding.statusView.isRefreshing = true
+    }
+
+    private fun showError() {
+        binding.contentView.visibility = View.GONE
+        binding.statusView.visibility = View.VISIBLE
+        binding.statusView.setStatusText("Error")
+        binding.statusView.isRefreshing = false
     }
 }
