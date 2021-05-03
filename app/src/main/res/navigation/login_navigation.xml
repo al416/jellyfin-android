@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/login_navigation"
+    app:startDestination="@+id/login_fragment">
+
+    <fragment
+        android:id="@+id/login_fragment"
+        android:name="org.jellyfin.client.android.ui.login.LoginFragment">
+        <action
+            android:id="@+id/action_add_server"
+            app:destination="@id/add_server_fragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/add_server_fragment"
+        android:name="org.jellyfin.client.android.ui.login.add_server.AddServerFragment" />
+
+</navigation>
