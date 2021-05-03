@@ -9,13 +9,17 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.jellyfin.client.android.domain.models.Login
 import org.jellyfin.client.android.domain.models.Resource
+import org.jellyfin.client.android.domain.models.display_model.Server
 import org.jellyfin.client.android.domain.usecase.DoUserLogin
+import org.jellyfin.client.android.domain.usecase.GetServerList
 import javax.inject.Inject
 import javax.inject.Named
 
 class LoginViewModel @Inject constructor(
     @Named("computation") private val computationDispatcher: CoroutineDispatcher,
-    private val doUserLogin: DoUserLogin
+    private val doUserLogin: DoUserLogin,
+    private val getServerList: GetServerList
+
 ) : ViewModel() {
 
     private val loginState = MutableLiveData<Resource<Login>?>(null)
@@ -32,4 +36,23 @@ class LoginViewModel @Inject constructor(
                 }
         }
     }
+
+    private val servers: MutableLiveData<Resource<List<Server>>> by lazy {
+        val data = MutableLiveData<Resource<List<Server>>>()
+        loadServers(data)
+        data
+    }
+
+    fun getServers(): LiveData<Resource<List<Server>>> {
+        return servers
+    }
+
+    private fun loadServers(data: MutableLiveData<Resource<List<Server>>>) {
+        viewModelScope.launch(computationDispatcher) {
+            getServerList.invoke().collectLatest {
+                data.postValue(it)
+            }
+        }
+    }
+
 }
