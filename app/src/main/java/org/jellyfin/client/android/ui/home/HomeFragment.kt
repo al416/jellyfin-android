@@ -18,7 +18,9 @@ import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_MEDIA_UUID
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.ui.home.adapter.HomeRecentItemsFragmentAdapter
 import org.jellyfin.client.android.ui.home.adapter.HomeRowRecyclerViewAdapter
+import org.jellyfin.client.android.ui.login.LoginActivity
 import org.jellyfin.client.android.ui.player.PlayerActivity
+import java.util.*
 import javax.inject.Inject
 import kotlin.concurrent.fixedRateTimer
 
@@ -41,6 +43,8 @@ class HomeFragment : DaggerFragment() {
     private val recentItemViewModel: RecentItemViewModel by lazy {
         ViewModelProvider(requireActivity(), viewModelFactory).get(RecentItemViewModel::class.java)
     }
+
+    private var autoRotateTimer: Timer? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -111,6 +115,9 @@ class HomeFragment : DaggerFragment() {
             when (resource.status) {
                 Status.SUCCESS -> {
                     resource.data?.let {recentItems ->
+                        if (recentItems.isNotEmpty()) {
+                            setupTimer()
+                        }
                         (binding.recentItemsViewPager.adapter as HomeRecentItemsFragmentAdapter).totalItems = recentItems.size
                         (binding.recentItemsViewPager.adapter as HomeRecentItemsFragmentAdapter).notifyDataSetChanged()
                         binding.recentItemsViewPager.visibility = View.VISIBLE
@@ -125,27 +132,6 @@ class HomeFragment : DaggerFragment() {
                 }
             }
         })
-
-        fixedRateTimer(
-            "Rotate recent items",
-            true,
-            0L,
-            RECENT_ITEM_AUTO_ROTATE_TIME_IN_SECOND * 1000L
-        ) {
-            requireActivity().runOnUiThread {
-                val itemCount = binding.recentItemsViewPager.adapter?.itemCount ?: 0
-                var scrollTo = binding.recentItemsViewPager.currentItem++
-                if (scrollTo == itemCount - 1) {
-                    scrollTo = 0
-                    binding.recentItemsViewPager.currentItem = 0
-                }
-                binding.recentItemsViewPager.viewTreeObserver.addOnGlobalLayoutListener {
-                    ViewTreeObserver.OnGlobalLayoutListener {
-                        binding.recentItemsViewPager.setCurrentItem(scrollTo, true)
-                    }
-                }
-            }
-        }
     }
 
     private fun showLoading() {
@@ -160,5 +146,43 @@ class HomeFragment : DaggerFragment() {
         binding.statusView.visibility = View.VISIBLE
         binding.statusView.setStatusText("Error")
         binding.statusView.isRefreshing = false
+    }
+
+    private fun setupTimer() {
+        autoRotateTimer?.cancel()
+        autoRotateTimer = null
+        autoRotateTimer = fixedRateTimer(
+            "Rotate recent items",
+            true,
+            0L,
+            RECENT_ITEM_AUTO_ROTATE_TIME_IN_SECOND * 1000L
+        ) {
+            requireActivity().runOnUiThread {
+                val itemCount = binding.recentItemsViewPager.adapter?.itemCount ?: 0
+                if (itemCount != 0) {
+                    var scrollTo = binding.recentItemsViewPager.currentItem++
+                    if (scrollTo == itemCount - 1) {
+                        scrollTo = 0
+                        binding.recentItemsViewPager.currentItem = 0
+                    }
+                    binding.recentItemsViewPager.viewTreeObserver.addOnGlobalLayoutListener {
+                        ViewTreeObserver.OnGlobalLayoutListener {
+                            binding.recentItemsViewPager.setCurrentItem(scrollTo, true)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun logout() {
+        val intent = Intent(requireActivity(), LoginActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        autoRotateTimer?.cancel()
     }
 }

@@ -13,17 +13,17 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.textfield.TextInputEditText
 import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.R
+import org.jellyfin.client.android.databinding.FragmentLoginBinding
 import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.Status
+import org.jellyfin.client.android.domain.models.display_model.Server
 import org.jellyfin.client.android.ui.home.HomeActivity
+import org.jellyfin.client.android.ui.login.adapter.ServerSpinnerAdapter
 import javax.inject.Inject
 
 class LoginFragment : DaggerFragment(), View.OnClickListener {
 
-    private lateinit var textBaseUrl: TextInputEditText
-    private lateinit var textUsername: TextInputEditText
-    private lateinit var textPassword: TextInputEditText
-    private lateinit var buttonLogin: Button
+    private lateinit var binding: FragmentLoginBinding
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -33,18 +33,14 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) : View? {
-        return inflater.inflate(R.layout.fragment_login, container, false)
+        binding = FragmentLoginBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        textBaseUrl = ViewCompat.requireViewById(view, R.id.textBaseUrl)
-        textUsername = ViewCompat.requireViewById(view, R.id.textUsername)
-        textPassword = ViewCompat.requireViewById(view, R.id.textPassword)
-
-        buttonLogin = ViewCompat.requireViewById(view, R.id.buttonLogin)
-        buttonLogin.setOnClickListener(this)
+        binding.buttonLogin.setOnClickListener(this)
 
         loginViewModel.getLoginState().observe(viewLifecycleOwner, Observer {
             it?.let {resource ->
@@ -60,8 +56,18 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
                     }
                     // Login unsuccessful. Display error message
                     Status.ERROR -> {
-                        buttonLogin.isEnabled = true
+                        binding.buttonLogin.isEnabled = true
                         displayError(it.messages)
+                    }
+                }
+            }
+        })
+
+        loginViewModel.getServers().observe(viewLifecycleOwner, Observer {resource ->
+            when (resource.status) {
+                Status.SUCCESS -> {
+                    resource.data?.let {
+                        binding.serverAdapter = ServerSpinnerAdapter(requireContext(), android.R.layout.simple_spinner_item, it)
                     }
                 }
             }
@@ -72,9 +78,10 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
         when (view?.id) {
             R.id.buttonLogin -> {
                 view.isEnabled = false
-                loginViewModel.doUserLogin(baseUrl = textBaseUrl.text.toString(),
-                    username = textUsername.text.toString(),
-                    password = textPassword.text.toString())
+                val server = binding.spinnerServer.selectedItem as Server
+                loginViewModel.doUserLogin(baseUrl = server.url,
+                    username = binding.textUsername.text.toString(),
+                    password = binding.textPassword.text.toString())
             }
         }
     }
