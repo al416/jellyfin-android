@@ -13,6 +13,10 @@
     <string name="login_fragment_select_server_text">Select Server:</string>
     <string name="login_fragment_add_a_server_text">Add a server</string>
 
+    <!-- Add Server Fragment -->
+    <string name="add_server_button_label">Add a server</string>
+    <string name="add_server_available_servers">Available servers:</string>
+
     <!-- Home Left Drawer Navigation -->
     <string name="home_activity_navigation_open_drawer">Open left navigation drawer</string>
     <string name="home_activity_navigation_close_drawer">Close left navigation drawer</string>

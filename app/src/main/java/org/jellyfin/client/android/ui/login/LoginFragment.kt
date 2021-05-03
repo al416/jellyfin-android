@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.textfield.TextInputEditText
 import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.R
@@ -41,6 +42,7 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
         super.onViewCreated(view, savedInstanceState)
 
         binding.buttonLogin.setOnClickListener(this)
+        binding.txtAddServer.setOnClickListener(this)
 
         loginViewModel.getLoginState().observe(viewLifecycleOwner, Observer {
             it?.let {resource ->
@@ -82,6 +84,10 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
                 loginViewModel.doUserLogin(baseUrl = server.url,
                     username = binding.textUsername.text.toString(),
                     password = binding.textPassword.text.toString())
+            }
+            R.id.txtAddServer -> {
+                val action = LoginFragmentDirections.actionAddServer()
+                findNavController().navigate(action)
             }
         }
     }
