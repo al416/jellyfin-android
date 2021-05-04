@@ -2,6 +2,16 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <data>
+
+        <variable
+            name="adapter"
+            type="org.jellyfin.client.android.ui.login.adapter.ServerRecyclerViewAdapter" />
+    </data>
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -21,15 +31,22 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/add_server_available_servers"
+            android:textSize="18sp"
+            android:textStyle="bold"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@id/btnAddServer" />
 
         <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/serverRecyclerView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            app:layout_constraintVertical_weight="1"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/txtAvailableServers" />
+            app:layout_constraintTop_toBottomOf="@id/txtAvailableServers"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:setAdapter="@{adapter}" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
