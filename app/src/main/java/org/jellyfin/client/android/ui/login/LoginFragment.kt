@@ -69,6 +69,7 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
             when (resource.status) {
                 Status.SUCCESS -> {
                     resource.data?.let {
+                        displayLoginPage(it.isNotEmpty())
                         binding.serverAdapter = ServerSpinnerAdapter(requireContext(), android.R.layout.simple_spinner_item, it)
                     }
                 }
@@ -105,4 +106,12 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
 
     }
 
+    private fun displayLoginPage(shouldDisplay: Boolean) {
+        val visibility = if (shouldDisplay) View.VISIBLE else View.GONE
+        binding.textInputLayoutUsername.visibility = visibility
+        binding.textInputLayoutPassword.visibility = visibility
+        binding.buttonLogin.visibility = visibility
+        binding.txtServer.visibility = visibility
+        binding.spinnerServer.visibility = visibility
+    }
 }

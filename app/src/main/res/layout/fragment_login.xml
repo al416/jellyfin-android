@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
 
@@ -32,13 +33,15 @@
             android:layout_marginTop="20dp"
             android:layout_marginEnd="50dp"
             android:hint="@string/login_fragment_username"
+            android:visibility="gone"
             app:boxCornerRadiusBottomEnd="8dp"
             app:boxCornerRadiusBottomStart="8dp"
             app:boxCornerRadiusTopEnd="8dp"
             app:boxCornerRadiusTopStart="8dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/logo">
+            app:layout_constraintTop_toBottomOf="@id/logo"
+            tools:visibility="visible">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/textUsername"
@@ -57,13 +60,15 @@
             android:layout_marginTop="10dp"
             android:layout_marginEnd="50dp"
             android:hint="@string/login_fragment_password"
+            android:visibility="gone"
             app:boxCornerRadiusBottomEnd="8dp"
             app:boxCornerRadiusBottomStart="8dp"
             app:boxCornerRadiusTopEnd="8dp"
             app:boxCornerRadiusTopStart="8dp"
             app:endIconMode="password_toggle"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textInputLayoutUsername">
+            app:layout_constraintTop_toBottomOf="@id/textInputLayoutUsername"
+            tools:visibility="visible">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/textPassword"
@@ -80,9 +85,11 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="@string/login_fragment_login_button_text"
+            android:visibility="gone"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textInputLayoutPassword" />
+            app:layout_constraintTop_toBottomOf="@id/textInputLayoutPassword"
+            tools:visibility="visible" />
 
         <TextView
             android:id="@+id/txtServer"
@@ -90,9 +97,11 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="@string/login_fragment_select_server_text"
+            android:visibility="gone"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/buttonLogin" />
+            app:layout_constraintTop_toBottomOf="@id/buttonLogin"
+            tools:visibility="visible" />
 
         <Spinner
             android:id="@+id/spinnerServer"
@@ -102,10 +111,12 @@
             android:layout_marginTop="10dp"
             android:layout_marginEnd="50dp"
             android:background="@drawable/spinner_outline"
+            android:visibility="gone"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/txtServer"
-            app:setAdapter="@{serverAdapter}" />
+            app:setAdapter="@{serverAdapter}"
+            tools:visibility="visible" />
 
         <TextView
             android:id="@+id/txtAddServer"
