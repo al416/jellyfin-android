@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
 
@@ -33,12 +34,16 @@
             android:text="@string/add_server_available_servers"
             android:textSize="18sp"
             android:textStyle="bold"
+            android:visibility="gone"
+            tools:visibility="visible"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@id/btnAddServer" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/serverRecyclerView"
             android:layout_width="match_parent"
+            android:visibility="gone"
+            tools:visibility="visible"
             android:layout_height="0dp"
             app:layout_constraintVertical_weight="1"
             app:layout_constraintLeft_toLeftOf="parent"

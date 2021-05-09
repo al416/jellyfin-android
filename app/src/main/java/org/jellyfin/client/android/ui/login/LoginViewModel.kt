@@ -65,8 +65,9 @@ class LoginViewModel @Inject constructor(
     }
 
     fun addServer(serverName: String, serverUrl: String) {
+        val servers = servers.value?.data ?: emptyList()
         viewModelScope.launch(computationDispatcher) {
-            addServer.invoke(AddServer.RequestParams(serverName, serverUrl)).collectLatest {
+            addServer.invoke(AddServer.RequestParams(servers, serverName, serverUrl)).collectLatest {
                 addServerStatus.postValue(it)
             }
         }
