@@ -9,13 +9,15 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import dagger.android.support.DaggerFragment
+import org.jellyfin.client.android.R
 import org.jellyfin.client.android.databinding.FragmentAddServerBinding
+import org.jellyfin.client.android.domain.constants.Tags.DIALOG_ADD_SERVER
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.ui.login.LoginViewModel
 import org.jellyfin.client.android.ui.login.adapter.ServerRecyclerViewAdapter
 import javax.inject.Inject
 
-class AddServerFragment : DaggerFragment() {
+class AddServerFragment : DaggerFragment(), View.OnClickListener {
 
     private lateinit var binding: FragmentAddServerBinding
 
@@ -40,6 +42,7 @@ class AddServerFragment : DaggerFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.btnAddServer.setOnClickListener(this)
         val adapter = ServerRecyclerViewAdapter()
         binding.adapter = adapter
 
@@ -64,5 +67,13 @@ class AddServerFragment : DaggerFragment() {
                 }
             }
         })
+    }
+
+    override fun onClick(view: View?) {
+        when (view?.id) {
+            R.id.btnAddServer -> {
+                AddServerDialog.newInstance("", "").show(childFragmentManager, DIALOG_ADD_SERVER)
+            }
+        }
     }
 }

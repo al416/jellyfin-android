@@ -4,6 +4,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import org.jellyfin.client.android.data.database.DTOServer
+import org.jellyfin.client.android.data.database.ServerDao
 import org.jellyfin.client.android.domain.models.Login
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.Error
@@ -20,7 +23,8 @@ class LoginRepositoryImpl @Inject constructor(@Named("network") private val netw
                                               @Named("disk") private val diskDispatcher: CoroutineDispatcher,
                                               private val api: KtorClient,
                                               private val userApi: UserApi,
-                                              private val currentUserRepository: CurrentUserRepository
+                                              private val currentUserRepository: CurrentUserRepository,
+                                              private val serverDao: ServerDao
 ) : LoginRepository {
 
     override suspend fun doUserLogin(baseUrl: String, username: String, password: String): Flow<Resource<Login>> {
@@ -45,20 +49,34 @@ class LoginRepositoryImpl @Inject constructor(@Named("network") private val netw
     }
 
     override suspend fun getServerList(): Flow<Resource<List<Server>>> {
-        return flow<Resource<List<Server>>> {
-            emit(Resource.loading())
-            // TODO: Retrieve the list from a database
-            val servers = mutableListOf<Server>()
-            try {
-                servers.add(Server(id = 0, "Demo Server", "https://demo.jellyfin.org/stable"))
-                servers.add(Server(id = 1, "Demo Server 2", "https://demo.jellyfin.org/stable2"))
-                servers.add(Server(id = 2, "Demo Server 3", "https://demo.jellyfin.org/stable3"))
-                emit(Resource.success(servers))
-            } catch (e: Exception) {
-                // TODO: Need to catch httpException and pass along correct error message
-                emit(Resource.error(listOf(Error(httpErrorResponseCode = null, code = 1, message = e.message, exception = null))))
-            }
+        return serverDao.getAllServers().map {serverList ->
+            Resource.success(serverList.map {dtoServer ->
+                Server(dtoServer.serverId, dtoServer.serverName, dtoServer.serverUrl, dtoServer.displayOrder)
+            })
         }.flowOn(diskDispatcher)
+    }
+
+    override suspend fun updateServers(servers: List<Server>) {
+        serverDao.updateServers(servers.map {
+            DTOServer(serverId = it.id,
+                serverName = it.name,
+                serverUrl = it.url,
+                displayOrder = it.displayOrder)
+        })
+    }
+
+    override suspend fun addServer(server: Server) {
+        serverDao.addServer(DTOServer(serverId = 0,
+            serverName = server.name,
+            serverUrl = server.url,
+            displayOrder = server.displayOrder))
+    }
+
+    override suspend fun deleteServer(server: Server) {
+        serverDao.deleteServer(DTOServer(serverId = server.id,
+            serverName = server.name,
+            serverUrl = server.url,
+            displayOrder = server.displayOrder))
     }
 
 }
