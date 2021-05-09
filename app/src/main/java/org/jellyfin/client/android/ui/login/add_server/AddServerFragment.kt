@@ -55,10 +55,11 @@ class AddServerFragment : DaggerFragment(), View.OnClickListener {
         binding.serverRecyclerView.layoutManager = GridLayoutManager(requireContext(), 1)
         binding.executePendingBindings()
 
-        loginViewModel.getServers().observe(viewLifecycleOwner, Observer {resource ->
+        loginViewModel.getServers().observe(viewLifecycleOwner, { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
                     resource.data?.let {servers ->
+                        displayServerList(servers.isNotEmpty())
                         if (adapter.currentList == servers) {
                             // A duplicate list has been submitted so the adapter won't check if the list has been changed so force a redraw
                             adapter.notifyDataSetChanged()
@@ -80,7 +81,7 @@ class AddServerFragment : DaggerFragment(), View.OnClickListener {
                         }
                     }
                     Status.ERROR -> {
-                        Toast.makeText(requireContext(), resource.messages?.first()?.message, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), resource.messages?.first()?.message, Toast.LENGTH_LONG).show()
                     }
                     Status.LOADING -> {
 
@@ -96,5 +97,11 @@ class AddServerFragment : DaggerFragment(), View.OnClickListener {
                 AddServerDialog.newInstance("", "").show(childFragmentManager, DIALOG_ADD_SERVER)
             }
         }
+    }
+
+    private fun displayServerList(shouldDisplay: Boolean) {
+        val visibility = if (shouldDisplay) View.VISIBLE else View.GONE
+        binding.txtAvailableServers.visibility = visibility
+        binding.serverRecyclerView.visibility = visibility
     }
 }
