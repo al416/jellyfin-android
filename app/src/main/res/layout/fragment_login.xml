@@ -69,6 +69,7 @@
                 android:id="@+id/textPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:inputType="textPassword"
                 android:text="@string/login_fragment_demo_password" />
 
         </com.google.android.material.textfield.TextInputLayout>
