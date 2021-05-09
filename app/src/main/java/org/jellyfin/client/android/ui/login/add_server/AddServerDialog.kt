@@ -1,19 +1,14 @@
 package org.jellyfin.client.android.ui.login.add_server
 
 import android.app.Dialog
-import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.appcompat.app.AlertDialog
-import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import dagger.android.support.DaggerDialogFragment
-import kotlinx.android.synthetic.main.dialog_add_server.view.*
 import org.jellyfin.client.android.R
 import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_SERVER_NAME
 import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_SERVER_URL
@@ -60,16 +55,17 @@ class AddServerDialog : DaggerDialogFragment() {
         val serverName = view.findViewById<TextInputEditText>(R.id.txtServerName)
         val serverUrl = view.findViewById<TextInputEditText>(R.id.txtServerUrl)
 
-        alertDialogBuilder.setPositiveButton(getString(R.string.add_server_dialog_positive_label)
-        ) { _, _ ->
+        val btnOkay = view.findViewById<MaterialButton>(R.id.btnOkay)
+        val btnCancel = view.findViewById<MaterialButton>(R.id.btnCancel)
+
+        btnOkay.setOnClickListener {
             loginViewModel.addServer(
                 serverUrl = serverUrl.text.toString(),
                 serverName = serverName.text.toString()
             )
         }
 
-        alertDialogBuilder.setNegativeButton(getString(R.string.add_server_dialog_negative_label)
-        ) { _, _ ->
+        btnCancel.setOnClickListener {
             dismiss()
         }
 

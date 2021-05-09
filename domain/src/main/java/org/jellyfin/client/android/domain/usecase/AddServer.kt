@@ -27,38 +27,75 @@ class AddServer @Inject constructor(
             throw IllegalArgumentException("Expecting valid parameters")
         }
 
-        getServerList.invoke().flatMapLatest {
+        return getServerList.invoke().flatMapLatest {
             when (it.status) {
                 Status.ERROR -> flow { emit(Resource.error<EmptyModel>(it.messages)) }
                 Status.LOADING -> flow { emit(Resource.loading<EmptyModel>()) }
                 Status.SUCCESS -> {
                     val serverList = it.data ?: emptyList()
-                    if (isValidServerName(serverList, params.serverName) && isValidServerUrl(serverList,params.serverUrl)) {
-                        loginRepository.addServer(
-                            Server(
-                                id = 0,
-                                name = params.serverName,
-                                url = params.serverUrl,
-                                displayOrder = serverList.size
+                    val sanitizedName = sanitizeName(params.serverName)
+                    val sanitizedUrl = sanitizeUrl(params.serverUrl)
+                    val validateName = validateServerName(serverList, sanitizedName)
+                    val validateUrl = validateServerUrl(serverList, sanitizedUrl)
+                    when {
+                        validateName != null -> {
+                            flow { emit(Resource.error<EmptyModel>(listOf(validateName))) }
+                        }
+                        validateUrl != null -> {
+                            flow { emit(Resource.error<EmptyModel>(listOf(validateUrl))) }
+                        }
+                        else -> {
+                            loginRepository.addServer(
+                                Server(
+                                    id = 0,
+                                    name = sanitizedName,
+                                    url = sanitizedUrl,
+                                    displayOrder = serverList.size
+                                )
                             )
-                        )
-                        flow { emit(Resource.success(EmptyModel(0))) }
-                    } else {
-                        flow { emit(Resource.error<EmptyModel>(listOf(Error(0, 0, "", null)))) }
+                            flow { emit(Resource.success(EmptyModel(0))) }
+                        }
                     }
                 }
             }
         }
-
-        return flow { emit(Resource.success(EmptyModel(0))) }
     }
 
-    private fun isValidServerName(serverList: List<Server>, serverName: String): Boolean {
-        return true
+    private fun sanitizeName(name: String): String {
+        return name.trim()
     }
 
-    private fun isValidServerUrl(serverList: List<Server>, serverUrl: String): Boolean {
-        return true
+    private fun sanitizeUrl(url: String): String {
+        val result= if (url.endsWith("/")) return url.dropLast(1) else url
+        return result.trim()
+    }
+
+    private fun validateServerName(serverList: List<Server>, serverName: String): Error? {
+        val isBlank = serverName.isBlank()
+        val serverExists = serverList.filter { it.name == serverName }
+        return when {
+            isBlank -> {
+                Error(0, 0, "Please enter a valid server name", null)
+            }
+            serverExists.isNotEmpty() -> Error(0, 0, "A server with this name has already been added! Please enter an unique server name", null)
+            else -> {
+                null
+            }
+        }
+    }
+
+    private fun validateServerUrl(serverList: List<Server>, serverUrl: String): Error? {
+        val isBlank = serverUrl.isBlank()
+        val serverExists = serverList.filter { it.url == serverUrl }
+        return when {
+            isBlank -> {
+                Error(0, 0, "Please enter a valid server URL", null)
+            }
+            serverExists.isNotEmpty() -> Error(0, 0, "A server with this URL has already been added! Please enter an unique server name", null)
+            else -> {
+                null
+            }
+        }
     }
 
     data class RequestParams(val serverName: String, val serverUrl: String)
