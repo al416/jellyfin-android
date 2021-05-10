@@ -70,6 +70,10 @@ class AddServerFragment : DaggerFragment(), View.OnClickListener {
         val adapter = ServerRecyclerViewAdapter()
         binding.adapter = adapter
 
+        adapter.onListChanged = {
+            addServerViewModel.onListChanged(it)
+        }
+
         val callback: ItemTouchHelper.Callback = ServerItemTouchHelper(adapter)
         itemTouchHelper = ItemTouchHelper(callback)
         itemTouchHelper?.attachToRecyclerView(binding.serverRecyclerView)
@@ -106,7 +110,7 @@ class AddServerFragment : DaggerFragment(), View.OnClickListener {
             }
         })
 
-        addServerViewModel.getUpdateServersStatus().observe(viewLifecycleOwner, Observer {resource ->
+        addServerViewModel.getUpdateServersStatus().observe(viewLifecycleOwner, { resource ->
             if (resource != null) {
                 when (resource.status) {
                     Status.SUCCESS -> {
@@ -117,6 +121,11 @@ class AddServerFragment : DaggerFragment(), View.OnClickListener {
                     }
                 }
             }
+        })
+
+        addServerViewModel.getSaveState().observe(viewLifecycleOwner, {
+            val saveItem = binding.toolbar.menu.findItem(R.id.save)
+            saveItem.isVisible = it
         })
     }
 

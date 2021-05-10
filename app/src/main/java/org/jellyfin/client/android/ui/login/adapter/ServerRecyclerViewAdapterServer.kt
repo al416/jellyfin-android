@@ -13,6 +13,8 @@ import java.util.*
 class ServerRecyclerViewAdapter() :
     ListAdapter<Server, ServerRecyclerViewAdapter.ServerViewHolder>(Companion), ServerItemTouchListener {
 
+    var onListChanged: ((List<Server>) -> Unit)? = null
+
     companion object: DiffUtil.ItemCallback<Server>() {
         override fun areItemsTheSame(oldItem: Server, newItem: Server): Boolean {
             return oldItem.id == newItem.id
@@ -42,6 +44,7 @@ class ServerRecyclerViewAdapter() :
         orderedList.addAll(currentList)
         Collections.swap(orderedList, oldPosition, newPosition)
         submitList(orderedList)
+        onListChanged?.invoke(orderedList)
         return true
     }
 
@@ -50,5 +53,6 @@ class ServerRecyclerViewAdapter() :
         orderedList.addAll(currentList)
         orderedList.removeAt(position)
         submitList(orderedList)
+        onListChanged?.invoke(orderedList)
     }
 }

@@ -24,7 +24,12 @@ class UpdateServers @Inject constructor(
         }
 
         loginRepository.deleteAllServers()
-        loginRepository.addServers(params.servers)
+        // Set the correct display order
+        val orderedList = mutableListOf<Server>()
+        params.servers.forEachIndexed { index, server ->
+            orderedList.add(Server(id = 0, name = server.name, url = server.url, displayOrder = index))
+        }
+        loginRepository.addServers(orderedList)
         return flow { emit(Resource.success(EmptyModel(0))) }
     }
 
