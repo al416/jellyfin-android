@@ -36,6 +36,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
 ) : ViewsRepository {
     override suspend fun getMyMediaSection(): Flow<Resource<HomeSectionRow>> {
         val userId = currentUserRepository.getCurrentUserId()
+            ?: throw IllegalArgumentException("UseId cannot be null")
         return flow<Resource<HomeSectionRow>> {
             emit(Resource.loading())
             try {
@@ -57,6 +58,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
 
     override suspend fun getContinueWatchingSection(mediaTypes: List<String>?): Flow<Resource<HomeSectionRow>> {
         val userId = currentUserRepository.getCurrentUserId()
+            ?: throw IllegalArgumentException("UseId cannot be null")
         return flow<Resource<HomeSectionRow>> {
             emit(Resource.loading())
             try {
@@ -88,6 +90,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
 
     override suspend fun getNextUpSection(): Flow<Resource<HomeSectionRow>> {
         val userId = currentUserRepository.getCurrentUserId()
+            ?: throw IllegalArgumentException("UseId cannot be null")
         return flow<Resource<HomeSectionRow>> {
             emit(Resource.loading())
             try {
@@ -114,6 +117,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
 
     override suspend fun getLatestSection(libraries: List<LibraryDto>): Flow<Resource<List<HomeSectionRow>>> {
         val userId = currentUserRepository.getCurrentUserId()
+            ?: throw IllegalArgumentException("UseId cannot be null")
         return flow<Resource<List<HomeSectionRow>>> {
             emit(Resource.loading())
             try {
@@ -164,6 +168,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
 
     override suspend fun getRecentItems(): Flow<Resource<List<HomeSectionCard>>> {
         val userId = currentUserRepository.getCurrentUserId()
+            ?: throw IllegalArgumentException("UseId cannot be null")
         return flow<Resource<List<HomeSectionCard>>> {
             emit(Resource.loading())
             try {

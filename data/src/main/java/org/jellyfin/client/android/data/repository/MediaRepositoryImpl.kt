@@ -27,6 +27,10 @@ class MediaRepositoryImpl @Inject constructor(@Named("network") private val netw
 
     override suspend fun getTranscodingUrl(mediaId: UUID): Flow<Resource<VideoPlaybackInformation>> {
         val userId = currentUserRepository.getCurrentUserId()
+        val baseUrl = currentUserRepository.getBaseUrl()
+        if (userId == null || baseUrl == null) {
+            throw IllegalArgumentException("UserId or Server URL cannot be null")
+        }
         return flow<Resource<VideoPlaybackInformation>> {
             emit(Resource.loading())
             try {
@@ -41,12 +45,6 @@ class MediaRepositoryImpl @Inject constructor(@Named("network") private val netw
                         emit(Resource.error(listOf(Error(0, 0, "Could not get transcoding URL", null))))
                     } else {
                         val transcodingUrl = mediaSourceInfo.transcodingUrl
-                        // Remove the trailing / from the base URL if it exists
-                        val baseUrl = if (currentUserRepository.getBaseUrl().endsWith("/")) {
-                            currentUserRepository.getBaseUrl().dropLast(1)
-                        } else {
-                            currentUserRepository.getBaseUrl()
-                        }
                         emit(Resource.success(VideoPlaybackInformation("$baseUrl$transcodingUrl", VideoPlayType.TRANSCODING)))
                     }
                 } else {

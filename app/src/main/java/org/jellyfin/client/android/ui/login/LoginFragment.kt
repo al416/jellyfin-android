@@ -48,10 +48,7 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
         loginViewModel.getLoginState().observe(viewLifecycleOwner, Observer {
             it?.let {resource ->
                 when (resource.status) {
-                    // Login successful so move to Home screen
                     Status.SUCCESS -> {
-                        val intent = Intent(requireActivity(), HomeActivity::class.java)
-                        startActivity(intent)
                     }
                     // User is logging in so display loading indicator
                     Status.LOADING -> {
@@ -76,6 +73,17 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
                 }
             }
         })
+
+        loginViewModel.getCurrentSession().observe(viewLifecycleOwner, { resource ->
+            when (resource.status) {
+                Status.SUCCESS -> {
+                    resource.data?.let {
+                        val intent = Intent(requireActivity(), HomeActivity::class.java)
+                        startActivity(intent)
+                    }
+                }
+            }
+        })
     }
 
     override fun onClick(view: View?) {
@@ -83,7 +91,7 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
             R.id.buttonLogin -> {
                 view.isEnabled = false
                 val server = binding.spinnerServer.selectedItem as Server
-                loginViewModel.doUserLogin(baseUrl = server.url,
+                loginViewModel.doUserLogin(server = server,
                     username = binding.textUsername.text.toString(),
                     password = binding.textPassword.text.toString())
             }
