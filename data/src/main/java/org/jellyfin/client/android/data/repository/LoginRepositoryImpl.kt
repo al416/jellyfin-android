@@ -56,8 +56,8 @@ class LoginRepositoryImpl @Inject constructor(@Named("network") private val netw
         }.flowOn(diskDispatcher)
     }
 
-    override suspend fun updateServers(servers: List<Server>) {
-        serverDao.updateServers(servers.map {
+    override suspend fun addServers(servers: List<Server>) {
+        serverDao.addServers(servers.map {
             DTOServer(serverId = it.id,
                 serverName = it.name,
                 serverUrl = it.url,
@@ -65,18 +65,8 @@ class LoginRepositoryImpl @Inject constructor(@Named("network") private val netw
         })
     }
 
-    override suspend fun addServer(server: Server) {
-        serverDao.addServer(DTOServer(serverId = 0,
-            serverName = server.name,
-            serverUrl = server.url,
-            displayOrder = server.displayOrder))
-    }
-
-    override suspend fun deleteServer(server: Server) {
-        serverDao.deleteServer(DTOServer(serverId = server.id,
-            serverName = server.name,
-            serverUrl = server.url,
-            displayOrder = server.displayOrder))
+    override suspend fun deleteAllServers() {
+        serverDao.deleteAllServers()
     }
 
 }

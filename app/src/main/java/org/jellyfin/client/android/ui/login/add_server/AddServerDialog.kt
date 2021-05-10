@@ -32,8 +32,8 @@ class AddServerDialog : DaggerDialogFragment() {
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
 
-    private val loginViewModel: LoginViewModel by lazy {
-        ViewModelProvider(requireActivity(), viewModelFactory).get(LoginViewModel::class.java)
+    private val addServerViewModel: AddServerViewModel by lazy {
+        ViewModelProvider(requireParentFragment(), viewModelFactory).get(AddServerViewModel::class.java)
     }
 
     override fun onStart() {
@@ -59,7 +59,7 @@ class AddServerDialog : DaggerDialogFragment() {
         val btnCancel = view.findViewById<MaterialButton>(R.id.btnCancel)
 
         btnOkay.setOnClickListener {
-            loginViewModel.addServer(
+            addServerViewModel.addServer(
                 serverUrl = serverUrl.text.toString(),
                 serverName = serverName.text.toString()
             )

@@ -14,6 +14,7 @@
     <string name="login_fragment_add_a_server_text">Add a server</string>
 
     <!-- Add Server Fragment -->
+    <string name="add_server_page_title">Servers</string>
     <string name="add_server_dialog_title">Add a Server</string>
     <string name="add_server_button_label">Add a server</string>
     <string name="add_server_available_servers">Available servers:</string>
@@ -24,6 +25,7 @@
     <string name="add_server_server_url_hint">Server URL (e.g. https://demo.jellyfin.org/stable)</string>
     <string name="add_server_dialog_positive_label">OK</string>
     <string name="add_server_dialog_negative_label">Cancel</string>
+    <string name="add_server_menu_save">Save</string>
 
     <!-- Home Left Drawer Navigation -->
     <string name="home_activity_navigation_open_drawer">Open left navigation drawer</string>

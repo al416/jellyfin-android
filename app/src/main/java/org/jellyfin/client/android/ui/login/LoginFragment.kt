@@ -18,6 +18,7 @@ import org.jellyfin.client.android.databinding.FragmentLoginBinding
 import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.domain.models.display_model.Server
+import org.jellyfin.client.android.domain.models.display_model.ServerList
 import org.jellyfin.client.android.ui.home.HomeActivity
 import org.jellyfin.client.android.ui.login.adapter.ServerSpinnerAdapter
 import javax.inject.Inject
@@ -87,7 +88,8 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
                     password = binding.textPassword.text.toString())
             }
             R.id.txtAddServer -> {
-                val action = LoginFragmentDirections.actionAddServer()
+                val servers = loginViewModel.getServers().value?.data ?: emptyList()
+                val action = LoginFragmentDirections.actionAddServer(ServerList(servers))
                 findNavController().navigate(action)
             }
         }
