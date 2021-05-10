@@ -7,7 +7,7 @@ import org.jellyfin.client.android.domain.models.display_model.Server
 
 interface LoginRepository {
 
-    suspend fun doUserLogin(baseUrl: String, username: String, password: String): Flow<Resource<Login>>
+    suspend fun doUserLogin(server: Server, username: String, password: String): Flow<Resource<Login>>
 
     suspend fun getServerList(): Flow<Resource<List<Server>>>
 

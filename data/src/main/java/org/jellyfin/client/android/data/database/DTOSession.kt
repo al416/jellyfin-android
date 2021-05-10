@@ -15,8 +15,9 @@ import kotlinx.android.parcel.Parcelize
     onDelete = ForeignKey.CASCADE)]
 )
 data class DTOSession(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "SessionId") val sessionId: Int,
+    @PrimaryKey @ColumnInfo(name = "SessionId") val sessionId: Int,
     @ColumnInfo(name = "ServerId") val serverId: Int,
     @ColumnInfo(name = "UserName") val userName: String,
+    @ColumnInfo(name = "UserUUID") val userUUID: String,
     @ColumnInfo(name = "APIKey") val apiKey: String
 ) : Parcelable
