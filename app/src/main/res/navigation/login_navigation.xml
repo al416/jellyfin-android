@@ -14,6 +14,9 @@
 
     <fragment
         android:id="@+id/add_server_fragment"
-        android:name="org.jellyfin.client.android.ui.login.add_server.AddServerFragment" />
+        android:name="org.jellyfin.client.android.ui.login.add_server.AddServerFragment">
+        <argument android:name="servers"
+            app:argType="org.jellyfin.client.android.domain.models.display_model.ServerList"/>
+    </fragment>
 
 </navigation>

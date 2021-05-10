@@ -11,9 +11,7 @@ interface LoginRepository {
 
     suspend fun getServerList(): Flow<Resource<List<Server>>>
 
-    suspend fun updateServers(servers: List<Server>)
+    suspend fun addServers(servers: List<Server>)
 
-    suspend fun addServer(server: Server)
-
-    suspend fun deleteServer(server: Server)
+    suspend fun deleteAllServers()
 }

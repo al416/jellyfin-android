@@ -8,6 +8,8 @@ import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import dagger.android.support.DaggerFragment
@@ -15,7 +17,6 @@ import org.jellyfin.client.android.R
 import org.jellyfin.client.android.databinding.FragmentAddServerBinding
 import org.jellyfin.client.android.domain.constants.Tags.DIALOG_ADD_SERVER
 import org.jellyfin.client.android.domain.models.Status
-import org.jellyfin.client.android.ui.login.LoginViewModel
 import org.jellyfin.client.android.ui.login.adapter.ServerRecyclerViewAdapter
 import javax.inject.Inject
 
@@ -23,11 +24,15 @@ class AddServerFragment : DaggerFragment(), View.OnClickListener {
 
     private lateinit var binding: FragmentAddServerBinding
 
+    private val args: AddServerFragmentArgs by navArgs()
+
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
 
-    private val loginViewModel: LoginViewModel by lazy {
-        ViewModelProvider(requireActivity(), viewModelFactory).get(LoginViewModel::class.java)
+    private val addServerViewModel: AddServerViewModel by lazy {
+        ViewModelProvider(this, viewModelFactory).get(AddServerViewModel::class.java).apply {
+            initialize(args.servers.servers)
+        }
     }
 
     private var itemTouchHelper: ItemTouchHelper? = null
@@ -44,6 +49,23 @@ class AddServerFragment : DaggerFragment(), View.OnClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.toolbar.setTitle(R.string.add_server_page_title)
+        binding.toolbar.setNavigationIcon(R.drawable.ic_back)
+        binding.toolbar.setNavigationOnClickListener {
+            findNavController().popBackStack()
+        }
+        binding.toolbar.inflateMenu(R.menu.add_server_menu)
+        binding.toolbar.setOnMenuItemClickListener {
+            when (it.itemId) {
+                R.id.save -> {
+                    val servers = binding.adapter?.currentList ?: emptyList()
+                    addServerViewModel.updateServers(servers)
+                    true
+                }
+                else -> false
+            }
+        }
+
         binding.btnAddServer.setOnClickListener(this)
         val adapter = ServerRecyclerViewAdapter()
         binding.adapter = adapter
@@ -55,23 +77,17 @@ class AddServerFragment : DaggerFragment(), View.OnClickListener {
         binding.serverRecyclerView.layoutManager = GridLayoutManager(requireContext(), 1)
         binding.executePendingBindings()
 
-        loginViewModel.getServers().observe(viewLifecycleOwner, { resource ->
-            when (resource.status) {
-                Status.SUCCESS -> {
-                    resource.data?.let {servers ->
-                        displayServerList(servers.isNotEmpty())
-                        if (adapter.currentList == servers) {
-                            // A duplicate list has been submitted so the adapter won't check if the list has been changed so force a redraw
-                            adapter.notifyDataSetChanged()
-                        } else {
-                            adapter.submitList(servers)
-                        }
-                    }
-                }
+        addServerViewModel.getServers().observe(viewLifecycleOwner, { servers ->
+            displayServerList(servers.isNotEmpty())
+            if (adapter.currentList == servers) {
+                // A duplicate list has been submitted so the adapter won't check if the list has been changed so force a redraw
+                adapter.notifyDataSetChanged()
+            } else {
+                adapter.submitList(servers)
             }
         })
 
-        loginViewModel.getAddServerStatus().observe(viewLifecycleOwner, { resource ->
+        addServerViewModel.getAddServerStatus().observe(viewLifecycleOwner, { resource ->
             if (resource != null) {
                 when (resource.status) {
                     Status.SUCCESS -> {
@@ -84,6 +100,19 @@ class AddServerFragment : DaggerFragment(), View.OnClickListener {
                         Toast.makeText(requireContext(), resource.messages?.first()?.message, Toast.LENGTH_LONG).show()
                     }
                     Status.LOADING -> {
+
+                    }
+                }
+            }
+        })
+
+        addServerViewModel.getUpdateServersStatus().observe(viewLifecycleOwner, Observer {resource ->
+            if (resource != null) {
+                when (resource.status) {
+                    Status.SUCCESS -> {
+                        findNavController().popBackStack()
+                    }
+                    else -> {
 
                     }
                 }

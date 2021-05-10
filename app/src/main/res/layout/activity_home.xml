@@ -52,7 +52,7 @@
                     style="@style/Widget.MaterialComponents.BottomNavigationView.Colored"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:menu="@menu/bottom_navigation_menu" />
+                    app:menu="@menu/home_bottom_navigation_menu" />
 
             </LinearLayout>
 
@@ -62,7 +62,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="start"
-            app:menu="@menu/activity_navigation_menu" />
+            app:menu="@menu/home_activity_navigation_menu" />
 
     </androidx.drawerlayout.widget.DrawerLayout>
 </layout>
