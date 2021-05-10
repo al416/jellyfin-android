@@ -51,7 +51,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
             } catch (e: Exception) {
                 // TODO: Need to catch httpException and pass along correct error message
                 val error = e.message
-                emit(Resource.error(listOf(Error(null, 1, "Error", null))))
+                emit(Resource.error(listOf(Error(null, 1,
+                    "Could not load My Media section $error", null))))
             }
         }.flowOn(networkDispatcher)
     }
@@ -83,7 +84,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
             } catch (e: Exception) {
                 // TODO: Need to catch httpException and pass along correct error message
                 val error = e.message
-                emit(Resource.error(listOf(Error(1, 1, "Error", null))))
+                emit(Resource.error(listOf(Error(1, 1, "Could not load Continue Watching section $error", null))))
             }
         }.flowOn(networkDispatcher)
     }
@@ -110,7 +111,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
             } catch (e: Exception) {
                 // TODO: Need to catch httpException and pass along correct error message
                 val error = e.message
-                emit(Resource.error(listOf(Error(1, 1, "Error", null))))
+                emit(Resource.error(listOf(Error(1, 1, "Could not load Next Up section $error", null))))
             }
         }.flowOn(networkDispatcher)
     }
@@ -144,7 +145,7 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
             } catch (e: Exception) {
                 // TODO: Need to catch httpException and pass along correct error message
                 val error = e.message
-                emit(Resource.error(listOf(Error(1, 1, "Error", null))))
+                emit(Resource.error(listOf(Error(1, 1, "Could not load Latest Items section $error", null))))
             }
         }.flowOn(networkDispatcher)
     }
@@ -161,7 +162,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                 response.add(HomeSectionType.LATEST_MEDIA)
                 emit(Resource.success(response))
             } catch (e: Exception) {
-                emit(Resource.error(listOf(Error(null, 1, "Error", null))))
+                val error = e.message
+                emit(Resource.error(listOf(Error(null, 1, "Could not load Home section $error", null))))
             }
         }.flowOn(networkDispatcher)
     }
@@ -187,7 +189,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                 }
                 emit(Resource.success(response))
             } catch (e: Exception) {
-                emit(Resource.error(listOf(Error(null, 1, "Error", null))))
+                val error = e.message
+                emit(Resource.error(listOf(Error(null, 1, "Could not load Recent Items section $error", null))))
             }
         }.flowOn(networkDispatcher)
     }
