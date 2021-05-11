@@ -6,6 +6,7 @@ import dagger.Reusable
 import org.jellyfin.client.android.domain.constants.CodecTypes
 import org.jellyfin.client.android.domain.constants.ContainerTypes
 import org.jellyfin.sdk.Jellyfin
+import org.jellyfin.sdk.api.client.HttpClientOptions
 import org.jellyfin.sdk.api.client.KtorClient
 import org.jellyfin.sdk.api.operations.ImageApi
 import org.jellyfin.sdk.api.operations.ItemsApi
@@ -32,13 +33,16 @@ import org.jellyfin.sdk.model.api.SubtitleProfile
 import org.jellyfin.sdk.model.api.TranscodeSeekInfo
 import org.jellyfin.sdk.model.api.TranscodingProfile
 import java.util.*
+import javax.inject.Singleton
 
 @Module
 @Suppress("unused")
 object JellyfinModule {
 
+    private const val HTTP_CLIENT_TIMEOUT_IN_MS = 15000L
+
+    @Singleton
     @Provides
-    @Reusable
     internal fun providesJellyfin(): Jellyfin {
         return Jellyfin {
             // TODO: Set correct client and device info
@@ -47,10 +51,11 @@ object JellyfinModule {
         }
     }
 
+    @Singleton
     @Provides
-    @Reusable
     internal fun providesKtorClient(jellyfin: Jellyfin): KtorClient {
-        return jellyfin.createApi(baseUrl = null)
+        val clientOptions = HttpClientOptions(followRedirects = true, timeout = HTTP_CLIENT_TIMEOUT_IN_MS)
+        return jellyfin.createApi(baseUrl = null, httpClientOptions = clientOptions)
     }
 
     @Provides

@@ -12,16 +12,20 @@ import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.Session
 import org.jellyfin.client.android.domain.models.display_model.Server
 import org.jellyfin.client.android.domain.usecase.DoUserLogin
+import org.jellyfin.client.android.domain.usecase.DoUserLogout
 import org.jellyfin.client.android.domain.usecase.GetCurrentSession
 import org.jellyfin.client.android.domain.usecase.GetServerList
+import org.jellyfin.sdk.api.client.KtorClient
 import javax.inject.Inject
 import javax.inject.Named
 
 class LoginViewModel @Inject constructor(
     @Named("computation") private val computationDispatcher: CoroutineDispatcher,
     private val doUserLogin: DoUserLogin,
+    private val doUserLogout: DoUserLogout,
     private val getServerList: GetServerList,
-    private val getCurrentSession: GetCurrentSession
+    private val getCurrentSession: GetCurrentSession,
+    private val api: KtorClient
 ) : ViewModel() {
 
     private val loginState = MutableLiveData<Resource<Login>?>(null)
@@ -33,6 +37,15 @@ class LoginViewModel @Inject constructor(
     fun doUserLogin(server: Server, username: String, password: String) {
         viewModelScope.launch(computationDispatcher) {
             doUserLogin.invoke(DoUserLogin.RequestParams(server, username, password))
+                .collectLatest {
+                    loginState.postValue(it)
+                }
+        }
+    }
+
+    fun doUserLogout() {
+        viewModelScope.launch(computationDispatcher) {
+            doUserLogout.invoke()
                 .collectLatest {
                     loginState.postValue(it)
                 }
@@ -70,6 +83,10 @@ class LoginViewModel @Inject constructor(
     private fun loadSession(data: MutableLiveData<Resource<Session>>) {
         viewModelScope.launch(computationDispatcher) {
             getCurrentSession.invoke().collectLatest {
+                it.data?.let {
+                    api.baseUrl = it.serverUrl
+                    api.accessToken = it.apiKey
+                }
                 data.postValue(it)
             }
         }

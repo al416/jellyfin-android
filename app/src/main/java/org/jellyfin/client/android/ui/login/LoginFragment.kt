@@ -5,13 +5,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.Toast
-import androidx.core.view.ViewCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
-import com.google.android.material.textfield.TextInputEditText
 import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.R
 import org.jellyfin.client.android.databinding.FragmentLoginBinding
@@ -46,7 +43,7 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
         binding.txtAddServer.setOnClickListener(this)
 
         loginViewModel.getLoginState().observe(viewLifecycleOwner, Observer {
-            it?.let {resource ->
+            it?.let { resource ->
                 when (resource.status) {
                     Status.SUCCESS -> {
                     }
@@ -63,12 +60,16 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
             }
         })
 
-        loginViewModel.getServers().observe(viewLifecycleOwner, Observer {resource ->
+        loginViewModel.getServers().observe(viewLifecycleOwner, { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
                     resource.data?.let {
                         displayLoginPage(it.isNotEmpty())
-                        binding.serverAdapter = ServerSpinnerAdapter(requireContext(), android.R.layout.simple_spinner_item, it)
+                        binding.serverAdapter = ServerSpinnerAdapter(
+                            requireContext(),
+                            android.R.layout.simple_spinner_item,
+                            it
+                        )
                     }
                 }
             }
@@ -80,6 +81,7 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
                     resource.data?.let {
                         val intent = Intent(requireActivity(), HomeActivity::class.java)
                         startActivity(intent)
+                        requireActivity().finish()
                     }
                 }
             }
@@ -91,9 +93,11 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
             R.id.buttonLogin -> {
                 view.isEnabled = false
                 val server = binding.spinnerServer.selectedItem as Server
-                loginViewModel.doUserLogin(server = server,
+                loginViewModel.doUserLogin(
+                    server = server,
                     username = binding.textUsername.text.toString(),
-                    password = binding.textPassword.text.toString())
+                    password = binding.textPassword.text.toString()
+                )
             }
             R.id.txtAddServer -> {
                 val servers = loginViewModel.getServers().value?.data ?: emptyList()
