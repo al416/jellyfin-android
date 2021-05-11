@@ -40,8 +40,11 @@ class MediaRepositoryImpl @Inject constructor(@Named("network") private val netw
                 val result by mediaInfoApi.getPostedPlaybackInfo(itemId = mediaId, playbackInfoDto)
 
                 val mediaSourceInfo = result.mediaSources?.first()
+                // TODO: Clean up all this login to figure out which URL to use
                 if (mediaSourceInfo != null) {
-                    if (mediaSourceInfo.supportsDirectPlay && mediaSourceInfo.transcodingUrl == null) {
+                    if (mediaSourceInfo.supportsDirectPlay && mediaSourceInfo.supportsDirectStream && mediaSourceInfo.path != null && mediaSourceInfo.path!!.startsWith("http")) {
+                        emit(Resource.success(VideoPlaybackInformation(mediaSourceInfo.path, VideoPlayType.DIRECT_PLAY)))
+                    } else if (mediaSourceInfo.supportsDirectPlay && mediaSourceInfo.transcodingUrl == null) {
                         emit(Resource.error(listOf(Error(0, 0, "Could not get transcoding URL", null))))
                     } else {
                         val transcodingUrl = mediaSourceInfo.transcodingUrl

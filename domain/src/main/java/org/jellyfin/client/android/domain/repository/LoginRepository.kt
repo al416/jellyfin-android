@@ -14,4 +14,6 @@ interface LoginRepository {
     suspend fun addServers(servers: List<Server>)
 
     suspend fun deleteAllServers()
+
+    suspend fun doUserLogout()
 }

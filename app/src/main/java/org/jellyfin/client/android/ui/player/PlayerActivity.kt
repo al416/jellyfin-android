@@ -7,11 +7,14 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.ui.PlayerView
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.util.EventLogger
 import com.google.android.exoplayer2.util.Util
 import dagger.android.support.DaggerAppCompatActivity
 import org.jellyfin.client.android.R
@@ -112,6 +115,11 @@ class PlayerActivity : DaggerAppCompatActivity() {
             else -> {
                 HlsMediaSource.Factory(DefaultDataSourceFactory(this, userAgent)).createMediaSource(mediaItem)
             }
+        }
+
+        if (exoPlayer is SimpleExoPlayer) {
+            val trackSelector = DefaultTrackSelector(this)
+            (exoPlayer as SimpleExoPlayer).addAnalyticsListener(EventLogger(trackSelector))
         }
 
         exoPlayer.setMediaSource(mediaSource)

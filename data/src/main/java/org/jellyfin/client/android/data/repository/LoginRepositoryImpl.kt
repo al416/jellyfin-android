@@ -36,13 +36,13 @@ class LoginRepositoryImpl @Inject constructor(@Named("network") private val netw
             val user = AuthenticateUserByName(username = username, password = password, pw = password)
             try {
                 val authenticationResult by userApi.authenticateUserByName(user)
-                api.accessToken = authenticationResult.accessToken
+                val token = authenticationResult.accessToken ?: ""
+                api.accessToken = token
                 val userUUID = authenticationResult.user?.id.toString() ?: ""
                 sessionDao.deleteCurrentSession()
-                val token = authenticationResult.accessToken ?: ""
                 sessionDao.setCurrentSession(DTOSession(sessionId = 1, serverId = server.id, userUUID = userUUID,
                     userName = username, apiKey = token))
-                emit(Resource.success(Login(authenticationResult.accessToken)))
+                emit(Resource.success(Login(accessToken = token)))
             } catch (e: Exception) {
                 // TODO: Need to catch httpException and pass along correct error message
                 emit(Resource.error(listOf(Error(httpErrorResponseCode = null, code = 1, message = e.message, exception = null))))
@@ -69,6 +69,12 @@ class LoginRepositoryImpl @Inject constructor(@Named("network") private val netw
 
     override suspend fun deleteAllServers() {
         serverDao.deleteAllServers()
+    }
+
+    override suspend fun doUserLogout() {
+        sessionDao.deleteCurrentSession()
+        api.baseUrl = null
+        api.accessToken = null
     }
 
 }

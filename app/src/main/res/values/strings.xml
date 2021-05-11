@@ -30,6 +30,7 @@
     <!-- Home Left Drawer Navigation -->
     <string name="home_activity_navigation_open_drawer">Open left navigation drawer</string>
     <string name="home_activity_navigation_close_drawer">Close left navigation drawer</string>
+    <string name="home_activity_navigation_logout">Logout</string>
 
     <!-- Home Bottom Navigation -->
     <string name="home_activity_navigation_home">Home</string>

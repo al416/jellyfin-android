@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -89,6 +90,7 @@ class HomeFragment : DaggerFragment() {
                     }
                 }
                 Status.ERROR -> {
+                    Toast.makeText(requireContext(), resource.messages?.first()?.message, Toast.LENGTH_SHORT).show()
                     showError()
                 }
                 Status.LOADING -> {
