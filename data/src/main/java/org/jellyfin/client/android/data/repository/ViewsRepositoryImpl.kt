@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import org.jellyfin.client.android.domain.constants.LibraryType
+import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.LibraryDto
 import org.jellyfin.client.android.domain.models.Resource
@@ -134,8 +134,37 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                         val cards = mutableListOf<HomeSectionCard>()
                         // TODO: Use a string repository to get the "Latest x" string
                         result.forEachIndexed { resultIndex, item ->
-                            val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.PRIMARY, fillWidth = 223, fillHeight = 335)
-                            cards.add(HomeSectionCard(id = resultIndex, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.POSTER))
+                            val itemId = when (item.type) {
+                                ItemType.EPISODE -> item.seriesId ?: item.id
+                                else -> item.id
+                            }
+                            val imageType = when (item.type) {
+                                ItemType.TV_CHANNEL -> ImageType.BACKDROP
+                                else -> ImageType.PRIMARY
+                            }
+                            val title = when (item.type) {
+                                ItemType.EPISODE -> item.seriesName
+                                else -> item.name
+                            }
+                            val subtitle = when (item.type) {
+                                ItemType.EPISODE -> item.name
+                                ItemType.TV_CHANNEL -> item.currentProgram?.name
+                                else -> null
+                            }
+                            val homeCardType = when (item.type) {
+                                ItemType.TV_CHANNEL -> HomeCardType.BACKDROP
+                                else -> HomeCardType.POSTER
+                            }
+                            val fillWidth = when (item.type) {
+                                ItemType.TV_CHANNEL -> 335
+                                else -> 223
+                            }
+                            val fillHeight = when (item.type) {
+                                ItemType.TV_CHANNEL -> 223
+                                else -> 335
+                            }
+                            val imageUrl = imageApi.getItemImageUrl(itemId = itemId, imageType = imageType, fillWidth = fillWidth, fillHeight = fillHeight)
+                            cards.add(HomeSectionCard(id = resultIndex, imageUrl = imageUrl, title = title, subtitle = subtitle, uuid = itemId, homeCardType = homeCardType))
                         }
                         rows.add(HomeSectionRow(id = HomeSectionType.LATEST_MEDIA.ordinal + libraryIndex, title = "Latest " + library.title, cards = cards))
                     }
