@@ -5,13 +5,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.jellyfin.client.android.domain.constants.ItemType
+import org.jellyfin.client.android.domain.constants.PersonType
 import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.LibraryDto
 import org.jellyfin.client.android.domain.models.Resource
+import org.jellyfin.client.android.domain.models.display_model.Genre
 import org.jellyfin.client.android.domain.models.display_model.HomeCardType
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionType
+import org.jellyfin.client.android.domain.models.display_model.MovieDetails
+import org.jellyfin.client.android.domain.models.display_model.Person
 import org.jellyfin.client.android.domain.repository.CurrentUserRepository
 import org.jellyfin.client.android.domain.repository.ViewsRepository
 import org.jellyfin.sdk.api.operations.ImageApi
@@ -220,6 +224,51 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
             } catch (e: Exception) {
                 val error = e.message
                 emit(Resource.error(listOf(Error(null, 1, "Could not load Recent Items section $error", null))))
+            }
+        }.flowOn(networkDispatcher)
+    }
+
+    override suspend fun getMovieDetails(movieId: UUID): Flow<Resource<MovieDetails>> {
+        val userId = currentUserRepository.getCurrentUserId()
+            ?: throw IllegalArgumentException("UseId cannot be null")
+        return flow<Resource<MovieDetails>> {
+            emit(Resource.loading())
+            try {
+                val result by userLibraryApi.getItem(userId = userId, itemId = movieId)
+                val people = result.people?.map {
+                    Person(id = it.id, name = it.name, type = it.type, primaryImageTag = it.primaryImageTag, role = it.role)
+                }
+                val backdropUrl = imageApi.getItemImageUrl(itemId = movieId,
+                    imageType = ImageType.BACKDROP,
+                    maxWidth = 1920,
+                    maxHeight = 1080)
+                val posterUrl = imageApi.getItemImageUrl(itemId = movieId,
+                    imageType = ImageType.PRIMARY,
+                    maxWidth = 1000,
+                    maxHeight = 1500)
+                val response = MovieDetails(
+                    id = movieId,
+                    name = result.name,
+                    productionYear = result.productionYear,
+                    premierDate = result.premiereDate,
+                    communityRating = result.communityRating,
+                    criticRating = result.criticRating,
+                    container = result.container,
+                    externalUrls = emptyList(),
+                    backdropUrl = backdropUrl,
+                    genreItems = emptyList<Genre>(),
+                    posterUrl = posterUrl,
+                    officialRating = result.officialRating,
+                    overview = result.overview,
+                    actors = people?.filter { it.type != null && it.type.equals(PersonType.ACTOR) },
+                    directors = people?.filter { it.type != null && it.type.equals(PersonType.DIRECTOR) },
+                    runTimeTicks = result.runTimeTicks,
+                    tagLines = result.taglines
+                )
+                emit(Resource.success(response))
+            } catch (e: Exception) {
+                val error = e.message
+                emit(Resource.error(listOf(Error(null, 1, "Could not load Home section $error", null))))
             }
         }.flowOn(networkDispatcher)
     }

@@ -6,6 +6,7 @@ import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionType
+import org.jellyfin.client.android.domain.models.display_model.MovieDetails
 import java.util.*
 
 interface ViewsRepository {
@@ -21,4 +22,6 @@ interface ViewsRepository {
     suspend fun getHomeSections(): Flow<Resource<List<HomeSectionType>>>
 
     suspend fun getRecentItems(): Flow<Resource<List<HomeSectionCard>>>
+
+    suspend fun getMovieDetails(movieId: UUID): Flow<Resource<MovieDetails>>
 }

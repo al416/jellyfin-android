@@ -8,6 +8,7 @@ import dagger.Module
 import dagger.multibindings.IntoMap
 import org.jellyfin.client.android.ui.home.HomeViewModel
 import org.jellyfin.client.android.ui.home.RecentItemViewModel
+import org.jellyfin.client.android.ui.home.movie_details.MovieDetailsViewModel
 import org.jellyfin.client.android.ui.login.LoginViewModel
 import org.jellyfin.client.android.ui.login.add_server.AddServerViewModel
 import org.jellyfin.client.android.ui.player.PlayerViewModel
@@ -42,6 +43,11 @@ abstract class ViewModelModule {
     @IntoMap
     @ViewModelKey(RecentItemViewModel::class)
     abstract fun bindsRecentItemViewModel(recentItemViewModel: RecentItemViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(MovieDetailsViewModel::class)
+    abstract fun bindsMovieDetailsViewModel(movieDetailsViewModel: MovieDetailsViewModel): ViewModel
 }
 
 @MustBeDocumented

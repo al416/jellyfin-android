@@ -17,3 +17,8 @@ enum class HomeCardType {
     POSTER,
     BACKDROP
 }
+
+enum class HomeCardAction {
+    DETAILS,
+    PLAY
+}
