@@ -10,17 +10,16 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.databinding.FragmentHomeBinding
 import org.jellyfin.client.android.domain.constants.Constants.ASPECT_RATIO_16_9
-import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_MEDIA_UUID
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.ui.home.adapter.HomeRecentItemsFragmentAdapter
 import org.jellyfin.client.android.ui.home.adapter.HomeRowRecyclerViewAdapter
 import org.jellyfin.client.android.ui.login.LoginActivity
-import org.jellyfin.client.android.ui.player.PlayerActivity
 import java.util.*
 import javax.inject.Inject
 import kotlin.concurrent.fixedRateTimer
@@ -70,9 +69,15 @@ class HomeFragment : DaggerFragment() {
 
         adapter.onCardClick = {
             val card = it
+
+            val action = HomeFragmentDirections.actionMovieDetails(card.uuid.toString())
+            findNavController().navigate(action)
+
+            /*
             val intent = Intent(requireActivity(), PlayerActivity::class.java)
             intent.putExtra(BUNDLE_TAG_MEDIA_UUID, card.uuid.toString())
             startActivity(intent)
+             */
         }
 
         homeViewModel.getRows().observe(viewLifecycleOwner, Observer { resource ->
