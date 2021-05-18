@@ -6,6 +6,9 @@ import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.NavigationUI
 import com.google.android.material.navigation.NavigationView
 import dagger.android.support.DaggerAppCompatActivity
 import org.jellyfin.client.android.R
@@ -26,6 +29,15 @@ class HomeActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
         ViewModelProvider(this, viewModelFactory).get(LoginViewModel::class.java)
     }
 
+    private val navController by lazy {
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
+        navHostFragment.navController
+    }
+
+    private val appBarConfiguration by lazy {
+        AppBarConfiguration(navController.graph, binding.drawerLayout)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_home)
@@ -36,8 +48,15 @@ class HomeActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
         binding.drawerLayout.addDrawerListener(toggle)
         binding.leftNav.setNavigationItemSelectedListener(this)
 
+        binding.toolbar.setNavigationOnClickListener {
+            NavigationUI.navigateUp(navController, appBarConfiguration)
+        }
+
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeButtonEnabled(true)
+
+        NavigationUI.setupWithNavController(binding.toolbar, navController, appBarConfiguration)
+        NavigationUI.setupActionBarWithNavController(this, navController, binding.drawerLayout)
 
         loginViewModel.getLoginState().observe(this, {
             it?.let { resource ->

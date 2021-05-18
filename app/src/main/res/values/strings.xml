@@ -41,7 +41,7 @@
     <string name="home_recent_items_view_details">View Details</string>
 
     <!-- Movie Details -->
-    <string name="movie_details_item_overview">Play</string>
+    <string name="movie_details_item_overview">Overview</string>
     <string name="movie_details_item_genre">Genre</string>
     <string name="movie_details_item_director">Director</string>
 
