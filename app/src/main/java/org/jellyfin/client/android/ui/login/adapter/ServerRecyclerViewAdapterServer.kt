@@ -15,6 +15,8 @@ class ServerRecyclerViewAdapter() :
 
     var onListChanged: ((List<Server>) -> Unit)? = null
 
+    var onItemClicked: ((Server) -> Unit)? = null
+
     companion object: DiffUtil.ItemCallback<Server>() {
         override fun areItemsTheSame(oldItem: Server, newItem: Server): Boolean {
             return oldItem.id == newItem.id
@@ -36,6 +38,9 @@ class ServerRecyclerViewAdapter() :
     override fun onBindViewHolder(holder: ServerViewHolder, position: Int) {
         val server = getItem(position)
         holder.binding.server = server
+        holder.binding.item.setOnClickListener {
+            onItemClicked?.invoke(server)
+        }
         holder.binding.executePendingBindings()
     }
 

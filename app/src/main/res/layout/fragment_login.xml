@@ -47,8 +47,7 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/textUsername"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/login_fragment_demo_username" />
+                android:layout_height="wrap_content"/>
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -75,8 +74,7 @@
                 android:id="@+id/textPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPassword"
-                android:text="@string/login_fragment_demo_password" />
+                android:inputType="textPassword" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -127,7 +125,9 @@
             android:text="@string/login_fragment_add_a_server_text"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/spinnerServer" />
+            app:layout_constraintTop_toBottomOf="@id/spinnerServer"
+            android:visibility="gone"
+            tools:visibility="visible"/>
 
         <include
             android:id="@+id/progressBar"
