@@ -63,12 +63,15 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
             when (resource.status) {
                 Status.SUCCESS -> {
                     resource.data?.let {
-                        displayLoginPage(it.isNotEmpty())
                         binding.serverAdapter = ServerSpinnerAdapter(
                             requireContext(),
                             android.R.layout.simple_spinner_item,
                             it
                         )
+                        displayLoginPage(it.isNotEmpty())
+                        val text = if (it.isEmpty()) R.string.login_fragment_add_a_server_text else R.string.login_fragment_manage_servers_text
+                        binding.btnAddAServer.text = getString(text)
+                        binding.btnAddAServer.visibility = View.VISIBLE
                     }
                 }
                 else -> {

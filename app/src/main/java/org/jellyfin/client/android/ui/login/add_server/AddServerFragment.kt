@@ -73,6 +73,10 @@ class AddServerFragment : DaggerFragment(), View.OnClickListener {
             addServerViewModel.onListChanged(it)
         }
 
+        adapter.onItemClicked = {
+            displayDialog(it.id, it.name, it.url)
+        }
+
         val callback: ItemTouchHelper.Callback = ServerItemTouchHelper(adapter)
         itemTouchHelper = ItemTouchHelper(callback)
         itemTouchHelper?.attachToRecyclerView(binding.serverRecyclerView)
@@ -131,7 +135,7 @@ class AddServerFragment : DaggerFragment(), View.OnClickListener {
     override fun onClick(view: View?) {
         when (view?.id) {
             R.id.btnAddServer -> {
-                AddServerDialog.newInstance("", "").show(childFragmentManager, DIALOG_ADD_SERVER)
+                displayDialog(0, "", "")
             }
         }
     }
@@ -140,5 +144,14 @@ class AddServerFragment : DaggerFragment(), View.OnClickListener {
         val visibility = if (shouldDisplay) View.VISIBLE else View.GONE
         binding.txtAvailableServers.visibility = visibility
         binding.serverRecyclerView.visibility = visibility
+    }
+
+    private fun displayDialog(serverId: Int, serverName: String, serverUrl: String) {
+        val dialog = childFragmentManager.findFragmentByTag(DIALOG_ADD_SERVER)
+        // If the dialog is visible on the screen then do not display it again
+        if (dialog is DialogFragment) {
+            return
+        }
+        AddServerDialog.newInstance(serverId, serverName, serverUrl).show(childFragmentManager, DIALOG_ADD_SERVER)
     }
 }

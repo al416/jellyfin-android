@@ -60,31 +60,43 @@ class AddServerViewModel @Inject constructor(
         return saveState
     }
 
-    fun addServer(serverName: String, serverUrl: String) {
+    fun addServer(serverId: Int, serverName: String, serverUrl: String) {
         val serverList = updatedServers.value ?: emptyList()
 
         val sanitizedName = sanitizeName(serverName)
         val sanitizedUrl = sanitizeUrl(serverUrl)
-        val validateName = validateServerName(serverList, sanitizedName)
-        val validateUrl = validateServerUrl(serverList, sanitizedUrl)
+        val validateName = if (serverId == 0) validateServerName(serverList, sanitizedName) else null
+        val validateUrl = if (serverId == 0) validateServerUrl(serverList, sanitizedUrl) else null
 
-        if (validateName != null) {
-            addServerStatus.postValue(Resource.error(listOf(validateName)))
-        } else if (validateUrl != null) {
-            addServerStatus.postValue(Resource.error(listOf(validateUrl)))
-        } else {
-            val newServers = mutableListOf<Server>()
-            newServers.addAll(serverList)
-            val server = Server(
-                id = 0,
-                name = sanitizedName,
-                url = sanitizedUrl,
-                displayOrder = serverList.size
-            )
-            newServers.add(server)
-            updatedServers.postValue(newServers)
-            addServerStatus.postValue(Resource.success(null))
-            saveState.postValue(originalServers != newServers)
+        when {
+            validateName != null -> {
+                addServerStatus.postValue(Resource.error(listOf(validateName)))
+            }
+            validateUrl != null -> {
+                addServerStatus.postValue(Resource.error(listOf(validateUrl)))
+            }
+            else -> {
+                val existingServer = serverList.firstOrNull { it.id == serverId }
+                val existingServerIndex = serverList.indexOfFirst { it.id == serverId }
+                val newServers = mutableListOf<Server>()
+                newServers.addAll(serverList)
+                val id = if (serverId == 0) serverList.size * -1 else serverId
+                val server = Server(
+                    id = id,
+                    name = sanitizedName,
+                    url = sanitizedUrl,
+                    displayOrder = existingServer?.displayOrder ?: serverList.size
+                )
+                if (existingServerIndex != -1) {
+                    newServers.removeAt(existingServerIndex)
+                    newServers.add(existingServerIndex, server)
+                } else {
+                    newServers.add(server)
+                }
+                updatedServers.postValue(newServers)
+                addServerStatus.postValue(Resource.success(null))
+                saveState.postValue(originalServers != newServers)
+            }
         }
     }
 
