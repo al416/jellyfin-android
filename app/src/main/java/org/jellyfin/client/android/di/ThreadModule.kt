@@ -20,7 +20,7 @@ interface ThreadModule {
         @Provides
         @Named("network_executor")
         fun providesNetworkExecutor(): Executor {
-            return Executors.newFixedThreadPool(3)
+            return Executors.newFixedThreadPool(6)
         }
 
         @Singleton

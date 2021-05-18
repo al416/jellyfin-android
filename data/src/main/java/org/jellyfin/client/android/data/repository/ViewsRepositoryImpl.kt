@@ -84,7 +84,11 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                     cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
                 }
                 // TODO: Use a repo to get Continue Watching string
-                emit(Resource.success(HomeSectionRow(id = HomeSectionType.CONTINUE_WATCHING.ordinal, title = "Continue Watching", cards = cards)))
+                if (cards.isEmpty()) {
+                    emit(Resource.success(null))
+                } else {
+                    emit(Resource.success(HomeSectionRow(id = HomeSectionType.CONTINUE_WATCHING.ordinal, title = "Continue Watching", cards = cards)))
+                }
             } catch (e: Exception) {
                 // TODO: Need to catch httpException and pass along correct error message
                 val error = e.message
@@ -111,7 +115,11 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                     cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
                 }
                 // TODO: Use a repo to get Next Up string
-                emit(Resource.success(HomeSectionRow(id = HomeSectionType.NEXT_UP.ordinal, title = "Next Up", cards = cards)))
+                if (cards.isEmpty()) {
+                    emit(Resource.success(null))
+                } else {
+                    emit(Resource.success(HomeSectionRow(id = HomeSectionType.NEXT_UP.ordinal, title = "Next Up", cards = cards)))
+                }
             } catch (e: Exception) {
                 // TODO: Need to catch httpException and pass along correct error message
                 val error = e.message

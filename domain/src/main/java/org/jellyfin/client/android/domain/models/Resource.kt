@@ -18,6 +18,10 @@ data class Resource<T>(val status: Status, val data: T?, val messages: List<Erro
             return Resource(Status.SUCCESS, data, null)
         }
 
+        fun <T> success(data: T?, msg: List<Error>?): Resource<T> {
+            return Resource(Status.SUCCESS, data, msg)
+        }
+
         fun <T> error(msg: List<Error>?): Resource<T> {
             return Resource(Status.ERROR, null, msg)
         }
