@@ -11,6 +11,7 @@
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:background="@drawable/global_background"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -80,7 +81,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <Button
-            android:id="@+id/buttonLogin"
+            android:id="@+id/btnLogin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
@@ -100,7 +101,7 @@
             android:visibility="gone"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/buttonLogin"
+            app:layout_constraintTop_toBottomOf="@id/btnLogin"
             tools:visibility="visible" />
 
         <Spinner
@@ -118,15 +119,12 @@
             app:setAdapter="@{serverAdapter}"
             tools:visibility="visible" />
 
-        <TextView
-            android:id="@+id/txtAddServer"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddAServer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="@string/login_fragment_add_a_server_text"
-            android:textColor="#0000FF"
-            android:textSize="16sp"
-            android:textStyle="bold"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/spinnerServer" />

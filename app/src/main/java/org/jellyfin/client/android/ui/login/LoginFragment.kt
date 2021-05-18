@@ -39,8 +39,8 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.buttonLogin.setOnClickListener(this)
-        binding.txtAddServer.setOnClickListener(this)
+        binding.btnLogin.setOnClickListener(this)
+        binding.btnAddAServer.setOnClickListener(this)
 
         loginViewModel.getLoginState().observe(viewLifecycleOwner, Observer {
             it?.let { resource ->
@@ -53,7 +53,7 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
                     }
                     // Login unsuccessful. Display error message
                     Status.ERROR -> {
-                        binding.buttonLogin.isEnabled = true
+                        binding.btnLogin.isEnabled = true
                         displayError(it.messages)
                     }
                 }
@@ -90,7 +90,7 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
 
     override fun onClick(view: View?) {
         when (view?.id) {
-            R.id.buttonLogin -> {
+            R.id.btnLogin -> {
                 view.isEnabled = false
                 val server = binding.spinnerServer.selectedItem as Server
                 loginViewModel.doUserLogin(
@@ -99,7 +99,7 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
                     password = binding.textPassword.text.toString()
                 )
             }
-            R.id.txtAddServer -> {
+            R.id.btnAddAServer -> {
                 val servers = loginViewModel.getServers().value?.data ?: emptyList()
                 val action = LoginFragmentDirections.actionAddServer(ServerList(servers))
                 findNavController().navigate(action)
@@ -124,7 +124,7 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
         val visibility = if (shouldDisplay) View.VISIBLE else View.GONE
         binding.textInputLayoutUsername.visibility = visibility
         binding.textInputLayoutPassword.visibility = visibility
-        binding.buttonLogin.visibility = visibility
+        binding.btnLogin.visibility = visibility
         binding.txtServer.visibility = visibility
         binding.spinnerServer.visibility = visibility
     }
