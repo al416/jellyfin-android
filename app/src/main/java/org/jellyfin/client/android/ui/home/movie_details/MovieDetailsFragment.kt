@@ -45,10 +45,12 @@ class MovieDetailsFragment : DaggerFragment() {
             when (resource.status) {
                 Status.SUCCESS -> {
                     resource.data?.let {movieDetails ->
-                        binding.backdrop.load(movieDetails.backdropUrl)
-                        binding.overview.setText(getString(R.string.movie_details_item_overview), movieDetails.overview)
-                        binding.genres.setText(getString(R.string.movie_details_item_genre), movieDetails.genreItems?.joinToString(","))
-                        binding.director.setText(getString(R.string.movie_details_item_director), movieDetails.name)
+                        binding.contents.movie = movieDetails
+                        binding.contents.backdrop.load(movieDetails.backdropUrl)
+                        binding.contents.poster.load(movieDetails.posterUrl)
+                        binding.contents.overview.setText(getString(R.string.movie_details_item_overview), movieDetails.overview)
+                        binding.contents.genres.setText(getString(R.string.movie_details_item_genre), "")
+                        binding.contents.director.setText(getString(R.string.movie_details_item_director), "")
                     }
                 }
                 Status.LOADING -> {
