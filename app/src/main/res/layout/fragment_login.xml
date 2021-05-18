@@ -129,5 +129,10 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/spinnerServer" />
 
+        <include
+            android:id="@+id/progressBar"
+            android:visibility="gone"
+            layout="@layout/progress_bar"/>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

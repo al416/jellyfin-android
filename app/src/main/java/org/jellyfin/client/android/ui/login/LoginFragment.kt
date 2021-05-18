@@ -5,11 +5,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.lifecycle.Observer
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import dagger.android.support.DaggerFragment
+import kotlinx.android.synthetic.main.progress_bar.view.*
 import org.jellyfin.client.android.R
 import org.jellyfin.client.android.databinding.FragmentLoginBinding
 import org.jellyfin.client.android.domain.models.Error
@@ -31,7 +31,7 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
         ViewModelProvider(requireActivity(), viewModelFactory).get(LoginViewModel::class.java)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) : View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) : View {
         binding = FragmentLoginBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -42,7 +42,7 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
         binding.btnLogin.setOnClickListener(this)
         binding.btnAddAServer.setOnClickListener(this)
 
-        loginViewModel.getLoginState().observe(viewLifecycleOwner, Observer {
+        loginViewModel.getLoginState().observe(viewLifecycleOwner, {
             it?.let { resource ->
                 when (resource.status) {
                     Status.SUCCESS -> {
@@ -53,7 +53,6 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
                     }
                     // Login unsuccessful. Display error message
                     Status.ERROR -> {
-                        binding.btnLogin.isEnabled = true
                         displayError(it.messages)
                     }
                 }
@@ -72,6 +71,9 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
                         )
                     }
                 }
+                else -> {
+                    // Do nothing
+                }
             }
         })
 
@@ -83,6 +85,9 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
                         startActivity(intent)
                         requireActivity().finish()
                     }
+                }
+                else -> {
+                    // Do nothing
                 }
             }
         })
@@ -108,16 +113,37 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
     }
 
     private fun displayError(errors: List<Error>?) {
-        // TODO: Display a better error message or dialog. TBD.
+        binding.progressBar.visibility = View.GONE
+        binding.btnLogin.isEnabled = true
+        binding.spinnerServer.isEnabled = true
+        binding.btnAddAServer.isEnabled = true
+
         val error = errors?.firstOrNull()
-        error?.let {
-            Toast.makeText(requireContext(), it.message, Toast.LENGTH_SHORT).show()
+        if (error != null) {
+            val builder = AlertDialog.Builder(requireContext())
+            builder.setTitle(getString(R.string.login_fragment_error_dialog_title))
+            builder.setMessage(error.message)
+            builder.setPositiveButton(R.string.login_fragment_error_dialog_ok) { dialog, _ ->
+                binding.textUsername.isEnabled = true
+                binding.textPassword.isEnabled = true
+                dialog.dismiss()
+            }
+            builder.setCancelable(false)
+            builder.show()
+        } else {
+            binding.textUsername.isEnabled = true
+            binding.textPassword.isEnabled = true
         }
     }
 
     private fun displayLoading() {
-        // TODO: A loading indicator will be displayed
-
+        binding.progressBar.tvLabel.text = getString(R.string.login_fragment_progress_text)
+        binding.progressBar.visibility = View.VISIBLE
+        binding.textUsername.isEnabled = false
+        binding.textPassword.isEnabled = false
+        binding.btnLogin.isEnabled = false
+        binding.spinnerServer.isEnabled = false
+        binding.btnAddAServer.isEnabled = false
     }
 
     private fun displayLoginPage(shouldDisplay: Boolean) {
