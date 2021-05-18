@@ -39,7 +39,7 @@ import javax.inject.Singleton
 @Suppress("unused")
 object JellyfinModule {
 
-    private const val HTTP_CLIENT_TIMEOUT_IN_MS = 15000L
+    private const val HTTP_CLIENT_TIMEOUT_IN_MS = 10000L
 
     @Singleton
     @Provides
