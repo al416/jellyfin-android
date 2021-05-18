@@ -21,17 +21,17 @@ class AddServerViewModel @Inject constructor(
 
 ) : ViewModel() {
 
-    private val originalServer = mutableListOf<Server>()
+    private val originalServers = mutableListOf<Server>()
 
     fun initialize(servers: List<Server>) {
-        originalServer.addAll(servers)
-        this.servers.postValue(servers)
+        originalServers.addAll(servers)
+        updatedServers.postValue(servers)
     }
 
-    private val servers: MutableLiveData<List<Server>> = MutableLiveData()
+    private val updatedServers: MutableLiveData<List<Server>> = MutableLiveData()
 
     fun getServers(): LiveData<List<Server>> {
-        return servers
+        return updatedServers
     }
 
     private val addServerStatus = MutableLiveData<Resource<EmptyModel>?>(null)
@@ -61,7 +61,7 @@ class AddServerViewModel @Inject constructor(
     }
 
     fun addServer(serverName: String, serverUrl: String) {
-        val serverList = servers.value ?: emptyList()
+        val serverList = updatedServers.value ?: emptyList()
 
         val sanitizedName = sanitizeName(serverName)
         val sanitizedUrl = sanitizeUrl(serverUrl)
@@ -82,9 +82,9 @@ class AddServerViewModel @Inject constructor(
                 displayOrder = serverList.size
             )
             newServers.add(server)
-            servers.postValue(newServers)
+            updatedServers.postValue(newServers)
             addServerStatus.postValue(Resource.success(null))
-            saveState.postValue(originalServer != newServers)
+            saveState.postValue(originalServers != newServers)
         }
     }
 
@@ -136,7 +136,8 @@ class AddServerViewModel @Inject constructor(
     }
 
     fun onListChanged(servers: List<Server>) {
-        saveState.postValue(originalServer != servers)
+        updatedServers.postValue(servers)
+        saveState.postValue(originalServers != servers)
     }
 
 }

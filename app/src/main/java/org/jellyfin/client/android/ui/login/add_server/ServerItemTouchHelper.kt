@@ -26,6 +26,11 @@ class ServerItemTouchHelper(private val listener: ServerItemTouchListener) : Ite
         listener.onItemDismiss(viewHolder.adapterPosition)
     }
 
+    override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
+        super.clearView(recyclerView, viewHolder)
+        listener.onTouchActionComplete()
+    }
+
 }
 
 interface ServerItemTouchListener {
@@ -33,4 +38,6 @@ interface ServerItemTouchListener {
     fun onItemMove(oldPosition: Int, newPosition: Int): Boolean
 
     fun onItemDismiss(position: Int)
+
+    fun onTouchActionComplete()
 }

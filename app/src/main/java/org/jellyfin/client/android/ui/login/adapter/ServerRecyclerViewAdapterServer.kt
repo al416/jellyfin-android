@@ -44,7 +44,6 @@ class ServerRecyclerViewAdapter() :
         orderedList.addAll(currentList)
         Collections.swap(orderedList, oldPosition, newPosition)
         submitList(orderedList)
-        onListChanged?.invoke(orderedList)
         return true
     }
 
@@ -52,6 +51,12 @@ class ServerRecyclerViewAdapter() :
         val orderedList = mutableListOf<Server>()
         orderedList.addAll(currentList)
         orderedList.removeAt(position)
+        submitList(orderedList)
+    }
+
+    override fun onTouchActionComplete() {
+        val orderedList = mutableListOf<Server>()
+        orderedList.addAll(currentList)
         submitList(orderedList)
         onListChanged?.invoke(orderedList)
     }
