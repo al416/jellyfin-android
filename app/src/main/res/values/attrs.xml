@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <attr name="gradientStart" format="reference" />
+    <attr name="gradientEnd" format="reference" />
+
+</resources>

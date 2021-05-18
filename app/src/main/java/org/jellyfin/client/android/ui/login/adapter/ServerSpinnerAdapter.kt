@@ -15,20 +15,21 @@ class ServerSpinnerAdapter(ctx: Context, resource: Int, private val items: List<
         return items.size
     }
 
-    override fun getItem(position: Int): Server? {
+    override fun getItem(position: Int): Server {
         return items[position]
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val view = LayoutInflater.from(context).inflate(R.layout.spinner_item, parent, false)
+        val view = convertView ?: LayoutInflater.from(context).inflate(R.layout.spinner_item, parent, false)
         val textView: TextView = view.findViewById(R.id.txtLabel)
-        textView.text = getItem(position)?.name
+        textView.text = getItem(position).name
         return view
     }
 
     override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val textView: TextView = super.getView(position, convertView, parent) as TextView
-        textView.text = getItem(position)?.name
-        return textView
+        val view = LayoutInflater.from(context).inflate(R.layout.spinner_item, parent, false)
+        val textView: TextView = view.findViewById(R.id.txtLabel)
+        textView.text = getItem(position).name
+        return view
     }
 }
