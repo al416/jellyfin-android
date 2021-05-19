@@ -40,7 +40,7 @@
 
     <!-- Home -> Recent Items -->
     <string name="home_recent_items_play">Play</string>
-    <string name="home_recent_items_view_details">View Details</string>
+    <string name="home_recent_items_info">Info</string>
 
     <!-- Movie Details -->
     <string name="movie_details_item_overview">Overview</string>

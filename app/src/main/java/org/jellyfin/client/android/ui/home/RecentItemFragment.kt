@@ -1,5 +1,6 @@
 package org.jellyfin.client.android.ui.home
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,8 +11,10 @@ import androidx.lifecycle.ViewModelProvider
 import coil.load
 import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.databinding.FragmentRecentItemsBinding
+import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_MEDIA_UUID
 import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_POSITION
 import org.jellyfin.client.android.domain.models.Status
+import org.jellyfin.client.android.ui.player.PlayerActivity
 import javax.inject.Inject
 
 class RecentItemFragment : DaggerFragment() {
@@ -45,7 +48,7 @@ class RecentItemFragment : DaggerFragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentRecentItemsBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -53,12 +56,17 @@ class RecentItemFragment : DaggerFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        recentItemViewModel.getRecentItems().observe(viewLifecycleOwner, Observer { resource ->
+        recentItemViewModel.getRecentItems().observe(viewLifecycleOwner, { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
                     val item = resource.data?.get(position)
-                    item?.let {
-                        binding.background.load(it.imageUrl)
+                    item?.let {card ->
+                        binding.background.load(card.imageUrl)
+                        binding.btnPlay.setOnClickListener {
+                            val intent = Intent(requireActivity(), PlayerActivity::class.java)
+                            intent.putExtra(BUNDLE_TAG_MEDIA_UUID, card.uuid.toString())
+                            startActivity(intent)
+                        }
                         binding.executePendingBindings()
                     }
                 }
