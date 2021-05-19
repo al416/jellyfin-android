@@ -25,6 +25,7 @@ import org.jellyfin.sdk.api.operations.UserLibraryApi
 import org.jellyfin.sdk.api.operations.UserViewsApi
 import org.jellyfin.sdk.model.api.ImageType
 import org.jellyfin.sdk.model.api.ItemFields
+import org.jellyfin.sdk.model.api.ItemFilter
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
@@ -222,11 +223,37 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                     enableImageTypes = listOf(ImageType.LOGO, ImageType.BACKDROP))
                 // TODO: This filters out any item that was added recently if it does not have a backdrop image.
                 //  Is this desirable or should a placeholder be loaded if there is no backdrop image?
-                val filteredResult = result.filter { it.backdropImageTags?.isNotEmpty() ?: false }
+                val filteredResult = result.filter { it.backdropImageTags?.isNotEmpty() == true || it.parentBackdropImageTags?.isNotEmpty() == true }
                 val response = mutableListOf<HomeSectionCard>()
                 filteredResult.forEachIndexed { index, item ->
-                    val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP)
-                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, homeCardType = HomeCardType.BACKDROP, uuid = item.id))
+                    // TODO: All of this logic needs to be done on demand (i.e. AFTER user clicks the Play button then figure out which item to play next. This will be moved to a use case soon
+                    val itemId = when (item.type) {
+                        ItemType.EPISODE -> item.id
+                        ItemType.SERIES -> {
+                            val nextUpResults by tvShowsApi.getNextUp(userId = userId,
+                                limit = 1,
+                                fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.BASIC_SYNC_INFO),
+                                imageTypeLimit = 1,
+                                parentId = item.id,
+                                enableImageTypes = listOf(ImageType.BACKDROP),
+                                disableFirstEpisode = false)
+                            if (nextUpResults.items?.isEmpty() == true) {
+                                val seriesItems by itemsApi.getItems(userId = userId,
+                                    recursive = true,
+                                    parentId = item.id,
+                                    limit = 1,
+                                    filters = listOf(ItemFilter.IS_NOT_FOLDER),
+                                    mediaTypes = listOf("Video"), sortBy = listOf("SortName"))
+                                seriesItems.items?.first()?.id ?: item.id
+                            } else {
+                                nextUpResults.items?.first()?.id ?: item.id
+                            }
+                        }
+                        else -> item.id
+                    }
+                    val imageItemId = if (item.type == ItemType.EPISODE) item.seriesId ?: item.id else item.id
+                    val imageUrl = imageApi.getItemImageUrl(itemId = imageItemId, imageType = ImageType.BACKDROP)
+                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, homeCardType = HomeCardType.BACKDROP, uuid = itemId))
                 }
                 emit(Resource.success(response))
             } catch (e: Exception) {

@@ -89,4 +89,15 @@ class HomeActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
             }
         }
     }
+
+    override fun onBackPressed() {
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
+        val currentFragment = navHostFragment.childFragmentManager.fragments[0]
+        // If the current fragment is the Home fragment then move the task to the background, otherwise behave like a normal back press
+        if (currentFragment is HomeFragment) {
+            moveTaskToBack(true)
+        } else {
+            super.onBackPressed()
+        }
+    }
 }
