@@ -4,9 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
 import com.google.android.material.navigation.NavigationView
@@ -27,6 +29,10 @@ class HomeActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
 
     private val loginViewModel: LoginViewModel by lazy {
         ViewModelProvider(this, viewModelFactory).get(LoginViewModel::class.java)
+    }
+
+    private val homeViewModel: HomeViewModel by lazy {
+        ViewModelProvider(this, viewModelFactory).get(HomeViewModel::class.java)
     }
 
     private val navController by lazy {
@@ -76,6 +82,22 @@ class HomeActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
                 }
             }
         })
+
+        homeViewModel.getLibraries().observe(this, {
+            when (it.status) {
+                Status.SUCCESS -> {
+                    val mediaSubMenu = binding.leftNav.menu.getItem(1).subMenu
+                    it.data?.cards?.forEachIndexed {index, homeSectionCard ->
+                        val item = mediaSubMenu.add(R.id.media_group, homeSectionCard.id, 0, homeSectionCard.title)
+                        // TODO: Set icon depending on library type (Shows, Movies)
+                        item.icon = ContextCompat.getDrawable(this, R.drawable.ic_movies)
+                    }
+                }
+                else -> {
+
+                }
+            }
+        })
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -84,7 +106,18 @@ class HomeActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
                 loginViewModel.doUserLogout()
                 true
             }
+            R.id.home -> {
+                // TODO: Move to home fragment
+                true
+            }
             else -> {
+                val libraries = homeViewModel.getLibraries().value?.data?.cards
+                if (libraries != null) {
+                    val library = libraries[item.itemId]
+                    val action = HomeFragmentDirections.actionLibrary(library.title ?: "", library.uuid.toString())
+                    navController.navigate(action)
+                    binding.drawerLayout.close()
+                }
                 true
             }
         }

@@ -7,18 +7,9 @@
             android:title="@string/home_activity_navigation_home" />
     </group>
 
-    <!-- TODO: Remove the below group once there is code to dynamically generate it -->
-    <group>
-        <item android:title="My Media">
+    <group android:id="@+id/media_group">
+        <item android:title="@string/home_activity_navigation_my_media_label">
             <menu>
-                <item
-                    android:id="@+id/playlists"
-                    android:icon="@drawable/ic_music"
-                    android:title="Playlists" />
-                <item
-                    android:id="@+id/movies"
-                    android:icon="@drawable/ic_movies"
-                    android:title="Movies" />
             </menu>
         </item>
     </group>
