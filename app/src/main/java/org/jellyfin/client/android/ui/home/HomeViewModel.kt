@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.jellyfin.client.android.domain.models.Resource
@@ -13,28 +14,35 @@ import org.jellyfin.client.android.domain.usecase.ObserveHomePage
 import javax.inject.Inject
 import javax.inject.Named
 
-class HomeViewModel @Inject constructor(
+@ExperimentalCoroutinesApi
+class HomeViewModel
+@Inject constructor(
     @Named("computation") private val computationDispatcher: CoroutineDispatcher,
     private val observeHomePage: ObserveHomePage
 ) : ViewModel() {
 
     private val rows: MutableLiveData<Resource<List<HomeSectionRow>>> by lazy {
         val data = MutableLiveData<Resource<List<HomeSectionRow>>>()
-        loadRows(data)
+        loadRows(data, false)
         data
     }
 
     fun getRows(): LiveData<Resource<List<HomeSectionRow>>> = rows
 
-    private fun loadRows(data: MutableLiveData<Resource<List<HomeSectionRow>>>) {
-        viewModelScope.launch(computationDispatcher) {
-            observeHomePage.invoke().collectLatest {
+    private fun loadRows(data: MutableLiveData<Resource<List<HomeSectionRow>>>, retrieveFromCache: Boolean) {
+        viewModelScope.launch {
+            observeHomePage.invoke(ObserveHomePage.RequestParam(retrieveFromCache)).collectLatest {
                 data.postValue(it)
             }
         }
     }
 
-    fun refresh() {
-        loadRows(rows)
+    fun refresh(forceRefresh: Boolean) {
+        loadRows(rows, !forceRefresh)
+    }
+
+    fun clearErrors() {
+        val data = rows.value?.data
+        rows.postValue(Resource.Companion.success(data))
     }
 }

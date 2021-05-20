@@ -18,8 +18,8 @@ class ObserveContinueWatchingSection @Inject constructor(@Named("network") dispa
             throw IllegalArgumentException("Expecting valid parameters")
         }
 
-        return viewsRepository.getContinueWatchingSection(params.mediaTypes)
+        return viewsRepository.getContinueWatchingSection(params.mediaTypes, params.retrieveFromCache)
     }
 
-    data class RequestParams(val mediaTypes: List<String>?)
+    data class RequestParams(val mediaTypes: List<String>?, val retrieveFromCache: Boolean)
 }

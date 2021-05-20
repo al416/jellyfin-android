@@ -14,6 +14,7 @@ import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.display_model.Server
 import org.jellyfin.client.android.domain.repository.LoginRepository
+import org.jellyfin.client.android.domain.repository.ViewsRepository
 import org.jellyfin.sdk.api.client.KtorClient
 import org.jellyfin.sdk.api.operations.UserApi
 import org.jellyfin.sdk.model.api.AuthenticateUserByName
@@ -25,7 +26,8 @@ class LoginRepositoryImpl @Inject constructor(@Named("network") private val netw
                                               private val api: KtorClient,
                                               private val userApi: UserApi,
                                               private val serverDao: ServerDao,
-                                              private val sessionDao: SessionDao
+                                              private val sessionDao: SessionDao,
+                                              private val viewsRepository: ViewsRepository
 ) : LoginRepository {
 
     override suspend fun doUserLogin(server: Server, username: String, password: String): Flow<Resource<Login>> {
@@ -73,6 +75,7 @@ class LoginRepositoryImpl @Inject constructor(@Named("network") private val netw
 
     override suspend fun doUserLogout() {
         sessionDao.deleteCurrentSession()
+        viewsRepository.clearCache()
         api.baseUrl = null
         api.accessToken = null
     }
