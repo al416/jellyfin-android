@@ -33,4 +33,8 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    fun refresh() {
+        loadRows(rows)
+    }
 }

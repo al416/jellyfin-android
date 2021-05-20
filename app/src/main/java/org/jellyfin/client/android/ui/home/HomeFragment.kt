@@ -16,10 +16,12 @@ import com.google.android.material.tabs.TabLayoutMediator
 import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.databinding.FragmentHomeBinding
 import org.jellyfin.client.android.domain.constants.Constants.ASPECT_RATIO_16_9
+import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_MEDIA_UUID
 import org.jellyfin.client.android.domain.models.Status
+import org.jellyfin.client.android.domain.models.display_model.HomeCardAction
 import org.jellyfin.client.android.ui.home.adapter.HomeRecentItemsFragmentAdapter
 import org.jellyfin.client.android.ui.home.adapter.HomeRowRecyclerViewAdapter
-import org.jellyfin.client.android.ui.login.LoginActivity
+import org.jellyfin.client.android.ui.player.PlayerActivity
 import java.util.*
 import javax.inject.Inject
 import kotlin.concurrent.fixedRateTimer
@@ -50,7 +52,7 @@ class HomeFragment : DaggerFragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -62,6 +64,11 @@ class HomeFragment : DaggerFragment() {
     }
 
     private fun setupSections() {
+        binding.pullToRefresh.setOnRefreshListener {
+            showLoading()
+            homeViewModel.refresh()
+        }
+
         val adapter = HomeRowRecyclerViewAdapter(requireActivity())
         binding.sectionAdapter = adapter
         binding.sectionsRecyclerView.layoutManager = LinearLayoutManager(requireActivity())
@@ -69,20 +76,20 @@ class HomeFragment : DaggerFragment() {
 
         adapter.onCardClick = {
             val card = it
-
-            val action = HomeFragmentDirections.actionMovieDetails(card.uuid.toString())
-            findNavController().navigate(action)
-
-            /*
-            val intent = Intent(requireActivity(), PlayerActivity::class.java)
-            intent.putExtra(BUNDLE_TAG_MEDIA_UUID, card.uuid.toString())
-            startActivity(intent)
-             */
+            if (card.homeCardAction == HomeCardAction.DETAILS) {
+                val action = HomeFragmentDirections.actionMovieDetails(card.uuid.toString())
+                findNavController().navigate(action)
+            } else if (card.homeCardAction == HomeCardAction.PLAY) {
+                val intent = Intent(requireActivity(), PlayerActivity::class.java)
+                intent.putExtra(BUNDLE_TAG_MEDIA_UUID, card.uuid.toString())
+                startActivity(intent)
+            }
         }
 
-        homeViewModel.getRows().observe(viewLifecycleOwner, Observer { resource ->
+        homeViewModel.getRows().observe(viewLifecycleOwner, { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
+                    binding.pullToRefresh.isRefreshing = false
                     binding.contentView.visibility = View.VISIBLE
                     binding.statusView.visibility = View.GONE
                     resource.data?.let { rows ->
@@ -109,6 +116,8 @@ class HomeFragment : DaggerFragment() {
         val displayMetrics = requireActivity().resources.displayMetrics
         val dpWidth = displayMetrics.widthPixels
         val dpHeight = (dpWidth / ASPECT_RATIO_16_9).toInt()
+        // Load the next and previous 2 items in memory so the recent items backdrop isn't loading when user swipes to it
+        binding.recentItemsViewPager.offscreenPageLimit = 2
         binding.recentItemsViewPager.layoutParams =
             LinearLayout.LayoutParams(displayMetrics.widthPixels, dpHeight)
 
@@ -118,7 +127,7 @@ class HomeFragment : DaggerFragment() {
         TabLayoutMediator(binding.tabLayout, binding.recentItemsViewPager) { tab, position ->
         }.attach()
 
-        recentItemViewModel.getRecentItems().observe(viewLifecycleOwner, Observer { resource ->
+        recentItemViewModel.getRecentItems().observe(viewLifecycleOwner, { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
                     resource.data?.let {recentItems ->
@@ -145,7 +154,7 @@ class HomeFragment : DaggerFragment() {
         binding.contentView.visibility = View.GONE
         binding.statusView.visibility = View.VISIBLE
         binding.statusView.setStatusText("")
-        binding.statusView.isRefreshing = true
+        binding.pullToRefresh.isRefreshing = true
     }
 
     private fun showError() {
@@ -180,12 +189,6 @@ class HomeFragment : DaggerFragment() {
                 }
             }
         }
-    }
-
-    private fun logout() {
-        val intent = Intent(requireActivity(), LoginActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        startActivity(intent)
     }
 
     override fun onStop() {

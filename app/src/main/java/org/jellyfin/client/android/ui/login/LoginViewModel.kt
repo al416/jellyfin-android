@@ -33,6 +33,10 @@ class LoginViewModel @Inject constructor(
     fun getLoginState(): LiveData<Resource<Login>?> {
         return loginState
     }
+    
+    fun resetLoginState() {
+        loginState.postValue(null)
+    }
 
     fun doUserLogin(server: Server, username: String, password: String) {
         viewModelScope.launch(computationDispatcher) {
@@ -83,9 +87,9 @@ class LoginViewModel @Inject constructor(
     private fun loadSession(data: MutableLiveData<Resource<Session>>) {
         viewModelScope.launch(computationDispatcher) {
             getCurrentSession.invoke().collectLatest {
-                it.data?.let {
-                    api.baseUrl = it.serverUrl
-                    api.accessToken = it.apiKey
+                it.data?.let {session ->
+                    api.baseUrl = session.serverUrl
+                    api.accessToken = session.apiKey
                 }
                 data.postValue(it)
             }

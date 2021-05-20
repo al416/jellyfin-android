@@ -9,7 +9,8 @@ data class HomeSectionCard(
     val subtitle: String? = null,
     val homeCardType: HomeCardType,
     val uuid: UUID,
-    var rowId: Int = 0
+    var rowId: Int = 0,
+    val homeCardAction: HomeCardAction
     //val clickListener: View.OnClickListener? = null
 )
 
@@ -19,6 +20,7 @@ enum class HomeCardType {
 }
 
 enum class HomeCardAction {
+    NO_ACTION,
     DETAILS,
     PLAY
 }

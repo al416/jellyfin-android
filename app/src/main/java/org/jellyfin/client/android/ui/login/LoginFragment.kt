@@ -28,7 +28,7 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
     lateinit var viewModelFactory: ViewModelProvider.Factory
 
     private val loginViewModel: LoginViewModel by lazy {
-        ViewModelProvider(requireActivity(), viewModelFactory).get(LoginViewModel::class.java)
+        ViewModelProvider(this, viewModelFactory).get(LoginViewModel::class.java)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) : View {
@@ -54,6 +54,7 @@ class LoginFragment : DaggerFragment(), View.OnClickListener {
                     // Login unsuccessful. Display error message
                     Status.ERROR -> {
                         displayError(it.messages)
+                        loginViewModel.resetLoginState()
                     }
                 }
             }
