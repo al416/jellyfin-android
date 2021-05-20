@@ -27,6 +27,7 @@ import org.jellyfin.sdk.api.operations.UserViewsApi
 import org.jellyfin.sdk.model.api.ImageType
 import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.ItemFilter
+import org.jellyfin.sdk.model.api.SortOrder
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
@@ -551,6 +552,62 @@ class ViewsRepositoryImpl @Inject constructor(
                                 null,
                                 1,
                                 "Could not load Home section $error",
+                                null
+                            )
+                        )
+                    )
+                )
+            }
+        }.flowOn(networkDispatcher)
+    }
+
+    override suspend fun getLibraryItems(libraryId: UUID): Flow<Resource<List<HomeSectionCard>>> {
+        val userId = currentUserRepository.getCurrentUserId()
+            ?: throw IllegalArgumentException("UseId cannot be null")
+        return flow<Resource<List<HomeSectionCard>>> {
+            emit(Resource.loading())
+            try {
+                val result by itemsApi.getItems(
+                    userId = userId,
+                    sortBy = listOf("SortName,ProductionYear"),
+                    sortOrder = listOf(SortOrder.ASCENDING),
+                    includeItemTypes = listOf("Movie"),
+                    recursive = true,
+                    fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.MEDIA_SOURCE_COUNT, ItemFields.BASIC_SYNC_INFO),
+                    imageTypeLimit = 1,
+                    enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.BANNER, ImageType.THUMB),
+                    startIndex = 0,
+                    limit = 40,
+                    parentId = libraryId,
+                )
+                val response = mutableListOf<HomeSectionCard>()
+                result.items?.forEachIndexed { index, item ->
+                    val imageUrl = imageApi.getItemImageUrl(
+                        itemId = item.id,
+                        imageType = ImageType.PRIMARY
+                    )
+                    response.add(
+                        HomeSectionCard(
+                            id = index,
+                            imageUrl = imageUrl,
+                            title = item.name,
+                            subtitle = null,
+                            homeCardType = HomeCardType.POSTER,
+                            uuid = item.id,
+                            homeCardAction = HomeCardAction.DETAILS
+                        )
+                    )
+                }
+                emit(Resource.success(response))
+            } catch (e: Exception) {
+                val error = e.message
+                emit(
+                    Resource.error(
+                        listOf(
+                            Error(
+                                null,
+                                1,
+                                "Could not load Library items $error",
                                 null
                             )
                         )

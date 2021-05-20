@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.android.ContributesAndroidInjector
 import org.jellyfin.client.android.ui.home.HomeFragment
 import org.jellyfin.client.android.ui.home.RecentItemFragment
+import org.jellyfin.client.android.ui.home.library.LibraryFragment
 import org.jellyfin.client.android.ui.home.movie_details.MovieDetailsFragment
 import org.jellyfin.client.android.ui.login.LoginFragment
 import org.jellyfin.client.android.ui.login.add_server.AddServerDialog
@@ -29,4 +30,7 @@ abstract class FragmentModule {
 
     @ContributesAndroidInjector
     abstract fun contributesMovieDetailsFragment(): MovieDetailsFragment
+
+    @ContributesAndroidInjector
+    abstract fun contributesLibraryFragment(): LibraryFragment
 }

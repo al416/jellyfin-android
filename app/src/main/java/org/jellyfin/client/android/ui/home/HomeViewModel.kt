@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.domain.usecase.ObserveHomePage
+import org.jellyfin.client.android.domain.usecase.ObserveMyMediaSection
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -18,7 +19,8 @@ import javax.inject.Named
 class HomeViewModel
 @Inject constructor(
     @Named("computation") private val computationDispatcher: CoroutineDispatcher,
-    private val observeHomePage: ObserveHomePage
+    private val observeHomePage: ObserveHomePage,
+    private val observeMyMediaSection: ObserveMyMediaSection
 ) : ViewModel() {
 
     private val rows: MutableLiveData<Resource<List<HomeSectionRow>>> by lazy {
@@ -30,6 +32,9 @@ class HomeViewModel
     fun getRows(): LiveData<Resource<List<HomeSectionRow>>> = rows
 
     private fun loadRows(data: MutableLiveData<Resource<List<HomeSectionRow>>>, retrieveFromCache: Boolean) {
+        // TODO: Both loadRows and loadLibraries call observeMyMediaSection to get the list of libraries
+        // Since both loadRows and loadLibraries are executed around the same time, this call is made to the server twice
+        // Code needs to be updated so the call is made only once
         viewModelScope.launch {
             observeHomePage.invoke(ObserveHomePage.RequestParam(retrieveFromCache)).collectLatest {
                 data.postValue(it)
@@ -44,5 +49,21 @@ class HomeViewModel
     fun clearErrors() {
         val data = rows.value?.data
         rows.postValue(Resource.Companion.success(data))
+    }
+
+    private val libraries: MutableLiveData<Resource<HomeSectionRow>> by lazy {
+        val data = MutableLiveData<Resource<HomeSectionRow>>()
+        loadLibraries(data)
+        data
+    }
+
+    fun getLibraries(): LiveData<Resource<HomeSectionRow>> = libraries
+
+    private fun loadLibraries(data: MutableLiveData<Resource<HomeSectionRow>>) {
+        viewModelScope.launch {
+            observeMyMediaSection.invoke(ObserveMyMediaSection.RequestParam(true)).collectLatest {
+                data.postValue(it)
+            }
+        }
     }
 }
