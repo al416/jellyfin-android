@@ -11,17 +11,19 @@ import java.util.*
 
 interface ViewsRepository {
 
-    suspend fun getMyMediaSection(): Flow<Resource<HomeSectionRow>>
+    suspend fun getMyMediaSection(retrieveFromCache: Boolean): Flow<Resource<HomeSectionRow>>
 
-    suspend fun getContinueWatchingSection(mediaTypes: List<String>?): Flow<Resource<HomeSectionRow>>
+    suspend fun getContinueWatchingSection(mediaTypes: List<String>?, retrieveFromCache: Boolean): Flow<Resource<HomeSectionRow>>
 
-    suspend fun getNextUpSection(): Flow<Resource<HomeSectionRow>>
+    suspend fun getNextUpSection(retrieveFromCache: Boolean): Flow<Resource<HomeSectionRow>>
 
-    suspend fun getLatestSection(libraries: List<LibraryDto>): Flow<Resource<List<HomeSectionRow>>>
+    suspend fun getLatestSection(libraries: List<LibraryDto>, retrieveFromCache: Boolean): Flow<Resource<List<HomeSectionRow>>>
 
     suspend fun getHomeSections(): Flow<Resource<List<HomeSectionType>>>
 
     suspend fun getRecentItems(): Flow<Resource<List<HomeSectionCard>>>
 
     suspend fun getMovieDetails(movieId: UUID): Flow<Resource<MovieDetails>>
+
+    fun clearCache()
 }

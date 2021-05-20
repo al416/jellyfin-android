@@ -11,9 +11,14 @@ import javax.inject.Named
 
 class ObserveMyMediaSection @Inject constructor(@Named("network") dispatcher: CoroutineDispatcher,
                                                 private val viewsRepository: ViewsRepository
-) : BaseUseCase<HomeSectionRow, Any?>(dispatcher) {
+) : BaseUseCase<HomeSectionRow, ObserveMyMediaSection.RequestParam?>(dispatcher) {
 
-    override suspend fun invokeInternal(params: Any?): Flow<Resource<HomeSectionRow>> {
-        return viewsRepository.getMyMediaSection()
+    override suspend fun invokeInternal(params: RequestParam?): Flow<Resource<HomeSectionRow>> {
+        if (params == null) {
+            throw IllegalArgumentException("Expecting valid parameters")
+        }
+        return viewsRepository.getMyMediaSection(params.retrieveFromCache)
     }
+
+    data class RequestParam(val retrieveFromCache: Boolean)
 }

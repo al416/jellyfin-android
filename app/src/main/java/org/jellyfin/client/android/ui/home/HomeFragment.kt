@@ -7,13 +7,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.LinearLayout
-import android.widget.Toast
-import androidx.lifecycle.Observer
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.android.support.DaggerFragment
+import org.jellyfin.client.android.R
 import org.jellyfin.client.android.databinding.FragmentHomeBinding
 import org.jellyfin.client.android.domain.constants.Constants.ASPECT_RATIO_16_9
 import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_MEDIA_UUID
@@ -66,7 +66,7 @@ class HomeFragment : DaggerFragment() {
     private fun setupSections() {
         binding.pullToRefresh.setOnRefreshListener {
             showLoading()
-            homeViewModel.refresh()
+            homeViewModel.refresh(true)
         }
 
         val adapter = HomeRowRecyclerViewAdapter(requireActivity())
@@ -90,8 +90,6 @@ class HomeFragment : DaggerFragment() {
             when (resource.status) {
                 Status.SUCCESS -> {
                     binding.pullToRefresh.isRefreshing = false
-                    binding.contentView.visibility = View.VISIBLE
-                    binding.statusView.visibility = View.GONE
                     resource.data?.let { rows ->
                         if (adapter.currentList == rows) {
                             // A duplicate list has been submitted so the adapter won't check if the list has been changed so force a redraw
@@ -100,10 +98,12 @@ class HomeFragment : DaggerFragment() {
                             adapter.submitList(rows)
                         }
                     }
+                    if (resource.messages?.isNotEmpty() == true) {
+                        showErrorDialog()
+                    }
                 }
                 Status.ERROR -> {
-                    Toast.makeText(requireContext(), resource.messages?.first()?.message, Toast.LENGTH_SHORT).show()
-                    showError()
+                    showErrorDialog()
                 }
                 Status.LOADING -> {
                     showLoading()
@@ -127,6 +127,7 @@ class HomeFragment : DaggerFragment() {
         TabLayoutMediator(binding.tabLayout, binding.recentItemsViewPager) { tab, position ->
         }.attach()
 
+        // TODO: Unify getRecentItems with getRows call
         recentItemViewModel.getRecentItems().observe(viewLifecycleOwner, { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
@@ -141,27 +142,34 @@ class HomeFragment : DaggerFragment() {
                     }
                 }
                 Status.ERROR -> {
-                    showError()
+                    //showErrorDialog()
                 }
                 Status.LOADING -> {
-                    showLoading()
+                    //showLoading()
                 }
             }
         })
     }
 
     private fun showLoading() {
-        binding.contentView.visibility = View.GONE
-        binding.statusView.visibility = View.VISIBLE
-        binding.statusView.setStatusText("")
         binding.pullToRefresh.isRefreshing = true
     }
 
-    private fun showError() {
-        binding.contentView.visibility = View.GONE
-        binding.statusView.visibility = View.VISIBLE
-        binding.statusView.setStatusText("Error")
-        binding.statusView.isRefreshing = false
+    private fun showErrorDialog() {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle(getString(R.string.home_fragment_load_failed_title))
+        builder.setMessage(getString(R.string.home_fragment_load_failed_message))
+        builder.setPositiveButton(R.string.home_fragment_load_failed_positive_label) { dialog, _ ->
+            homeViewModel.clearErrors()
+            homeViewModel.refresh(false)
+            dialog.dismiss()
+        }
+        builder.setNegativeButton(R.string.home_fragment_load_failed_negative_label) { dialog, _ ->
+            homeViewModel.clearErrors()
+            dialog.dismiss()
+        }
+        builder.setCancelable(false)
+        builder.show()
     }
 
     private fun setupTimer() {

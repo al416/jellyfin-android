@@ -11,9 +11,14 @@ import javax.inject.Named
 
 class ObserveNextUpSection @Inject constructor(@Named("network") dispatcher: CoroutineDispatcher,
                                                private val viewsRepository: ViewsRepository
-) : BaseUseCase<HomeSectionRow, Any?>(dispatcher) {
+) : BaseUseCase<HomeSectionRow, ObserveNextUpSection.RequestParam?>(dispatcher) {
 
-    override suspend fun invokeInternal(params: Any?): Flow<Resource<HomeSectionRow>> {
-        return viewsRepository.getNextUpSection()
+    override suspend fun invokeInternal(params: RequestParam?): Flow<Resource<HomeSectionRow>> {
+        if (params == null) {
+            throw IllegalArgumentException("Expecting valid parameters")
+        }
+        return viewsRepository.getNextUpSection(params.retrieveFromCache)
     }
+
+    data class RequestParam(val retrieveFromCache: Boolean)
 }

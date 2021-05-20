@@ -32,108 +32,235 @@ import javax.inject.Inject
 import javax.inject.Named
 
 
-class ViewsRepositoryImpl @Inject constructor(@Named("network") private val networkDispatcher: CoroutineDispatcher,
-                                              private val userViewsApi: UserViewsApi,
-                                              private val itemsApi: ItemsApi,
-                                              private val tvShowsApi: TvShowsApi,
-                                              private val userLibraryApi: UserLibraryApi,
-                                              private val imageApi: ImageApi,
-                                              private val currentUserRepository: CurrentUserRepository
+class ViewsRepositoryImpl @Inject constructor(
+    @Named("network") private val networkDispatcher: CoroutineDispatcher,
+    private val userViewsApi: UserViewsApi,
+    private val itemsApi: ItemsApi,
+    private val tvShowsApi: TvShowsApi,
+    private val userLibraryApi: UserLibraryApi,
+    private val imageApi: ImageApi,
+    private val currentUserRepository: CurrentUserRepository
 ) : ViewsRepository {
-    override suspend fun getMyMediaSection(): Flow<Resource<HomeSectionRow>> {
-        val userId = currentUserRepository.getCurrentUserId()
-            ?: throw IllegalArgumentException("UseId cannot be null")
-        return flow<Resource<HomeSectionRow>> {
-            emit(Resource.loading())
-            try {
-                val cards = mutableListOf<HomeSectionCard>()
-                val result by userViewsApi.getUserViews(userId)
-                result.items?.forEachIndexed {index, item ->
-                    val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.PRIMARY)
-                    cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null,
-                        uuid = item.id, homeCardType = HomeCardType.BACKDROP, homeCardAction = HomeCardAction.NO_ACTION))
-                }
-                // TODO: Use a repo to get My Media string
-                emit(Resource.success(HomeSectionRow(id = HomeSectionType.MY_MEDIA.ordinal, title = "My Media", cards = cards)))
-            } catch (e: Exception) {
-                // TODO: Need to catch httpException and pass along correct error message
-                val error = e.message
-                emit(Resource.error(listOf(Error(null, 1,
-                    "Could not load My Media section $error", null))))
-            }
-        }.flowOn(networkDispatcher)
-    }
 
-    override suspend fun getContinueWatchingSection(mediaTypes: List<String>?): Flow<Resource<HomeSectionRow>> {
+    private val homeRowCache = mutableMapOf<String, HomeSectionRow>()
+
+    override suspend fun getMyMediaSection(retrieveFromCache: Boolean): Flow<Resource<HomeSectionRow>> {
         val userId = currentUserRepository.getCurrentUserId()
             ?: throw IllegalArgumentException("UseId cannot be null")
         return flow<Resource<HomeSectionRow>> {
             emit(Resource.loading())
-            try {
-                val cards = mutableListOf<HomeSectionCard>()
-                val result by itemsApi.getResumeItems(userId = userId,
-                    limit = 12,
-                    fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.BASIC_SYNC_INFO),
-                    imageTypeLimit = 1,
-                    enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.THUMB),
-                    mediaTypes = mediaTypes)
-                result.items?.forEachIndexed {index, item ->
-                    var itemId = item.id
-                    if (item.backdropImageTags.isNullOrEmpty() && !item.parentBackdropItemId.isNullOrBlank() && item.seriesId != null) {
-                        itemId = item.seriesId!!
+            val row = homeRowCache[HomeSectionType.MY_MEDIA.name]
+            if (retrieveFromCache && row != null) {
+                emit(Resource.success(row))
+            } else {
+                try {
+                    val cards = mutableListOf<HomeSectionCard>()
+                    val result by userViewsApi.getUserViews(userId)
+                    result.items?.forEachIndexed { index, item ->
+                        val imageUrl = imageApi.getItemImageUrl(
+                            itemId = item.id,
+                            imageType = ImageType.PRIMARY
+                        )
+                        cards.add(
+                            HomeSectionCard(
+                                id = index,
+                                imageUrl = imageUrl,
+                                title = item.name,
+                                subtitle = null,
+                                uuid = item.id,
+                                homeCardType = HomeCardType.BACKDROP,
+                                homeCardAction = HomeCardAction.NO_ACTION
+                            )
+                        )
                     }
-                    val imageUrl = imageApi.getItemImageUrl(itemId = itemId, imageType = ImageType.BACKDROP)
-
-                    cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null,
-                        uuid = item.id, homeCardType = HomeCardType.BACKDROP, homeCardAction = HomeCardAction.PLAY))
+                    // TODO: Use a repo to get My Media string
+                    val row = HomeSectionRow(
+                        id = HomeSectionType.MY_MEDIA.ordinal,
+                        title = "My Media",
+                        cards = cards
+                    )
+                    homeRowCache[HomeSectionType.MY_MEDIA.name] = row
+                    emit(Resource.success(row))
+                } catch (e: Exception) {
+                    // TODO: Need to catch httpException and pass along correct error message
+                    val error = e.message
+                    emit(
+                        Resource.error(
+                            listOf(
+                                Error(
+                                    null, 1,
+                                    "Could not load My Media section $error", null
+                                )
+                            )
+                        )
+                    )
                 }
-                // TODO: Use a repo to get Continue Watching string
-                if (cards.isEmpty()) {
-                    emit(Resource.success(null))
-                } else {
-                    emit(Resource.success(HomeSectionRow(id = HomeSectionType.CONTINUE_WATCHING.ordinal, title = "Continue Watching", cards = cards)))
-                }
-            } catch (e: Exception) {
-                // TODO: Need to catch httpException and pass along correct error message
-                val error = e.message
-                emit(Resource.error(listOf(Error(1, 1, "Could not load Continue Watching section $error", null))))
             }
         }.flowOn(networkDispatcher)
     }
 
-    override suspend fun getNextUpSection(): Flow<Resource<HomeSectionRow>> {
+    override suspend fun getContinueWatchingSection(
+        mediaTypes: List<String>?,
+        retrieveFromCache: Boolean
+    ): Flow<Resource<HomeSectionRow>> {
         val userId = currentUserRepository.getCurrentUserId()
             ?: throw IllegalArgumentException("UseId cannot be null")
         return flow<Resource<HomeSectionRow>> {
             emit(Resource.loading())
-            try {
-                val cards = mutableListOf<HomeSectionCard>()
-                val result by tvShowsApi.getNextUp(userId = userId,
-                    limit = 24,
-                    fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.BASIC_SYNC_INFO),
-                    imageTypeLimit = 1,
-                    enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.BANNER, ImageType.THUMB),
-                    disableFirstEpisode = true)
-                result.items?.forEachIndexed {index, item ->
-                    val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP)
-                    cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null,
-                        uuid = item.id, homeCardType = HomeCardType.BACKDROP, homeCardAction = HomeCardAction.PLAY))
+            val row = homeRowCache[HomeSectionType.CONTINUE_WATCHING.name]
+            if (retrieveFromCache && row != null) {
+                emit(Resource.success(row))
+            } else {
+                try {
+                    val cards = mutableListOf<HomeSectionCard>()
+                    val result by itemsApi.getResumeItems(
+                        userId = userId,
+                        limit = 12,
+                        fields = listOf(
+                            ItemFields.PRIMARY_IMAGE_ASPECT_RATIO,
+                            ItemFields.BASIC_SYNC_INFO
+                        ),
+                        imageTypeLimit = 1,
+                        enableImageTypes = listOf(
+                            ImageType.PRIMARY,
+                            ImageType.BACKDROP,
+                            ImageType.THUMB
+                        ),
+                        mediaTypes = mediaTypes
+                    )
+                    result.items?.forEachIndexed { index, item ->
+                        var itemId = item.id
+                        if (item.backdropImageTags.isNullOrEmpty() && !item.parentBackdropItemId.isNullOrBlank() && item.seriesId != null) {
+                            itemId = item.seriesId!!
+                        }
+                        val imageUrl = imageApi.getItemImageUrl(
+                            itemId = itemId,
+                            imageType = ImageType.BACKDROP
+                        )
+                        cards.add(
+                            HomeSectionCard(
+                                id = index,
+                                imageUrl = imageUrl,
+                                title = item.name,
+                                subtitle = null,
+                                uuid = item.id,
+                                homeCardType = HomeCardType.BACKDROP,
+                                homeCardAction = HomeCardAction.PLAY
+                            )
+                        )
+                    }
+                    // TODO: Use a repo to get Continue Watching string
+                    if (cards.isEmpty()) {
+                        emit(Resource.success(null))
+                    } else {
+                        val row = HomeSectionRow(
+                            id = HomeSectionType.CONTINUE_WATCHING.ordinal,
+                            title = "Continue Watching",
+                            cards = cards
+                        )
+                        homeRowCache[HomeSectionType.CONTINUE_WATCHING.name] = row
+                        emit(Resource.success(row))
+                    }
+                } catch (e: Exception) {
+                    // TODO: Need to catch httpException and pass along correct error message
+                    val error = e.message
+                    emit(
+                        Resource.error(
+                            listOf(
+                                Error(
+                                    1,
+                                    1,
+                                    "Could not load Continue Watching section $error",
+                                    null
+                                )
+                            )
+                        )
+                    )
                 }
-                // TODO: Use a repo to get Next Up string
-                if (cards.isEmpty()) {
-                    emit(Resource.success(null))
-                } else {
-                    emit(Resource.success(HomeSectionRow(id = HomeSectionType.NEXT_UP.ordinal, title = "Next Up", cards = cards)))
-                }
-            } catch (e: Exception) {
-                // TODO: Need to catch httpException and pass along correct error message
-                val error = e.message
-                emit(Resource.error(listOf(Error(1, 1, "Could not load Next Up section $error", null))))
             }
         }.flowOn(networkDispatcher)
     }
 
-    override suspend fun getLatestSection(libraries: List<LibraryDto>): Flow<Resource<List<HomeSectionRow>>> {
+    override suspend fun getNextUpSection(retrieveFromCache: Boolean): Flow<Resource<HomeSectionRow>> {
+        val userId = currentUserRepository.getCurrentUserId()
+            ?: throw IllegalArgumentException("UseId cannot be null")
+        return flow<Resource<HomeSectionRow>> {
+            emit(Resource.loading())
+            val row = homeRowCache[HomeSectionType.NEXT_UP.name]
+            if (retrieveFromCache && row != null) {
+                emit(Resource.success(row))
+            } else {
+                try {
+                    val cards = mutableListOf<HomeSectionCard>()
+                    val result by tvShowsApi.getNextUp(
+                        userId = userId,
+                        limit = 24,
+                        fields = listOf(
+                            ItemFields.PRIMARY_IMAGE_ASPECT_RATIO,
+                            ItemFields.BASIC_SYNC_INFO
+                        ),
+                        imageTypeLimit = 1,
+                        enableImageTypes = listOf(
+                            ImageType.PRIMARY,
+                            ImageType.BACKDROP,
+                            ImageType.BANNER,
+                            ImageType.THUMB
+                        ),
+                        disableFirstEpisode = true
+                    )
+                    result.items?.forEachIndexed { index, item ->
+                        val imageUrl = imageApi.getItemImageUrl(
+                            itemId = item.id,
+                            imageType = ImageType.BACKDROP
+                        )
+                        cards.add(
+                            HomeSectionCard(
+                                id = index,
+                                imageUrl = imageUrl,
+                                title = item.name,
+                                subtitle = null,
+                                uuid = item.id,
+                                homeCardType = HomeCardType.BACKDROP,
+                                homeCardAction = HomeCardAction.PLAY
+                            )
+                        )
+                    }
+                    // TODO: Use a repo to get Next Up string
+                    if (cards.isEmpty()) {
+                        emit(Resource.success(null))
+                    } else {
+                        val row = HomeSectionRow(
+                            id = HomeSectionType.NEXT_UP.ordinal,
+                            title = "Next Up",
+                            cards = cards
+                        )
+                        homeRowCache[HomeSectionType.NEXT_UP.name] = row
+                        emit(Resource.success(row))
+                    }
+                } catch (e: Exception) {
+                    // TODO: Need to catch httpException and pass along correct error message
+                    val error = e.message
+                    emit(
+                        Resource.error(
+                            listOf(
+                                Error(
+                                    1,
+                                    1,
+                                    "Could not load Next Up section $error",
+                                    null
+                                )
+                            )
+                        )
+                    )
+                }
+            }
+        }.flowOn(networkDispatcher)
+    }
+
+    override suspend fun getLatestSection(
+        libraries: List<LibraryDto>,
+        retrieveFromCache: Boolean
+    ): Flow<Resource<List<HomeSectionRow>>> {
         val userId = currentUserRepository.getCurrentUserId()
             ?: throw IllegalArgumentException("UseId cannot be null")
         return flow<Resource<List<HomeSectionRow>>> {
@@ -141,50 +268,85 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
             try {
                 val rows = mutableListOf<HomeSectionRow>()
                 libraries.forEachIndexed { libraryIndex, library ->
-                    val result by userLibraryApi.getLatestMedia(userId = userId,
-                        parentId = library.id,
-                        limit = 16,
-                        fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.BASIC_SYNC_INFO, ItemFields.PATH),
-                        imageTypeLimit = 1,
-                        enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.THUMB))
-                    if (result.isNotEmpty()) {
-                        val cards = mutableListOf<HomeSectionCard>()
-                        // TODO: Use a string repository to get the "Latest x" string
-                        result.forEachIndexed { resultIndex, item ->
-                            val itemId = when (item.type) {
-                                ItemType.EPISODE -> item.seriesId ?: item.id
-                                else -> item.id
+                    val cachedRow = homeRowCache[library.id.toString()]
+                    if (retrieveFromCache && cachedRow != null) {
+                        rows.add(cachedRow)
+                    } else {
+                        val result by userLibraryApi.getLatestMedia(
+                            userId = userId,
+                            parentId = library.id,
+                            limit = 16,
+                            fields = listOf(
+                                ItemFields.PRIMARY_IMAGE_ASPECT_RATIO,
+                                ItemFields.BASIC_SYNC_INFO,
+                                ItemFields.PATH
+                            ),
+                            imageTypeLimit = 1,
+                            enableImageTypes = listOf(
+                                ImageType.PRIMARY,
+                                ImageType.BACKDROP,
+                                ImageType.THUMB
+                            )
+                        )
+                        if (result.isNotEmpty()) {
+                            val cards = mutableListOf<HomeSectionCard>()
+                            // TODO: Use a string repository to get the "Latest x" string
+                            result.forEachIndexed { resultIndex, item ->
+                                val itemId = when (item.type) {
+                                    ItemType.EPISODE -> item.seriesId ?: item.id
+                                    else -> item.id
+                                }
+                                val imageType = when (item.type) {
+                                    ItemType.TV_CHANNEL -> ImageType.BACKDROP
+                                    else -> ImageType.PRIMARY
+                                }
+                                val title = when (item.type) {
+                                    ItemType.EPISODE -> item.seriesName
+                                    else -> item.name
+                                }
+                                val subtitle = when (item.type) {
+                                    ItemType.EPISODE -> item.name
+                                    ItemType.TV_CHANNEL -> item.currentProgram?.name
+                                    else -> null
+                                }
+                                val homeCardType = when (item.type) {
+                                    ItemType.TV_CHANNEL -> HomeCardType.BACKDROP
+                                    else -> HomeCardType.POSTER
+                                }
+                                val fillWidth = when (item.type) {
+                                    ItemType.TV_CHANNEL -> 335
+                                    else -> 223
+                                }
+                                val fillHeight = when (item.type) {
+                                    ItemType.TV_CHANNEL -> 223
+                                    else -> 335
+                                }
+                                val imageUrl = imageApi.getItemImageUrl(
+                                    itemId = itemId,
+                                    imageType = imageType,
+                                    fillWidth = fillWidth,
+                                    fillHeight = fillHeight
+                                )
+                                cards.add(
+                                    HomeSectionCard(
+                                        id = resultIndex,
+                                        imageUrl = imageUrl,
+                                        title = title,
+                                        subtitle = subtitle,
+                                        uuid = itemId,
+                                        homeCardType = homeCardType,
+                                        homeCardAction = HomeCardAction.DETAILS
+                                    )
+                                )
                             }
-                            val imageType = when (item.type) {
-                                ItemType.TV_CHANNEL -> ImageType.BACKDROP
-                                else -> ImageType.PRIMARY
-                            }
-                            val title = when (item.type) {
-                                ItemType.EPISODE -> item.seriesName
-                                else -> item.name
-                            }
-                            val subtitle = when (item.type) {
-                                ItemType.EPISODE -> item.name
-                                ItemType.TV_CHANNEL -> item.currentProgram?.name
-                                else -> null
-                            }
-                            val homeCardType = when (item.type) {
-                                ItemType.TV_CHANNEL -> HomeCardType.BACKDROP
-                                else -> HomeCardType.POSTER
-                            }
-                            val fillWidth = when (item.type) {
-                                ItemType.TV_CHANNEL -> 335
-                                else -> 223
-                            }
-                            val fillHeight = when (item.type) {
-                                ItemType.TV_CHANNEL -> 223
-                                else -> 335
-                            }
-                            val imageUrl = imageApi.getItemImageUrl(itemId = itemId, imageType = imageType, fillWidth = fillWidth, fillHeight = fillHeight)
-                            cards.add(HomeSectionCard(id = resultIndex, imageUrl = imageUrl, title = title, subtitle = subtitle,
-                                uuid = itemId, homeCardType = homeCardType, homeCardAction = HomeCardAction.DETAILS))
+                            val row = HomeSectionRow(
+                                id = HomeSectionType.LATEST_MEDIA.ordinal + libraryIndex,
+                                title = "Latest " + library.title,
+                                cards = cards
+                            )
+                            homeRowCache[library.id.toString()] = row
+                            rows.add(row)
                         }
-                        rows.add(HomeSectionRow(id = HomeSectionType.LATEST_MEDIA.ordinal + libraryIndex, title = "Latest " + library.title, cards = cards))
                     }
                 }
                 // TODO: Use a repo to get My Media string
@@ -192,7 +354,18 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
             } catch (e: Exception) {
                 // TODO: Need to catch httpException and pass along correct error message
                 val error = e.message
-                emit(Resource.error(listOf(Error(1, 1, "Could not load Latest Items section $error", null))))
+                emit(
+                    Resource.error(
+                        listOf(
+                            Error(
+                                1,
+                                1,
+                                "Could not load Latest Items section $error",
+                                null
+                            )
+                        )
+                    )
+                )
             }
         }.flowOn(networkDispatcher)
     }
@@ -210,7 +383,18 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                 emit(Resource.success(response))
             } catch (e: Exception) {
                 val error = e.message
-                emit(Resource.error(listOf(Error(null, 1, "Could not load Home section $error", null))))
+                emit(
+                    Resource.error(
+                        listOf(
+                            Error(
+                                null,
+                                1,
+                                "Could not load Home section $error",
+                                null
+                            )
+                        )
+                    )
+                )
             }
         }.flowOn(networkDispatcher)
     }
@@ -221,34 +405,44 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
         return flow<Resource<List<HomeSectionCard>>> {
             emit(Resource.loading())
             try {
-                val result by userLibraryApi.getLatestMedia(userId = userId,
+                val result by userLibraryApi.getLatestMedia(
+                    userId = userId,
                     limit = 10,
                     fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.OVERVIEW),
                     imageTypeLimit = 1,
-                    enableImageTypes = listOf(ImageType.LOGO, ImageType.BACKDROP))
+                    enableImageTypes = listOf(ImageType.LOGO, ImageType.BACKDROP)
+                )
                 // TODO: This filters out any item that was added recently if it does not have a backdrop image.
                 //  Is this desirable or should a placeholder be loaded if there is no backdrop image?
-                val filteredResult = result.filter { it.backdropImageTags?.isNotEmpty() == true || it.parentBackdropImageTags?.isNotEmpty() == true }
+                val filteredResult =
+                    result.filter { it.backdropImageTags?.isNotEmpty() == true || it.parentBackdropImageTags?.isNotEmpty() == true }
                 val response = mutableListOf<HomeSectionCard>()
                 filteredResult.forEachIndexed { index, item ->
                     // TODO: All of this logic needs to be done on demand (i.e. AFTER user clicks the Play button then figure out which item to play next. This will be moved to a use case soon
                     val itemId = when (item.type) {
                         ItemType.EPISODE -> item.id
                         ItemType.SERIES -> {
-                            val nextUpResults by tvShowsApi.getNextUp(userId = userId,
+                            val nextUpResults by tvShowsApi.getNextUp(
+                                userId = userId,
                                 limit = 1,
-                                fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.BASIC_SYNC_INFO),
+                                fields = listOf(
+                                    ItemFields.PRIMARY_IMAGE_ASPECT_RATIO,
+                                    ItemFields.BASIC_SYNC_INFO
+                                ),
                                 imageTypeLimit = 1,
                                 parentId = item.id,
                                 enableImageTypes = listOf(ImageType.BACKDROP),
-                                disableFirstEpisode = false)
+                                disableFirstEpisode = false
+                            )
                             if (nextUpResults.items?.isEmpty() == true) {
-                                val seriesItems by itemsApi.getItems(userId = userId,
+                                val seriesItems by itemsApi.getItems(
+                                    userId = userId,
                                     recursive = true,
                                     parentId = item.id,
                                     limit = 1,
                                     filters = listOf(ItemFilter.IS_NOT_FOLDER),
-                                    mediaTypes = listOf("Video"), sortBy = listOf("SortName"))
+                                    mediaTypes = listOf("Video"), sortBy = listOf("SortName")
+                                )
                                 seriesItems.items?.first()?.id ?: item.id
                             } else {
                                 nextUpResults.items?.first()?.id ?: item.id
@@ -264,15 +458,39 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                         ItemType.EPISODE -> item.name
                         else -> null
                     }
-                    val imageItemId = if (item.type == ItemType.EPISODE) item.seriesId ?: item.id else item.id
-                    val imageUrl = imageApi.getItemImageUrl(itemId = imageItemId, imageType = ImageType.BACKDROP)
-                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = title, subtitle = subtitle,
-                        homeCardType = HomeCardType.BACKDROP, uuid = itemId, homeCardAction = HomeCardAction.NO_ACTION))
+                    val imageItemId =
+                        if (item.type == ItemType.EPISODE) item.seriesId ?: item.id else item.id
+                    val imageUrl = imageApi.getItemImageUrl(
+                        itemId = imageItemId,
+                        imageType = ImageType.BACKDROP
+                    )
+                    response.add(
+                        HomeSectionCard(
+                            id = index,
+                            imageUrl = imageUrl,
+                            title = title,
+                            subtitle = subtitle,
+                            homeCardType = HomeCardType.BACKDROP,
+                            uuid = itemId,
+                            homeCardAction = HomeCardAction.NO_ACTION
+                        )
+                    )
                 }
                 emit(Resource.success(response))
             } catch (e: Exception) {
                 val error = e.message
-                emit(Resource.error(listOf(Error(null, 1, "Could not load Recent Items section $error", null))))
+                emit(
+                    Resource.error(
+                        listOf(
+                            Error(
+                                null,
+                                1,
+                                "Could not load Recent Items section $error",
+                                null
+                            )
+                        )
+                    )
+                )
             }
         }.flowOn(networkDispatcher)
     }
@@ -285,16 +503,26 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
             try {
                 val result by userLibraryApi.getItem(userId = userId, itemId = movieId)
                 val people = result.people?.map {
-                    Person(id = it.id, name = it.name, type = it.type, primaryImageTag = it.primaryImageTag, role = it.role)
+                    Person(
+                        id = it.id,
+                        name = it.name,
+                        type = it.type,
+                        primaryImageTag = it.primaryImageTag,
+                        role = it.role
+                    )
                 }
-                val backdropUrl = imageApi.getItemImageUrl(itemId = movieId,
+                val backdropUrl = imageApi.getItemImageUrl(
+                    itemId = movieId,
                     imageType = ImageType.BACKDROP,
                     maxWidth = 1920,
-                    maxHeight = 1080)
-                val posterUrl = imageApi.getItemImageUrl(itemId = movieId,
+                    maxHeight = 1080
+                )
+                val posterUrl = imageApi.getItemImageUrl(
+                    itemId = movieId,
                     imageType = ImageType.PRIMARY,
                     maxWidth = 1000,
-                    maxHeight = 1500)
+                    maxHeight = 1500
+                )
                 val response = MovieDetails(
                     id = movieId,
                     name = result.name,
@@ -316,8 +544,23 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                 emit(Resource.success(response))
             } catch (e: Exception) {
                 val error = e.message
-                emit(Resource.error(listOf(Error(null, 1, "Could not load Home section $error", null))))
+                emit(
+                    Resource.error(
+                        listOf(
+                            Error(
+                                null,
+                                1,
+                                "Could not load Home section $error",
+                                null
+                            )
+                        )
+                    )
+                )
             }
         }.flowOn(networkDispatcher)
+    }
+
+    override fun clearCache() {
+        homeRowCache.clear()
     }
 }

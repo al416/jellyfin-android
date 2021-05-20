@@ -29,6 +29,12 @@
     <string name="add_server_dialog_negative_label">Cancel</string>
     <string name="add_server_menu_save">Save</string>
 
+    <!-- Home Fragment -->
+    <string name="home_fragment_load_failed_title">Error</string>
+    <string name="home_fragment_load_failed_message">Some items failed to load. Do you want to try again?</string>
+    <string name="home_fragment_load_failed_positive_label">Yes</string>
+    <string name="home_fragment_load_failed_negative_label">No</string>
+
     <!-- Home Left Drawer Navigation -->
     <string name="home_activity_navigation_open_drawer">Open left navigation drawer</string>
     <string name="home_activity_navigation_close_drawer">Close left navigation drawer</string>
