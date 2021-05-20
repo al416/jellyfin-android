@@ -61,6 +61,7 @@ class RecentItemFragment : DaggerFragment() {
                 Status.SUCCESS -> {
                     val item = resource.data?.get(position)
                     item?.let {card ->
+                        binding.tvTitle.text = card.title
                         binding.background.load(card.imageUrl)
                         binding.btnPlay.setOnClickListener {
                             val intent = Intent(requireActivity(), PlayerActivity::class.java)

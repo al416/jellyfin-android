@@ -10,6 +10,7 @@ import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.LibraryDto
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.display_model.Genre
+import org.jellyfin.client.android.domain.models.display_model.HomeCardAction
 import org.jellyfin.client.android.domain.models.display_model.HomeCardType
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
@@ -49,7 +50,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                 val result by userViewsApi.getUserViews(userId)
                 result.items?.forEachIndexed {index, item ->
                     val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.PRIMARY)
-                    cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
+                    cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null,
+                        uuid = item.id, homeCardType = HomeCardType.BACKDROP, homeCardAction = HomeCardAction.NO_ACTION))
                 }
                 // TODO: Use a repo to get My Media string
                 emit(Resource.success(HomeSectionRow(id = HomeSectionType.MY_MEDIA.ordinal, title = "My Media", cards = cards)))
@@ -82,7 +84,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                     }
                     val imageUrl = imageApi.getItemImageUrl(itemId = itemId, imageType = ImageType.BACKDROP)
 
-                    cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
+                    cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null,
+                        uuid = item.id, homeCardType = HomeCardType.BACKDROP, homeCardAction = HomeCardAction.PLAY))
                 }
                 // TODO: Use a repo to get Continue Watching string
                 if (cards.isEmpty()) {
@@ -113,7 +116,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                     disableFirstEpisode = true)
                 result.items?.forEachIndexed {index, item ->
                     val imageUrl = imageApi.getItemImageUrl(itemId = item.id, imageType = ImageType.BACKDROP)
-                    cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, uuid = item.id, homeCardType = HomeCardType.BACKDROP))
+                    cards.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null,
+                        uuid = item.id, homeCardType = HomeCardType.BACKDROP, homeCardAction = HomeCardAction.PLAY))
                 }
                 // TODO: Use a repo to get Next Up string
                 if (cards.isEmpty()) {
@@ -177,7 +181,8 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                                 else -> 335
                             }
                             val imageUrl = imageApi.getItemImageUrl(itemId = itemId, imageType = imageType, fillWidth = fillWidth, fillHeight = fillHeight)
-                            cards.add(HomeSectionCard(id = resultIndex, imageUrl = imageUrl, title = title, subtitle = subtitle, uuid = itemId, homeCardType = homeCardType))
+                            cards.add(HomeSectionCard(id = resultIndex, imageUrl = imageUrl, title = title, subtitle = subtitle,
+                                uuid = itemId, homeCardType = homeCardType, homeCardAction = HomeCardAction.DETAILS))
                         }
                         rows.add(HomeSectionRow(id = HomeSectionType.LATEST_MEDIA.ordinal + libraryIndex, title = "Latest " + library.title, cards = cards))
                     }
@@ -251,9 +256,18 @@ class ViewsRepositoryImpl @Inject constructor(@Named("network") private val netw
                         }
                         else -> item.id
                     }
+                    val title = when (item.type) {
+                        ItemType.EPISODE -> item.seriesName
+                        else -> item.name
+                    }
+                    val subtitle = when (item.type) {
+                        ItemType.EPISODE -> item.name
+                        else -> null
+                    }
                     val imageItemId = if (item.type == ItemType.EPISODE) item.seriesId ?: item.id else item.id
                     val imageUrl = imageApi.getItemImageUrl(itemId = imageItemId, imageType = ImageType.BACKDROP)
-                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = item.name, subtitle = null, homeCardType = HomeCardType.BACKDROP, uuid = itemId))
+                    response.add(HomeSectionCard(id = index, imageUrl = imageUrl, title = title, subtitle = subtitle,
+                        homeCardType = HomeCardType.BACKDROP, uuid = itemId, homeCardAction = HomeCardAction.NO_ACTION))
                 }
                 emit(Resource.success(response))
             } catch (e: Exception) {
