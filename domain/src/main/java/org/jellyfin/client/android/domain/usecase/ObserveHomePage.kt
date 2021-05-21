@@ -88,12 +88,7 @@ class ObserveHomePage @Inject constructor(
                         // Don't emit another LOADING resource because the first request in the chain already emitted a LOADING resource
                     }
                     Status.SUCCESS -> {
-                        val libraries = mutableListOf<LibraryDto>()
-                        resource.data?.let {
-                            it.cards.forEach { card ->
-                                libraries.add(LibraryDto(id = card.uuid, title = card.title))
-                            }
-                        }
+                        val libraries = resource.data ?: emptyList()
                         loadLatest(libraries, retrieveFromCache)
                     }
                 }

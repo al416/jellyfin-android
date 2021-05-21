@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import org.jellyfin.client.android.domain.models.LibraryDto
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.domain.usecase.ObserveHomePage
@@ -51,15 +52,15 @@ class HomeViewModel
         rows.postValue(Resource.Companion.success(data))
     }
 
-    private val libraries: MutableLiveData<Resource<HomeSectionRow>> by lazy {
-        val data = MutableLiveData<Resource<HomeSectionRow>>()
+    private val libraries: MutableLiveData<Resource<List<LibraryDto>>> by lazy {
+        val data = MutableLiveData<Resource<List<LibraryDto>>>()
         loadLibraries(data)
         data
     }
 
-    fun getLibraries(): LiveData<Resource<HomeSectionRow>> = libraries
+    fun getLibraries(): LiveData<Resource<List<LibraryDto>>> = libraries
 
-    private fun loadLibraries(data: MutableLiveData<Resource<HomeSectionRow>>) {
+    private fun loadLibraries(data: MutableLiveData<Resource<List<LibraryDto>>>) {
         viewModelScope.launch {
             observeMyMediaSection.invoke(ObserveMyMediaSection.RequestParam(true)).collectLatest {
                 data.postValue(it)

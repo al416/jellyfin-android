@@ -87,8 +87,8 @@ class HomeActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
             when (it.status) {
                 Status.SUCCESS -> {
                     val mediaSubMenu = binding.leftNav.menu.getItem(1).subMenu
-                    it.data?.cards?.forEachIndexed {index, homeSectionCard ->
-                        val item = mediaSubMenu.add(R.id.media_group, homeSectionCard.id, 0, homeSectionCard.title)
+                    it.data?.forEachIndexed {index, library ->
+                        val item = mediaSubMenu.add(R.id.media_group, library.id, 0, library.title)
                         // TODO: Set icon depending on library type (Shows, Movies)
                         item.icon = ContextCompat.getDrawable(this, R.drawable.ic_movies)
                     }
@@ -111,7 +111,7 @@ class HomeActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
                 true
             }
             else -> {
-                val libraries = homeViewModel.getLibraries().value?.data?.cards
+                val libraries = homeViewModel.getLibraries().value?.data
                 if (libraries != null) {
                     val library = libraries[item.itemId]
                     val action = HomeFragmentDirections.actionLibrary(library.title ?: "", library.uuid.toString())

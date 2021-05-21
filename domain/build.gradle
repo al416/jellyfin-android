@@ -17,5 +17,8 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
+    // Jellyfin Kotlin SDK
+    implementation "org.jellyfin.sdk:jellyfin-core:$jellyfin_sdk_version"
+
     testImplementation 'junit:junit:4.+'
 }

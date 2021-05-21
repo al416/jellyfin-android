@@ -11,7 +11,7 @@ import java.util.*
 
 interface ViewsRepository {
 
-    suspend fun getMyMediaSection(retrieveFromCache: Boolean): Flow<Resource<HomeSectionRow>>
+    suspend fun getMyMediaSection(retrieveFromCache: Boolean): Flow<Resource<List<LibraryDto>>>
 
     suspend fun getContinueWatchingSection(mediaTypes: List<String>?, retrieveFromCache: Boolean): Flow<Resource<HomeSectionRow>>
 
