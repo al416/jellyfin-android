@@ -1,8 +1,8 @@
 package org.jellyfin.client.android.domain.constants
 
-object LibraryType {
-    const val MOVIE = "Movie"
-    const val SERIES = "Series"
+object CollectionType {
+    const val MOVIES = "movies"
+    const val TV_SHOWS = "tvshows"
 }
 
 object ItemType {

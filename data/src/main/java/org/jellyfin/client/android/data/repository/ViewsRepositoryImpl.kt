@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.jellyfin.client.android.domain.constants.ItemType
+import org.jellyfin.client.android.domain.constants.CollectionType
 import org.jellyfin.client.android.domain.constants.PersonType
 import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.LibraryDto
@@ -44,57 +45,30 @@ class ViewsRepositoryImpl @Inject constructor(
 ) : ViewsRepository {
 
     private val homeRowCache = mutableMapOf<String, HomeSectionRow>()
+    private val libraryCache = mutableMapOf<String, List<LibraryDto>>()
 
-    override suspend fun getMyMediaSection(retrieveFromCache: Boolean): Flow<Resource<HomeSectionRow>> {
+    override suspend fun getMyMediaSection(retrieveFromCache: Boolean): Flow<Resource<List<LibraryDto>>> {
         val userId = currentUserRepository.getCurrentUserId()
             ?: throw IllegalArgumentException("UseId cannot be null")
-        return flow<Resource<HomeSectionRow>> {
+        return flow<Resource<List<LibraryDto>>> {
             emit(Resource.loading())
-            val row = homeRowCache[HomeSectionType.MY_MEDIA.name]
+            val row = libraryCache[HomeSectionType.MY_MEDIA.name]
             if (retrieveFromCache && row != null) {
                 emit(Resource.success(row))
             } else {
                 try {
-                    val cards = mutableListOf<HomeSectionCard>()
+                    val libraries = mutableListOf<LibraryDto>()
                     val result by userViewsApi.getUserViews(userId)
-                    result.items?.forEachIndexed { index, item ->
-                        val imageUrl = imageApi.getItemImageUrl(
-                            itemId = item.id,
-                            imageType = ImageType.PRIMARY
-                        )
-                        cards.add(
-                            HomeSectionCard(
-                                id = index,
-                                imageUrl = imageUrl,
-                                title = item.name,
-                                subtitle = null,
-                                uuid = item.id,
-                                homeCardType = HomeCardType.BACKDROP,
-                                homeCardAction = HomeCardAction.NO_ACTION
-                            )
-                        )
+                    val filteredResults = result.items?.filter { it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TV_SHOWS }
+                    filteredResults?.forEachIndexed { index, baseItemDto ->
+                        val type = if (baseItemDto.collectionType == ItemType.MOVIE) CollectionType.MOVIES else CollectionType.TV_SHOWS
+                        libraries.add(LibraryDto(id = index, uuid = baseItemDto.id, title = baseItemDto.name, type = type))
                     }
-                    // TODO: Use a repo to get My Media string
-                    val row = HomeSectionRow(
-                        id = HomeSectionType.MY_MEDIA.ordinal,
-                        title = "My Media",
-                        cards = cards
-                    )
-                    homeRowCache[HomeSectionType.MY_MEDIA.name] = row
-                    emit(Resource.success(row))
+                    libraryCache[HomeSectionType.MY_MEDIA.name] = libraries
+                    emit(Resource.success(libraries))
                 } catch (e: Exception) {
-                    // TODO: Need to catch httpException and pass along correct error message
-                    val error = e.message
-                    emit(
-                        Resource.error(
-                            listOf(
-                                Error(
-                                    null, 1,
-                                    "Could not load My Media section $error", null
-                                )
-                            )
-                        )
-                    )
+                    val error = Error(null, 1,"Could not load Libraries ${e.message}", null)
+                    emit(Resource.error(listOf(error)))
                 }
             }
         }.flowOn(networkDispatcher)
@@ -275,7 +249,7 @@ class ViewsRepositoryImpl @Inject constructor(
                     } else {
                         val result by userLibraryApi.getLatestMedia(
                             userId = userId,
-                            parentId = library.id,
+                            parentId = library.uuid,
                             limit = 16,
                             fields = listOf(
                                 ItemFields.PRIMARY_IMAGE_ASPECT_RATIO,
