@@ -536,61 +536,45 @@ class ViewsRepositoryImpl @Inject constructor(
         }.flowOn(networkDispatcher)
     }
 
-    override suspend fun getLibraryItems(library: Library): Flow<Resource<List<HomeSectionCard>>> {
+    override suspend fun getLibraryItems(pageNumber: Int, pageSize: Int, library: Library): List<HomeSectionCard> {
         val userId = currentUserRepository.getCurrentUserId()
             ?: throw IllegalArgumentException("UserId cannot be null")
-        return flow<Resource<List<HomeSectionCard>>> {
-            emit(Resource.loading())
-            try {
-                val itemType = if (library.type == CollectionType.MOVIES) ItemType.MOVIE else ItemType.SERIES
-                val result by itemsApi.getItems(
-                    userId = userId,
-                    sortBy = listOf("SortName,ProductionYear"),
-                    sortOrder = listOf(SortOrder.ASCENDING),
-                    includeItemTypes = listOf(itemType),
-                    recursive = true,
-                    fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.MEDIA_SOURCE_COUNT, ItemFields.BASIC_SYNC_INFO),
-                    imageTypeLimit = 1,
-                    enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.BANNER, ImageType.THUMB),
-                    startIndex = 0,
-                    limit = LIBRARY_PAGE_SIZE,
-                    parentId = library.uuid,
+
+        val itemType = if (library.type == CollectionType.MOVIES) ItemType.MOVIE else ItemType.SERIES
+        val result by itemsApi.getItems(
+            userId = userId,
+            sortBy = listOf("SortName,ProductionYear"),
+            sortOrder = listOf(SortOrder.ASCENDING),
+            includeItemTypes = listOf(itemType),
+            recursive = true,
+            fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.MEDIA_SOURCE_COUNT, ItemFields.BASIC_SYNC_INFO),
+            imageTypeLimit = 1,
+            enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.BANNER, ImageType.THUMB),
+            startIndex = pageNumber * pageSize,
+            limit = pageSize,
+            parentId = library.uuid,
+        )
+
+        val response = mutableListOf<HomeSectionCard>()
+        result.items?.forEachIndexed { index, item ->
+            val imageUrl = imageApi.getItemImageUrl(
+                itemId = item.id,
+                imageType = ImageType.PRIMARY
+            )
+            response.add(
+                HomeSectionCard(
+                    id = index,
+                    imageUrl = imageUrl,
+                    title = item.name,
+                    subtitle = null,
+                    homeCardType = HomeCardType.POSTER,
+                    uuid = item.id,
+                    homeCardAction = HomeCardAction.DETAILS
                 )
-                val response = mutableListOf<HomeSectionCard>()
-                result.items?.forEachIndexed { index, item ->
-                    val imageUrl = imageApi.getItemImageUrl(
-                        itemId = item.id,
-                        imageType = ImageType.PRIMARY
-                    )
-                    response.add(
-                        HomeSectionCard(
-                            id = index,
-                            imageUrl = imageUrl,
-                            title = item.name,
-                            subtitle = null,
-                            homeCardType = HomeCardType.POSTER,
-                            uuid = item.id,
-                            homeCardAction = HomeCardAction.DETAILS
-                        )
-                    )
-                }
-                emit(Resource.success(response))
-            } catch (e: Exception) {
-                val error = e.message
-                emit(
-                    Resource.error(
-                        listOf(
-                            Error(
-                                null,
-                                1,
-                                "Could not load Library items $error",
-                                null
-                            )
-                        )
-                    )
-                )
-            }
-        }.flowOn(networkDispatcher)
+            )
+        }
+
+        return response
     }
 
     override fun clearCache() {

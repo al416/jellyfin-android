@@ -20,5 +20,7 @@ dependencies {
     // Jellyfin Kotlin SDK
     implementation "org.jellyfin.sdk:jellyfin-core:$jellyfin_sdk_version"
 
+    implementation "androidx.paging:paging-common:3.0.0"
+
     testImplementation 'junit:junit:4.+'
 }
