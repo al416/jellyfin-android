@@ -39,7 +39,9 @@ import javax.inject.Singleton
 @Suppress("unused")
 object JellyfinModule {
 
-    private const val HTTP_CLIENT_TIMEOUT_IN_MS = 10000L
+    private const val CONNECTION_TIMEOUT_IN_MS = 20000L
+    private const val SOCKET_TIMEOUT_IN_MS = 20000L
+    private const val REQUEST_TIMEOUT_IN_MS = 50000L
 
     @Singleton
     @Provides
@@ -54,7 +56,10 @@ object JellyfinModule {
     @Singleton
     @Provides
     internal fun providesKtorClient(jellyfin: Jellyfin): KtorClient {
-        val clientOptions = HttpClientOptions(followRedirects = true, timeout = HTTP_CLIENT_TIMEOUT_IN_MS)
+        val clientOptions = HttpClientOptions(followRedirects = true,
+            connectTimeout = CONNECTION_TIMEOUT_IN_MS,
+            socketTimeout = SOCKET_TIMEOUT_IN_MS,
+            requestTimeout = REQUEST_TIMEOUT_IN_MS)
         return jellyfin.createApi(baseUrl = null, httpClientOptions = clientOptions)
     }
 

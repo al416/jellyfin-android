@@ -12,7 +12,8 @@ import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 
 
-class HomeRowRecyclerViewAdapter(private val context: Context) : ListAdapter<HomeSectionRow, HomeRowRecyclerViewAdapter.RowViewHolder>(Companion) {
+class HomeRowRecyclerViewAdapter(private val context: Context,
+                                 private val extraSpace: Int) : ListAdapter<HomeSectionRow, HomeRowRecyclerViewAdapter.RowViewHolder>(Companion) {
 
     var onCardClick: ((HomeSectionCard) -> Unit)? = null
 
@@ -35,7 +36,7 @@ class HomeRowRecyclerViewAdapter(private val context: Context) : ListAdapter<Hom
     }
 
     override fun onBindViewHolder(holder: RowViewHolder, position: Int) {
-        val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        val layoutManager = PrefetchLayoutManager(context, LinearLayoutManager.HORIZONTAL, false, extraSpace)
         holder.binding.cardsRecyclerView.layoutManager = layoutManager
 
         val adapter = HomeCardRecyclerViewAdapter()
