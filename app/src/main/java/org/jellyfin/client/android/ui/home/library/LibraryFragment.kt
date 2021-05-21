@@ -5,12 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
 import dagger.android.support.DaggerFragment
+import kotlinx.coroutines.launch
 import org.jellyfin.client.android.databinding.FragmentLibraryBinding
-import org.jellyfin.client.android.domain.models.Status
-import org.jellyfin.client.android.ui.home.adapter.HomeCardRecyclerViewAdapter
+import org.jellyfin.client.android.ui.home.adapter.PagedCardAdapter
 import javax.inject.Inject
 
 class LibraryFragment : DaggerFragment() {
@@ -40,25 +41,16 @@ class LibraryFragment : DaggerFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val adapter = HomeCardRecyclerViewAdapter()
+        val adapter = PagedCardAdapter()
         binding.adapter = adapter
 
         binding.itemsRecyclerView.layoutManager = GridLayoutManager(requireContext(), 3)
         binding.executePendingBindings()
 
         libraryViewModel.getItems().observe(viewLifecycleOwner) {
-            when (it.status) {
-                Status.SUCCESS -> {
-                    it.data.let { cards ->
-                        if (adapter.currentList == cards) {
-                            adapter.notifyDataSetChanged()
-                        } else {
-                            adapter.submitList(cards)
-                        }
-                    }
-                }
+            viewLifecycleOwner.lifecycleScope.launch {
+                adapter.submitData(it)
             }
         }
     }
-
 }

@@ -6,7 +6,7 @@
 
         <variable
             name="adapter"
-            type="org.jellyfin.client.android.ui.home.adapter.HomeCardRecyclerViewAdapter" />
+            type="org.jellyfin.client.android.ui.home.adapter.PagedCardAdapter" />
     </data>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout

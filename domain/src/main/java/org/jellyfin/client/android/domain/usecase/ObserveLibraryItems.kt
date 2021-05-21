@@ -1,23 +1,28 @@
 package org.jellyfin.client.android.domain.usecase
 
-import kotlinx.coroutines.CoroutineDispatcher
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
+import org.jellyfin.client.android.domain.constants.ConfigurationConstants.LIBRARY_PAGE_SIZE
 import org.jellyfin.client.android.domain.models.Library
-import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 import org.jellyfin.client.android.domain.repository.ViewsRepository
 import javax.inject.Inject
-import javax.inject.Named
 
-class ObserveLibraryItems @Inject constructor(@Named("network") dispatcher: CoroutineDispatcher,
-                                               private val viewsRepository: ViewsRepository
-) : BaseUseCase<List<HomeSectionCard>, ObserveLibraryItems.RequestParams>(dispatcher) {
+class ObserveLibraryItems @Inject constructor(private val viewsRepository: ViewsRepository) {
 
-    override suspend fun invokeInternal(params: RequestParams?): Flow<Resource<List<HomeSectionCard>>> {
+    fun invokeInternal(params: RequestParams?): Flow<PagingData<HomeSectionCard>> {
         if (params == null) {
             throw IllegalArgumentException("Expecting valid parameters")
         }
-        return viewsRepository.getLibraryItems(params.library)
+
+        val pagingSource = LibraryPagingSource(viewsRepository)
+        pagingSource.setParam(params.library)
+
+        val pagingConfig = PagingConfig(pageSize = LIBRARY_PAGE_SIZE, initialLoadSize = LIBRARY_PAGE_SIZE * 2, enablePlaceholders = false)
+
+        return Pager(config = pagingConfig, pagingSourceFactory = {pagingSource}).flow
     }
 
     data class RequestParams(val library: Library)

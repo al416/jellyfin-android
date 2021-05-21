@@ -25,7 +25,7 @@ interface ViewsRepository {
 
     suspend fun getMovieDetails(movieId: UUID): Flow<Resource<MovieDetails>>
 
-    suspend fun getLibraryItems(library: Library): Flow<Resource<List<HomeSectionCard>>>
+    suspend fun getLibraryItems(pageNumber: Int, pageSize: Int, library: Library): List<HomeSectionCard>
 
     fun clearCache()
 }
