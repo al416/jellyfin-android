@@ -6,9 +6,10 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.constants.CollectionType
+import org.jellyfin.client.android.domain.constants.ConfigurationConstants.LIBRARY_PAGE_SIZE
 import org.jellyfin.client.android.domain.constants.PersonType
 import org.jellyfin.client.android.domain.models.Error
-import org.jellyfin.client.android.domain.models.LibraryDto
+import org.jellyfin.client.android.domain.models.Library
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.display_model.Genre
 import org.jellyfin.client.android.domain.models.display_model.HomeCardAction
@@ -45,24 +46,24 @@ class ViewsRepositoryImpl @Inject constructor(
 ) : ViewsRepository {
 
     private val homeRowCache = mutableMapOf<String, HomeSectionRow>()
-    private val libraryCache = mutableMapOf<String, List<LibraryDto>>()
+    private val libraryCache = mutableMapOf<String, List<Library>>()
 
-    override suspend fun getMyMediaSection(retrieveFromCache: Boolean): Flow<Resource<List<LibraryDto>>> {
+    override suspend fun getMyMediaSection(retrieveFromCache: Boolean): Flow<Resource<List<Library>>> {
         val userId = currentUserRepository.getCurrentUserId()
             ?: throw IllegalArgumentException("UseId cannot be null")
-        return flow<Resource<List<LibraryDto>>> {
+        return flow<Resource<List<Library>>> {
             emit(Resource.loading())
             val row = libraryCache[HomeSectionType.MY_MEDIA.name]
             if (retrieveFromCache && row != null) {
                 emit(Resource.success(row))
             } else {
                 try {
-                    val libraries = mutableListOf<LibraryDto>()
+                    val libraries = mutableListOf<Library>()
                     val result by userViewsApi.getUserViews(userId)
                     val filteredResults = result.items?.filter { it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TV_SHOWS }
                     filteredResults?.forEachIndexed { index, baseItemDto ->
-                        val type = if (baseItemDto.collectionType == ItemType.MOVIE) CollectionType.MOVIES else CollectionType.TV_SHOWS
-                        libraries.add(LibraryDto(id = index, uuid = baseItemDto.id, title = baseItemDto.name, type = type))
+                        val type = if (baseItemDto.collectionType == CollectionType.MOVIES) CollectionType.MOVIES else CollectionType.TV_SHOWS
+                        libraries.add(Library(id = index, uuid = baseItemDto.id, title = baseItemDto.name, type = type))
                     }
                     libraryCache[HomeSectionType.MY_MEDIA.name] = libraries
                     emit(Resource.success(libraries))
@@ -233,7 +234,7 @@ class ViewsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getLatestSection(
-        libraries: List<LibraryDto>,
+        libraries: List<Library>,
         retrieveFromCache: Boolean
     ): Flow<Resource<List<HomeSectionRow>>> {
         val userId = currentUserRepository.getCurrentUserId()
@@ -535,24 +536,25 @@ class ViewsRepositoryImpl @Inject constructor(
         }.flowOn(networkDispatcher)
     }
 
-    override suspend fun getLibraryItems(libraryId: UUID): Flow<Resource<List<HomeSectionCard>>> {
+    override suspend fun getLibraryItems(library: Library): Flow<Resource<List<HomeSectionCard>>> {
         val userId = currentUserRepository.getCurrentUserId()
-            ?: throw IllegalArgumentException("UseId cannot be null")
+            ?: throw IllegalArgumentException("UserId cannot be null")
         return flow<Resource<List<HomeSectionCard>>> {
             emit(Resource.loading())
             try {
+                val itemType = if (library.type == CollectionType.MOVIES) ItemType.MOVIE else ItemType.SERIES
                 val result by itemsApi.getItems(
                     userId = userId,
                     sortBy = listOf("SortName,ProductionYear"),
                     sortOrder = listOf(SortOrder.ASCENDING),
-                    includeItemTypes = listOf("Movie"),
+                    includeItemTypes = listOf(itemType),
                     recursive = true,
                     fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.MEDIA_SOURCE_COUNT, ItemFields.BASIC_SYNC_INFO),
                     imageTypeLimit = 1,
                     enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.BANNER, ImageType.THUMB),
                     startIndex = 0,
-                    limit = 40,
-                    parentId = libraryId,
+                    limit = LIBRARY_PAGE_SIZE,
+                    parentId = library.uuid,
                 )
                 val response = mutableListOf<HomeSectionCard>()
                 result.items?.forEachIndexed { index, item ->

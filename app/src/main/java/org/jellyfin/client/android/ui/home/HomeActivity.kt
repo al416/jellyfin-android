@@ -7,12 +7,16 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
 import com.google.android.material.navigation.NavigationView
 import dagger.android.support.DaggerAppCompatActivity
+import org.jellyfin.client.android.HomeNavigationDirections
 import org.jellyfin.client.android.R
 import org.jellyfin.client.android.databinding.ActivityHomeBinding
 import org.jellyfin.client.android.domain.models.Status
@@ -20,7 +24,8 @@ import org.jellyfin.client.android.ui.login.LoginActivity
 import org.jellyfin.client.android.ui.login.LoginViewModel
 import javax.inject.Inject
 
-class HomeActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+class HomeActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemSelectedListener,
+    NavController.OnDestinationChangedListener {
 
     private lateinit var binding: ActivityHomeBinding
 
@@ -63,6 +68,7 @@ class HomeActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
 
         NavigationUI.setupWithNavController(binding.toolbar, navController, appBarConfiguration)
         NavigationUI.setupActionBarWithNavController(this, navController, binding.drawerLayout)
+        navController.addOnDestinationChangedListener(this)
 
         loginViewModel.getLoginState().observe(this, {
             it?.let { resource ->
@@ -114,8 +120,10 @@ class HomeActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
                 val libraries = homeViewModel.getLibraries().value?.data
                 if (libraries != null) {
                     val library = libraries[item.itemId]
-                    val action = HomeFragmentDirections.actionLibrary(library.title ?: "", library.uuid.toString())
-                    navController.navigate(action)
+                    navController.navigate(
+                        HomeNavigationDirections.actionLibrary(library.title ?: "", library),
+                        NavOptions.Builder().setLaunchSingleTop(true).build()
+                    )
                     binding.drawerLayout.close()
                 }
                 true
@@ -131,6 +139,18 @@ class HomeActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
             moveTaskToBack(true)
         } else {
             super.onBackPressed()
+        }
+    }
+
+    override fun onDestinationChanged(
+        controller: NavController,
+        destination: NavDestination,
+        arguments: Bundle?
+    ) {
+        if (destination.id == R.id.home_fragment) {
+
+        } else {
+
         }
     }
 }
