@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import org.jellyfin.client.android.domain.models.Error
-import org.jellyfin.client.android.domain.models.LibraryDto
+import org.jellyfin.client.android.domain.models.Library
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
@@ -95,7 +95,7 @@ class ObserveHomePage @Inject constructor(
             }
     }
 
-    private suspend fun loadLatest(libraries: List<LibraryDto>, retrieveFromCache: Boolean): Flow<Resource<List<HomeSectionRow>>> {
+    private suspend fun loadLatest(libraries: List<Library>, retrieveFromCache: Boolean): Flow<Resource<List<HomeSectionRow>>> {
         return observeLatestSection.invoke(ObserveLatestSection.RequestParams(libraries, retrieveFromCache))
             .flatMapLatest { resource ->
                 when (resource.status) {

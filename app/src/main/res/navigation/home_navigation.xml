@@ -8,8 +8,6 @@
         android:name="org.jellyfin.client.android.ui.home.HomeFragment">
         <action android:id="@+id/action_movie_details"
             app:destination="@id/movie_details_fragment"/>
-        <action android:id="@+id/action_library"
-            app:destination="@id/library_fragment"/>
     </fragment>
 
     <fragment android:id="@+id/movie_details_fragment"
@@ -23,8 +21,16 @@
         android:label="{title}">
         <argument android:name="title"
             app:argType="string"/>
-        <argument android:name="uuid"
-            app:argType="string"/>
+        <argument android:name="library"
+            app:argType="org.jellyfin.client.android.domain.models.Library"/>
     </fragment>
 
+    <!-- Global actions (i.e. these fragments can be reached from any fragments -->
+    <action
+        android:id="@+id/action_home"
+        app:destination="@id/home_fragment"/>
+
+    <action
+        android:id="@+id/action_library"
+        app:destination="@id/library_fragment"/>
 </navigation>

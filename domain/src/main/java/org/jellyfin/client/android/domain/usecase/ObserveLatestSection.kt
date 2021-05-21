@@ -2,11 +2,10 @@ package org.jellyfin.client.android.domain.usecase
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import org.jellyfin.client.android.domain.models.LibraryDto
+import org.jellyfin.client.android.domain.models.Library
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.domain.repository.ViewsRepository
-import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -22,5 +21,5 @@ class ObserveLatestSection @Inject constructor(@Named("network") dispatcher: Cor
         return viewsRepository.getLatestSection(params.libraries, params.retrieveFromCache)
     }
 
-    data class RequestParams(val libraries: List<LibraryDto>, val retrieveFromCache: Boolean)
+    data class RequestParams(val libraries: List<Library>, val retrieveFromCache: Boolean)
 }

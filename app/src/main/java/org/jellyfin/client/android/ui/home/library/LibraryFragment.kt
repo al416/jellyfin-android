@@ -24,7 +24,7 @@ class LibraryFragment : DaggerFragment() {
 
     private val libraryViewModel: LibraryViewModel by lazy {
         ViewModelProvider(this, viewModelFactory).get(LibraryViewModel::class.java).apply {
-            initialize(args.uuid)
+            initialize(args.library)
         }
     }
 
