@@ -10,7 +10,8 @@ data class HomeSectionCard(
     val homeCardType: HomeCardType,
     val uuid: UUID,
     var rowId: Int = 0,
-    val homeCardAction: HomeCardAction
+    val homeCardAction: HomeCardAction,
+    val itemType: String
     //val clickListener: View.OnClickListener? = null
 )
 

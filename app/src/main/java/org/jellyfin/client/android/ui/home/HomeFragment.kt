@@ -17,6 +17,7 @@ import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.R
 import org.jellyfin.client.android.databinding.FragmentHomeBinding
 import org.jellyfin.client.android.domain.constants.Constants.ASPECT_RATIO_16_9
+import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_MEDIA_UUID
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.domain.models.display_model.HomeCardAction
@@ -80,8 +81,13 @@ class HomeFragment : DaggerFragment() {
         adapter.onCardClick = {
             val card = it
             if (card.homeCardAction == HomeCardAction.DETAILS) {
-                val action = HomeFragmentDirections.actionMovieDetails(card.uuid.toString())
-                findNavController().navigate(action)
+                if (card.itemType == ItemType.MOVIE) {
+                    val action = HomeFragmentDirections.actionMovieDetails(card.uuid.toString())
+                    findNavController().navigate(action)
+                } else if (card.itemType == ItemType.SERIES) {
+                    val action = HomeFragmentDirections.actionSeriesDetails(card.uuid.toString())
+                    findNavController().navigate(action)
+                }
             } else if (card.homeCardAction == HomeCardAction.PLAY) {
                 val intent = Intent(requireActivity(), PlayerActivity::class.java)
                 intent.putExtra(BUNDLE_TAG_MEDIA_UUID, card.uuid.toString())

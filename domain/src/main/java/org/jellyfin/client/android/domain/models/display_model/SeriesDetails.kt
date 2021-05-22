@@ -1,0 +1,32 @@
+package org.jellyfin.client.android.domain.models.display_model
+
+import java.util.*
+
+data class SeriesDetails(
+    val id: UUID,
+    val name: String?,
+    val year: String?,
+    val communityRating: Float?,
+    val criticRating: Float?,
+    val container: String?,
+    val externalUrls: List<ExternalUrl>?,
+    val backdropUrl: String,
+    val genres: List<Genre>?,
+    val posterUrl: String,
+    val officialRating: String?,
+    val overview: String?,
+    val actors: List<Person>?,
+    val directors: List<Person>?,
+    val runTimeTicks: Long?,
+    val tagLines: List<String>?,
+    val seasons: MutableList<Season>,
+    var nextEpisode: Episode?
+)
+
+data class Season(val id: UUID,
+                  val name: String?,
+                  val seriesId: UUID,
+                  val imageUrl: String,
+                  val unPlayedItemCount: Int)
+
+data class Episode(val id: UUID)
