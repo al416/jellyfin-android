@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="series"
+            type="org.jellyfin.client.android.domain.models.display_model.SeriesDetails" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/backdrop"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@id/guideline"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:scaleType="fitXY"
+            app:layout_constraintVertical_bias="0.0" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.33" />
+
+        <ImageView
+            android:id="@+id/poster"
+            android:layout_width="140dp"
+            android:layout_height="210dp"
+            android:layout_marginLeft="10dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/guideline"
+            app:layout_constraintBottom_toBottomOf="@id/guideline"/>
+
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="Tom Clancy's Without Remorse"
+            app:layout_constraintLeft_toRightOf="@id/poster"
+            app:layout_constraintTop_toBottomOf="@id/guideline"
+            android:scrollHorizontally="false"
+            android:textSize="20sp"
+            android:text="@{series.name}"
+            android:layout_marginStart="10dp"
+            android:maxEms="10" />
+
+        <TextView
+            android:id="@+id/tvYear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="2021"
+            android:textSize="14sp"
+            android:text="@{series.year}"
+            app:layout_constraintLeft_toLeftOf="@id/tvName"
+            app:layout_constraintTop_toBottomOf="@id/tvName" />
+
+        <TextView
+            android:id="@+id/tvRuntime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toRightOf="@id/tvYear"
+            app:layout_constraintTop_toBottomOf="@id/tvName"
+            android:layout_marginStart="10dp"
+            tools:text="1h 49m" />
+
+        <TextView
+            android:id="@+id/tvImdbRating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="@id/tvName"
+            app:layout_constraintTop_toBottomOf="@id/tvYear"
+            tools:text="7.3"
+            android:text="@{series.communityRating.toString()}"
+            app:drawableLeftCompat="@drawable/ic_star" />
+
+        <TextView
+            android:id="@+id/tvTomatoRating"
+            android:layout_width="wrap_content"
+            app:layout_constraintLeft_toRightOf="@id/tvImdbRating"
+            app:layout_constraintTop_toBottomOf="@id/tvYear"
+            android:layout_height="wrap_content"
+            app:drawableLeftCompat="@drawable/ic_tomato"
+            android:text="@{series.criticRating.toString()}"
+            android:layout_marginStart="10dp"
+            tools:text="82" />
+
+        <Button
+            android:id="@+id/btnPlay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/poster"
+            app:layout_constraintStart_toStartOf="@+id/poster"
+            android:drawableLeft="@drawable/ic_play"
+            android:text="Play" />
+
+        <Button
+            android:id="@+id/btnImdb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/poster"
+            app:layout_constraintLeft_toRightOf="@+id/btnPlay"
+            android:drawableLeft="@drawable/ic_analytics"
+            android:text="IMDb" />
+
+        <ImageButton
+            android:id="@+id/btnDownload"
+            android:src="@drawable/ic_download"
+            android:layout_width="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/poster"
+            app:layout_constraintLeft_toRightOf="@+id/btnImdb"
+            android:layout_height="wrap_content" />
+
+        <org.jellyfin.client.android.ui.shared.TitleSubtitleVerticalView
+            android:id="@+id/overview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnPlay" />
+
+        <org.jellyfin.client.android.ui.shared.TitleSubtitleVerticalView
+            android:id="@+id/director"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/overview" />
+
+        <org.jellyfin.client.android.ui.shared.TitleSubtitleVerticalView
+            android:id="@+id/genres"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/director" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

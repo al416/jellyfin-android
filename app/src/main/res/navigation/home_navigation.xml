@@ -8,10 +8,18 @@
         android:name="org.jellyfin.client.android.ui.home.HomeFragment">
         <action android:id="@+id/action_movie_details"
             app:destination="@id/movie_details_fragment"/>
+        <action android:id="@+id/action_series_details"
+            app:destination="@id/series_details_fragment"/>
     </fragment>
 
     <fragment android:id="@+id/movie_details_fragment"
         android:name="org.jellyfin.client.android.ui.home.movie_details.MovieDetailsFragment">
+        <argument android:name="uuid"
+            app:argType="string"/>
+    </fragment>
+
+    <fragment android:id="@+id/series_details_fragment"
+        android:name="org.jellyfin.client.android.ui.home.series_details.SeriesDetailsFragment">
         <argument android:name="uuid"
             app:argType="string"/>
     </fragment>

@@ -19,6 +19,8 @@ import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionType
 import org.jellyfin.client.android.domain.models.display_model.MovieDetails
 import org.jellyfin.client.android.domain.models.display_model.Person
+import org.jellyfin.client.android.domain.models.display_model.Season
+import org.jellyfin.client.android.domain.models.display_model.SeriesDetails
 import org.jellyfin.client.android.domain.repository.CurrentUserRepository
 import org.jellyfin.client.android.domain.repository.ViewsRepository
 import org.jellyfin.sdk.api.operations.ImageApi
@@ -113,6 +115,11 @@ class ViewsRepositoryImpl @Inject constructor(
                             itemId = itemId,
                             imageType = ImageType.BACKDROP
                         )
+                        val itemType = when (item.type) {
+                            ItemType.MOVIE -> ItemType.MOVIE
+                            ItemType.SERIES -> ItemType.SERIES
+                            else -> ItemType.MOVIE
+                        }
                         cards.add(
                             HomeSectionCard(
                                 id = index,
@@ -121,7 +128,8 @@ class ViewsRepositoryImpl @Inject constructor(
                                 subtitle = null,
                                 uuid = item.id,
                                 homeCardType = HomeCardType.BACKDROP,
-                                homeCardAction = HomeCardAction.PLAY
+                                homeCardAction = HomeCardAction.PLAY,
+                                itemType = itemType
                             )
                         )
                     }
@@ -189,6 +197,11 @@ class ViewsRepositoryImpl @Inject constructor(
                             itemId = item.id,
                             imageType = ImageType.BACKDROP
                         )
+                        val itemType = when (item.type) {
+                            ItemType.MOVIE -> ItemType.MOVIE
+                            ItemType.SERIES -> ItemType.SERIES
+                            else -> ItemType.MOVIE
+                        }
                         cards.add(
                             HomeSectionCard(
                                 id = index,
@@ -197,7 +210,8 @@ class ViewsRepositoryImpl @Inject constructor(
                                 subtitle = null,
                                 uuid = item.id,
                                 homeCardType = HomeCardType.BACKDROP,
-                                homeCardAction = HomeCardAction.PLAY
+                                homeCardAction = HomeCardAction.PLAY,
+                                itemType = itemType
                             )
                         )
                     }
@@ -303,6 +317,11 @@ class ViewsRepositoryImpl @Inject constructor(
                                     fillWidth = fillWidth,
                                     fillHeight = fillHeight
                                 )
+                                val itemType = when (item.type) {
+                                    ItemType.MOVIE -> ItemType.MOVIE
+                                    ItemType.SERIES -> ItemType.SERIES
+                                    else -> ItemType.MOVIE
+                                }
                                 cards.add(
                                     HomeSectionCard(
                                         id = resultIndex,
@@ -311,7 +330,8 @@ class ViewsRepositoryImpl @Inject constructor(
                                         subtitle = subtitle,
                                         uuid = itemId,
                                         homeCardType = homeCardType,
-                                        homeCardAction = HomeCardAction.DETAILS
+                                        homeCardAction = HomeCardAction.DETAILS,
+                                        itemType = itemType
                                     )
                                 )
                             }
@@ -440,6 +460,11 @@ class ViewsRepositoryImpl @Inject constructor(
                         itemId = imageItemId,
                         imageType = ImageType.BACKDROP
                     )
+                    val itemType = when (item.type) {
+                        ItemType.MOVIE -> ItemType.MOVIE
+                        ItemType.SERIES -> ItemType.SERIES
+                        else -> ItemType.MOVIE
+                    }
                     response.add(
                         HomeSectionCard(
                             id = index,
@@ -448,7 +473,8 @@ class ViewsRepositoryImpl @Inject constructor(
                             subtitle = subtitle,
                             homeCardType = HomeCardType.BACKDROP,
                             uuid = itemId,
-                            homeCardAction = HomeCardAction.NO_ACTION
+                            homeCardAction = HomeCardAction.NO_ACTION,
+                            itemType = itemType
                         )
                     )
                 }
@@ -536,6 +562,116 @@ class ViewsRepositoryImpl @Inject constructor(
         }.flowOn(networkDispatcher)
     }
 
+    override suspend fun getSeriesDetails(seriesId: UUID): Flow<Resource<SeriesDetails>> {
+        val userId = currentUserRepository.getCurrentUserId()
+            ?: throw IllegalArgumentException("UseId cannot be null")
+        return flow<Resource<SeriesDetails>> {
+            emit(Resource.loading())
+            try {
+                val result by userLibraryApi.getItem(userId = userId, itemId = seriesId)
+                val people = result.people?.map {
+                    Person(
+                        id = it.id,
+                        name = it.name,
+                        type = it.type,
+                        primaryImageTag = it.primaryImageTag,
+                        role = it.role
+                    )
+                }
+                val backdropUrl = imageApi.getItemImageUrl(
+                    itemId = seriesId,
+                    imageType = ImageType.BACKDROP,
+                    maxWidth = 1920,
+                    maxHeight = 1080
+                )
+                val posterUrl = imageApi.getItemImageUrl(
+                    itemId = seriesId,
+                    imageType = ImageType.PRIMARY,
+                    maxWidth = 1000,
+                    maxHeight = 1500
+                )
+                val response = SeriesDetails(
+                    id = seriesId,
+                    name = result.name,
+                    year = result.premiereDate?.year.toString(),
+                    communityRating = result.communityRating,
+                    criticRating = result.criticRating,
+                    container = result.container,
+                    externalUrls = emptyList(),
+                    backdropUrl = backdropUrl,
+                    genres = result.genreItems?.map { Genre(it.name, it.id) },
+                    posterUrl = posterUrl,
+                    officialRating = result.officialRating,
+                    overview = result.overview,
+                    actors = people?.filter { it.type != null && it.type.equals(PersonType.ACTOR) },
+                    directors = people?.filter { it.type != null && it.type.equals(PersonType.DIRECTOR) },
+                    runTimeTicks = result.runTimeTicks,
+                    tagLines = result.taglines,
+                    seasons = mutableListOf(),
+                    nextEpisode = null
+                )
+                emit(Resource.success(response))
+            } catch (e: Exception) {
+                val error = e.message
+                emit(
+                    Resource.error(
+                        listOf(
+                            Error(
+                                null,
+                                1,
+                                "Could not load Home section $error",
+                                null
+                            )
+                        )
+                    )
+                )
+            }
+        }.flowOn(networkDispatcher)
+    }
+
+    override suspend fun getSeasons(seriesId: UUID): Flow<Resource<List<Season>>> {
+        val userId = currentUserRepository.getCurrentUserId()
+            ?: throw IllegalArgumentException("UseId cannot be null")
+        return flow<Resource<List<Season>>> {
+            emit(Resource.loading())
+            try {
+                val result by tvShowsApi.getSeasons(userId = userId,
+                    seriesId = seriesId,
+                    fields = listOf(ItemFields.ITEM_COUNTS, ItemFields.MEDIA_SOURCE_COUNT))
+                val response = mutableListOf<Season>()
+                val posterUrl = imageApi.getItemImageUrl(
+                    itemId = seriesId,
+                    imageType = ImageType.PRIMARY,
+                    maxWidth = 1000,
+                    maxHeight = 1500
+                )
+                result.items?.forEach { item ->
+                    val season = Season(id = item.id,
+                        name = item.name,
+                        seriesId = seriesId,
+                        imageUrl = posterUrl,
+                        unPlayedItemCount = item.userData?.unplayedItemCount ?: 0)
+                    response.add(season)
+                }
+                emit(Resource.success(response))
+            } catch (e: Exception) {
+                val error = e.message
+                emit(
+                    Resource.error(
+                        listOf(
+                            Error(
+                                null,
+                                1,
+                                "Could not load Home section $error",
+                                null
+                            )
+                        )
+                    )
+                )
+            }
+        }.flowOn(networkDispatcher)
+    }
+
     override suspend fun getLibraryItems(pageNumber: Int, pageSize: Int, library: Library): List<HomeSectionCard> {
         val userId = currentUserRepository.getCurrentUserId()
             ?: throw IllegalArgumentException("UserId cannot be null")
@@ -569,7 +705,8 @@ class ViewsRepositoryImpl @Inject constructor(
                     subtitle = null,
                     homeCardType = HomeCardType.POSTER,
                     uuid = item.id,
-                    homeCardAction = HomeCardAction.DETAILS
+                    homeCardAction = HomeCardAction.DETAILS,
+                    itemType = library.type
                 )
             )
         }

@@ -39,9 +39,10 @@ import javax.inject.Singleton
 @Suppress("unused")
 object JellyfinModule {
 
-    private const val CONNECTION_TIMEOUT_IN_MS = 20000L
-    private const val SOCKET_TIMEOUT_IN_MS = 20000L
-    private const val REQUEST_TIMEOUT_IN_MS = 50000L
+    // TODO: Set these values to reasonable levels once testing is complete
+    private const val CONNECTION_TIMEOUT_IN_MS = 60000L
+    private const val SOCKET_TIMEOUT_IN_MS = 60000L
+    private const val REQUEST_TIMEOUT_IN_MS = 80000L
 
     @Singleton
     @Provides
