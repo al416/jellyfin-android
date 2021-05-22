@@ -10,6 +10,7 @@ object ItemType {
     const val EPISODE = "Episode"
     const val TV_CHANNEL = "TvChannel"
     const val SERIES = "Series"
+    const val SEASON = "Season"
 }
 
 object PersonType {

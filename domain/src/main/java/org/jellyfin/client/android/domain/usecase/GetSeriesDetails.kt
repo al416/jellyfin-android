@@ -5,8 +5,13 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.Status
+import org.jellyfin.client.android.domain.models.display_model.HomeCardAction
+import org.jellyfin.client.android.domain.models.display_model.HomeCardType
+import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
+import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.domain.models.display_model.MovieDetails
 import org.jellyfin.client.android.domain.models.display_model.SeriesDetails
 import org.jellyfin.client.android.domain.repository.ViewsRepository
@@ -55,8 +60,17 @@ class GetSeriesDetails @Inject constructor(@Named("network") dispatcher: Corouti
                     flow { emit(Resource.loading<SeriesDetails>()) }
                 }
                 Status.SUCCESS -> {
-                    it.data?.let {
-                        seriesDetails.seasons.addAll(it)
+                    it.data?.let {seasons ->
+                        val cards = seasons.map {season ->
+                            HomeSectionCard(id = season.id,
+                                imageUrl = season.imageUrl,
+                                title = season.name,
+                                homeCardType = HomeCardType.POSTER,
+                                uuid = season.seasonId,
+                                homeCardAction = HomeCardAction.DETAILS,
+                                itemType = ItemType.SEASON)
+                        }
+                        seriesDetails.seasons = HomeSectionRow(0, "Seasons", cards)
                     }
                     flow { emit(Resource.success(seriesDetails)) }
                 }

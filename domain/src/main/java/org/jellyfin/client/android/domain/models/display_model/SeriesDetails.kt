@@ -19,11 +19,12 @@ data class SeriesDetails(
     val directors: List<Person>?,
     val runTimeTicks: Long?,
     val tagLines: List<String>?,
-    val seasons: MutableList<Season>,
+    var seasons: HomeSectionRow? = null,
     var nextEpisode: Episode?
 )
 
-data class Season(val id: UUID,
+data class Season(val id: Int,
+                  val seasonId: UUID,
                   val name: String?,
                   val seriesId: UUID,
                   val imageUrl: String,

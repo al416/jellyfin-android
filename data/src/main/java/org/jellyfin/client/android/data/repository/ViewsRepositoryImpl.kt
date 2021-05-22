@@ -581,14 +581,14 @@ class ViewsRepositoryImpl @Inject constructor(
                 val backdropUrl = imageApi.getItemImageUrl(
                     itemId = seriesId,
                     imageType = ImageType.BACKDROP,
-                    maxWidth = 1920,
-                    maxHeight = 1080
+                    maxWidth = 960,
+                    maxHeight = 540
                 )
                 val posterUrl = imageApi.getItemImageUrl(
                     itemId = seriesId,
                     imageType = ImageType.PRIMARY,
-                    maxWidth = 1000,
-                    maxHeight = 1500
+                    maxWidth = 500,
+                    maxHeight = 750
                 )
                 val response = SeriesDetails(
                     id = seriesId,
@@ -607,7 +607,7 @@ class ViewsRepositoryImpl @Inject constructor(
                     directors = people?.filter { it.type != null && it.type.equals(PersonType.DIRECTOR) },
                     runTimeTicks = result.runTimeTicks,
                     tagLines = result.taglines,
-                    seasons = mutableListOf(),
+                    seasons = null,
                     nextEpisode = null
                 )
                 emit(Resource.success(response))
@@ -645,8 +645,9 @@ class ViewsRepositoryImpl @Inject constructor(
                     maxWidth = 1000,
                     maxHeight = 1500
                 )
-                result.items?.forEach { item ->
-                    val season = Season(id = item.id,
+                result.items?.forEachIndexed { index, item ->
+                    val season = Season(id = index,
+                        seasonId = item.id,
                         name = item.name,
                         seriesId = seriesId,
                         imageUrl = posterUrl,
