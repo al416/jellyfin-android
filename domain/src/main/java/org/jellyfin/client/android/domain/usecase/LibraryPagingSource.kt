@@ -5,6 +5,7 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import org.jellyfin.client.android.domain.constants.ConfigurationConstants.LIBRARY_PAGE_SIZE
 import org.jellyfin.client.android.domain.models.Library
+import org.jellyfin.client.android.domain.models.display_model.Genre
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 import org.jellyfin.client.android.domain.repository.ViewsRepository
 import javax.inject.Inject
@@ -13,11 +14,13 @@ class LibraryPagingSource @Inject constructor(private val viewsRepository: Views
 ) : PagingSource<Int, HomeSectionCard>() {
 
     lateinit var library: Library
+    lateinit var genre: Genre
     private val pageSize = LIBRARY_PAGE_SIZE
     private var pageNumber = 0
 
-    fun setParam(library: Library) {
+    fun setParam(library: Library, genre: Genre) {
         this.library = library
+        this.genre = genre
     }
 
     override fun getRefreshKey(state: PagingState<Int, HomeSectionCard>): Int? {
@@ -30,7 +33,7 @@ class LibraryPagingSource @Inject constructor(private val viewsRepository: Views
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, HomeSectionCard> {
         return try {
             pageNumber = params.key ?: 0
-            val result = viewsRepository.getLibraryItems(pageNumber, pageSize, library)
+            val result = viewsRepository.getLibraryItems(pageNumber, pageSize, library, genre)
             val nextKey = if (result.size < pageSize) {
                 null
             } else {

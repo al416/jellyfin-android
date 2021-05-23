@@ -5,6 +5,7 @@ import dagger.android.ContributesAndroidInjector
 import org.jellyfin.client.android.ui.home.HomeFragment
 import org.jellyfin.client.android.ui.home.RecentItemFragment
 import org.jellyfin.client.android.ui.home.library.LibraryFragment
+import org.jellyfin.client.android.ui.home.library_home.LibraryHomeFragment
 import org.jellyfin.client.android.ui.home.movie_details.MovieDetailsFragment
 import org.jellyfin.client.android.ui.home.series_details.SeriesDetailsFragment
 import org.jellyfin.client.android.ui.login.LoginFragment
@@ -37,4 +38,7 @@ abstract class FragmentModule {
 
     @ContributesAndroidInjector
     abstract fun contributesLibraryFragment(): LibraryFragment
+
+    @ContributesAndroidInjector
+    abstract fun contributesLibraryHomeFragment(): LibraryHomeFragment
 }

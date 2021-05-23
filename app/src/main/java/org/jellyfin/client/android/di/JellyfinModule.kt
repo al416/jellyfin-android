@@ -8,6 +8,7 @@ import org.jellyfin.client.android.domain.constants.ContainerTypes
 import org.jellyfin.sdk.Jellyfin
 import org.jellyfin.sdk.api.client.HttpClientOptions
 import org.jellyfin.sdk.api.client.KtorClient
+import org.jellyfin.sdk.api.operations.GenresApi
 import org.jellyfin.sdk.api.operations.ImageApi
 import org.jellyfin.sdk.api.operations.ItemsApi
 import org.jellyfin.sdk.api.operations.MediaInfoApi
@@ -116,6 +117,12 @@ object JellyfinModule {
     @Reusable
     internal fun providesMediaInfoApi(api: KtorClient): MediaInfoApi {
         return MediaInfoApi(api)
+    }
+
+    @Provides
+    @Reusable
+    internal fun providesGenresApi(api: KtorClient): GenresApi {
+        return GenresApi(api)
     }
 
     @Provides

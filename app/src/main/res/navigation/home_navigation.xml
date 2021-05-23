@@ -24,8 +24,8 @@
             app:argType="string"/>
     </fragment>
 
-    <fragment android:id="@+id/library_fragment"
-        android:name="org.jellyfin.client.android.ui.home.library.LibraryFragment"
+    <fragment android:id="@+id/library_home_fragment"
+        android:name="org.jellyfin.client.android.ui.home.library_home.LibraryHomeFragment"
         android:label="{title}">
         <argument android:name="title"
             app:argType="string"/>
@@ -40,5 +40,5 @@
 
     <action
         android:id="@+id/action_library"
-        app:destination="@id/library_fragment"/>
+        app:destination="@id/library_home_fragment"/>
 </navigation>

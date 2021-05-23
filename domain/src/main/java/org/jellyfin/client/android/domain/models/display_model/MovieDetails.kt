@@ -1,5 +1,6 @@
 package org.jellyfin.client.android.domain.models.display_model
 
+import java.io.Serializable
 import java.util.*
 
 data class MovieDetails(
@@ -23,7 +24,9 @@ data class MovieDetails(
 
 data class ExternalUrl(val name: String, val url: String)
 
-data class Genre(val name: String?, val id: UUID)
+data class Genre(val id: Int,
+                 val name: String?,
+                 val genreId: UUID?) : Serializable
 
 data class Person(
     val name: String?,

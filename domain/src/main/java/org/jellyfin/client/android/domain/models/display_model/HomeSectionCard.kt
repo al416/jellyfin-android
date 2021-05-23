@@ -1,5 +1,6 @@
 package org.jellyfin.client.android.domain.models.display_model
 
+import org.jellyfin.client.android.domain.constants.ItemType
 import java.util.*
 
 data class HomeSectionCard(
@@ -11,7 +12,7 @@ data class HomeSectionCard(
     val uuid: UUID,
     var rowId: Int = 0,
     val homeCardAction: HomeCardAction,
-    val itemType: String
+    val itemType: ItemType
     //val clickListener: View.OnClickListener? = null
 )
 
