@@ -26,13 +26,26 @@ import androidx.core.content.ContextCompat
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
+import dagger.android.AndroidInjection
+import dagger.android.support.AndroidSupportInjection
+import org.jellyfin.client.android.domain.models.Status
+import org.jellyfin.client.android.domain.models.display_model.Server
+import org.jellyfin.client.android.domain.repository.LoginRepository
+import org.jellyfin.client.tv.base.App
+import org.jellyfin.client.tv.di.AppModule
+import org.jellyfin.client.tv.di.DaggerAppComponent
+import org.jellyfin.client.tv.ui.login.LoginViewModel
+import javax.inject.Inject
 
 /**
  * Loads a grid of cards with movies to browse.
@@ -46,8 +59,20 @@ class MainFragment : BrowseSupportFragment() {
     private var mBackgroundTimer: Timer? = null
     private var mBackgroundUri: String? = null
 
+    @Inject
+    lateinit var loginRepo: LoginRepository
+
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+
+    private val loginViewModel: LoginViewModel by lazy {
+        ViewModelProvider(this, viewModelFactory).get(LoginViewModel::class.java)
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         Log.i(TAG, "onCreate")
+
+
         super.onActivityCreated(savedInstanceState)
 
         prepareBackgroundManager()
@@ -57,6 +82,44 @@ class MainFragment : BrowseSupportFragment() {
         loadRows()
 
         setupEventListeners()
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        AndroidSupportInjection.inject(this)
+        val app = requireActivity().application as App
+        val appModule = AppModule(app)
+        val component = DaggerAppComponent.builder().appModule(appModule).build()
+        component.inject(app)
+
+        setupViewModel()
+    }
+
+    private fun setupViewModel() {
+        val server = Server(id = 1, name = "Test", "", displayOrder = 1)
+        loginViewModel.doUserLogin(
+            server = server,
+            username = "demo",
+            password = ""
+        )
+
+        loginViewModel.getLoginState().observe(viewLifecycleOwner, {
+            it?.let { resource ->
+                when (resource.status) {
+                    Status.SUCCESS -> {
+                    }
+                    // User is logging in so display loading indicator
+                    Status.LOADING -> {
+                        //
+                    }
+                    // Login unsuccessful. Display error message
+                    Status.ERROR -> {
+                        loginViewModel.resetLoginState()
+                    }
+                }
+            }
+        })
     }
 
     override fun onDestroy() {
