@@ -6,6 +6,8 @@ object Tags {
     const val BUNDLE_SERVER_NAME = "bundle_server_name"
     const val BUNDLE_SERVER_URL = "bundle_server_url"
     const val BUNDLE_SERVER_ID = "bundle_server_id"
+    const val BUNDLE_LIBRARY = "bundle_library"
+    const val BUNDLE_GENRE = "bundle_genre"
 
     const val DIALOG_ADD_SERVER = "dialog_add_server"
 

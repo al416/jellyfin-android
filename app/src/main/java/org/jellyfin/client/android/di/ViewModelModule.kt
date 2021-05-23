@@ -6,9 +6,11 @@ import dagger.Binds
 import dagger.MapKey
 import dagger.Module
 import dagger.multibindings.IntoMap
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.jellyfin.client.android.ui.home.HomeViewModel
 import org.jellyfin.client.android.ui.home.RecentItemViewModel
 import org.jellyfin.client.android.ui.home.library.LibraryViewModel
+import org.jellyfin.client.android.ui.home.library_home.LibraryHomeViewModel
 import org.jellyfin.client.android.ui.home.movie_details.MovieDetailsViewModel
 import org.jellyfin.client.android.ui.home.series_details.SeriesDetailsViewModel
 import org.jellyfin.client.android.ui.login.LoginViewModel
@@ -16,6 +18,7 @@ import org.jellyfin.client.android.ui.login.add_server.AddServerViewModel
 import org.jellyfin.client.android.ui.player.PlayerViewModel
 import kotlin.reflect.KClass
 
+@ExperimentalCoroutinesApi
 @Module
 abstract class ViewModelModule {
     @Binds
@@ -60,6 +63,11 @@ abstract class ViewModelModule {
     @IntoMap
     @ViewModelKey(LibraryViewModel::class)
     abstract fun bindsLibraryViewModel(libraryViewModel: LibraryViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(LibraryHomeViewModel::class)
+    abstract fun bindsLibraryHomeViewModel(libraryHomeViewModel: LibraryHomeViewModel): ViewModel
 }
 
 @MustBeDocumented

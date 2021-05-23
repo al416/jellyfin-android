@@ -1,8 +1,10 @@
 package org.jellyfin.client.android.domain.repository
 
 import kotlinx.coroutines.flow.Flow
+import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.models.Library
 import org.jellyfin.client.android.domain.models.Resource
+import org.jellyfin.client.android.domain.models.display_model.Genre
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionType
@@ -31,7 +33,9 @@ interface ViewsRepository {
 
     suspend fun getSeasons(seriesId: UUID): Flow<Resource<List<Season>>>
 
-    suspend fun getLibraryItems(pageNumber: Int, pageSize: Int, library: Library): List<HomeSectionCard>
+    suspend fun getLibraryItems(pageNumber: Int, pageSize: Int, library: Library, genre: Genre): List<HomeSectionCard>
+
+    suspend fun getGenres(libraryId: UUID, itemType: ItemType): Flow<Resource<List<Genre>>>
 
     fun clearCache()
 }

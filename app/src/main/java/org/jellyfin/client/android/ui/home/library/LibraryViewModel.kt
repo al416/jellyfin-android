@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.jellyfin.client.android.domain.models.Library
+import org.jellyfin.client.android.domain.models.display_model.Genre
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 import org.jellyfin.client.android.domain.usecase.ObserveLibraryItems
 import javax.inject.Inject
@@ -26,10 +27,12 @@ class LibraryViewModel
 ) : ViewModel() {
 
     private lateinit var library: Library
+    private lateinit var genre: Genre
     private var job: Job? = null
 
-    fun initialize(library: Library) {
+    fun initialize(library: Library, genre: Genre) {
         this.library = library
+        this.genre = genre
     }
 
     private val items: MutableLiveData<PagingData<HomeSectionCard>> by lazy {
@@ -41,7 +44,7 @@ class LibraryViewModel
     fun getItems(): LiveData<PagingData<HomeSectionCard>> = items
 
     private fun loadItems(): Flow<PagingData<HomeSectionCard>> {
-        val result: Flow<PagingData<HomeSectionCard>> = observeLibraryItems.invokeInternal(ObserveLibraryItems.RequestParams(library))
+        val result: Flow<PagingData<HomeSectionCard>> = observeLibraryItems.invokeInternal(ObserveLibraryItems.RequestParams(library, genre))
             .cachedIn(viewModelScope)
         return result
     }

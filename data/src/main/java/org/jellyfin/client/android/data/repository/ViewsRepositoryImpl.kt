@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.constants.CollectionType
-import org.jellyfin.client.android.domain.constants.ConfigurationConstants.LIBRARY_PAGE_SIZE
+import org.jellyfin.client.android.domain.constants.Constants.GENRE_ALL_ID
 import org.jellyfin.client.android.domain.constants.PersonType
 import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.Library
@@ -23,6 +23,7 @@ import org.jellyfin.client.android.domain.models.display_model.Season
 import org.jellyfin.client.android.domain.models.display_model.SeriesDetails
 import org.jellyfin.client.android.domain.repository.CurrentUserRepository
 import org.jellyfin.client.android.domain.repository.ViewsRepository
+import org.jellyfin.sdk.api.operations.GenresApi
 import org.jellyfin.sdk.api.operations.ImageApi
 import org.jellyfin.sdk.api.operations.ItemsApi
 import org.jellyfin.sdk.api.operations.TvShowsApi
@@ -44,6 +45,7 @@ class ViewsRepositoryImpl @Inject constructor(
     private val tvShowsApi: TvShowsApi,
     private val userLibraryApi: UserLibraryApi,
     private val imageApi: ImageApi,
+    private val genresApi: GenresApi,
     private val currentUserRepository: CurrentUserRepository
 ) : ViewsRepository {
 
@@ -64,7 +66,7 @@ class ViewsRepositoryImpl @Inject constructor(
                     val result by userViewsApi.getUserViews(userId)
                     val filteredResults = result.items?.filter { it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TV_SHOWS }
                     filteredResults?.forEachIndexed { index, baseItemDto ->
-                        val type = if (baseItemDto.collectionType == CollectionType.MOVIES) CollectionType.MOVIES else CollectionType.TV_SHOWS
+                        val type = if (baseItemDto.collectionType == CollectionType.MOVIES) ItemType.MOVIE else ItemType.SERIES
                         libraries.add(Library(id = index, uuid = baseItemDto.id, title = baseItemDto.name, type = type))
                     }
                     libraryCache[HomeSectionType.MY_MEDIA.name] = libraries
@@ -116,8 +118,8 @@ class ViewsRepositoryImpl @Inject constructor(
                             imageType = ImageType.BACKDROP
                         )
                         val itemType = when (item.type) {
-                            ItemType.MOVIE -> ItemType.MOVIE
-                            ItemType.SERIES -> ItemType.SERIES
+                            ItemType.MOVIE.type -> ItemType.MOVIE
+                            ItemType.SERIES.type -> ItemType.SERIES
                             else -> ItemType.MOVIE
                         }
                         cards.add(
@@ -198,8 +200,8 @@ class ViewsRepositoryImpl @Inject constructor(
                             imageType = ImageType.BACKDROP
                         )
                         val itemType = when (item.type) {
-                            ItemType.MOVIE -> ItemType.MOVIE
-                            ItemType.SERIES -> ItemType.SERIES
+                            ItemType.MOVIE.type -> ItemType.MOVIE
+                            ItemType.SERIES.type -> ItemType.SERIES
                             else -> ItemType.MOVIE
                         }
                         cards.add(
@@ -283,32 +285,32 @@ class ViewsRepositoryImpl @Inject constructor(
                             // TODO: Use a string repository to get the "Latest x" string
                             result.forEachIndexed { resultIndex, item ->
                                 val itemId = when (item.type) {
-                                    ItemType.EPISODE -> item.seriesId ?: item.id
+                                    ItemType.EPISODE.type -> item.seriesId ?: item.id
                                     else -> item.id
                                 }
                                 val imageType = when (item.type) {
-                                    ItemType.TV_CHANNEL -> ImageType.BACKDROP
+                                    ItemType.TV_CHANNEL.type -> ImageType.BACKDROP
                                     else -> ImageType.PRIMARY
                                 }
                                 val title = when (item.type) {
-                                    ItemType.EPISODE -> item.seriesName
+                                    ItemType.EPISODE.type -> item.seriesName
                                     else -> item.name
                                 }
                                 val subtitle = when (item.type) {
-                                    ItemType.EPISODE -> item.name
-                                    ItemType.TV_CHANNEL -> item.currentProgram?.name
+                                    ItemType.EPISODE.type -> item.name
+                                    ItemType.TV_CHANNEL.type -> item.currentProgram?.name
                                     else -> null
                                 }
                                 val homeCardType = when (item.type) {
-                                    ItemType.TV_CHANNEL -> HomeCardType.BACKDROP
+                                    ItemType.TV_CHANNEL.type -> HomeCardType.BACKDROP
                                     else -> HomeCardType.POSTER
                                 }
                                 val fillWidth = when (item.type) {
-                                    ItemType.TV_CHANNEL -> 335
+                                    ItemType.TV_CHANNEL.type -> 335
                                     else -> 223
                                 }
                                 val fillHeight = when (item.type) {
-                                    ItemType.TV_CHANNEL -> 223
+                                    ItemType.TV_CHANNEL.type -> 223
                                     else -> 335
                                 }
                                 val imageUrl = imageApi.getItemImageUrl(
@@ -318,8 +320,8 @@ class ViewsRepositoryImpl @Inject constructor(
                                     fillHeight = fillHeight
                                 )
                                 val itemType = when (item.type) {
-                                    ItemType.MOVIE -> ItemType.MOVIE
-                                    ItemType.SERIES -> ItemType.SERIES
+                                    ItemType.MOVIE.type -> ItemType.MOVIE
+                                    ItemType.SERIES.type -> ItemType.SERIES
                                     else -> ItemType.MOVIE
                                 }
                                 cards.add(
@@ -416,8 +418,8 @@ class ViewsRepositoryImpl @Inject constructor(
                 filteredResult.forEachIndexed { index, item ->
                     // TODO: All of this logic needs to be done on demand (i.e. AFTER user clicks the Play button then figure out which item to play next. This will be moved to a use case soon
                     val itemId = when (item.type) {
-                        ItemType.EPISODE -> item.id
-                        ItemType.SERIES -> {
+                        ItemType.EPISODE.type -> item.id
+                        ItemType.SERIES.type -> {
                             val nextUpResults by tvShowsApi.getNextUp(
                                 userId = userId,
                                 limit = 1,
@@ -447,22 +449,22 @@ class ViewsRepositoryImpl @Inject constructor(
                         else -> item.id
                     }
                     val title = when (item.type) {
-                        ItemType.EPISODE -> item.seriesName
+                        ItemType.EPISODE.type -> item.seriesName
                         else -> item.name
                     }
                     val subtitle = when (item.type) {
-                        ItemType.EPISODE -> item.name
+                        ItemType.EPISODE.type -> item.name
                         else -> null
                     }
                     val imageItemId =
-                        if (item.type == ItemType.EPISODE) item.seriesId ?: item.id else item.id
+                        if (item.type == ItemType.EPISODE.type) item.seriesId ?: item.id else item.id
                     val imageUrl = imageApi.getItemImageUrl(
                         itemId = imageItemId,
                         imageType = ImageType.BACKDROP
                     )
                     val itemType = when (item.type) {
-                        ItemType.MOVIE -> ItemType.MOVIE
-                        ItemType.SERIES -> ItemType.SERIES
+                        ItemType.MOVIE.type -> ItemType.MOVIE
+                        ItemType.SERIES.type -> ItemType.SERIES
                         else -> ItemType.MOVIE
                     }
                     response.add(
@@ -534,7 +536,7 @@ class ViewsRepositoryImpl @Inject constructor(
                     container = result.container,
                     externalUrls = emptyList(),
                     backdropUrl = backdropUrl,
-                    genres = result.genreItems?.map { Genre(it.name, it.id) },
+                    genres = result.genreItems?.mapIndexed { index, item -> Genre(index, item.name, item.id) },
                     posterUrl = posterUrl,
                     officialRating = result.officialRating,
                     overview = result.overview,
@@ -599,7 +601,7 @@ class ViewsRepositoryImpl @Inject constructor(
                     container = result.container,
                     externalUrls = emptyList(),
                     backdropUrl = backdropUrl,
-                    genres = result.genreItems?.map { Genre(it.name, it.id) },
+                    genres = result.genreItems?.mapIndexed { index, item -> Genre(index, item.name, item.id) },
                     posterUrl = posterUrl,
                     officialRating = result.officialRating,
                     overview = result.overview,
@@ -673,18 +675,20 @@ class ViewsRepositoryImpl @Inject constructor(
         }.flowOn(networkDispatcher)
     }
 
-    override suspend fun getLibraryItems(pageNumber: Int, pageSize: Int, library: Library): List<HomeSectionCard> {
+    override suspend fun getLibraryItems(pageNumber: Int, pageSize: Int, library: Library, genre: Genre): List<HomeSectionCard> {
         val userId = currentUserRepository.getCurrentUserId()
             ?: throw IllegalArgumentException("UserId cannot be null")
 
-        val itemType = if (library.type == CollectionType.MOVIES) ItemType.MOVIE else ItemType.SERIES
+        val genreId = if (genre.id == 0) null else genre.genreId
+        val genres = if (genreId != null) listOf(genreId) else null
         val result by itemsApi.getItems(
             userId = userId,
             sortBy = listOf("SortName,ProductionYear"),
             sortOrder = listOf(SortOrder.ASCENDING),
-            includeItemTypes = listOf(itemType),
+            includeItemTypes = listOf(library.type.type),
             recursive = true,
             fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.MEDIA_SOURCE_COUNT, ItemFields.BASIC_SYNC_INFO),
+            genreIds = genres,
             imageTypeLimit = 1,
             enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.BANNER, ImageType.THUMB),
             startIndex = pageNumber * pageSize,
@@ -713,6 +717,32 @@ class ViewsRepositoryImpl @Inject constructor(
         }
 
         return response
+    }
+
+    override suspend fun getGenres(libraryId: UUID, itemType: ItemType): Flow<Resource<List<Genre>>> {
+        val userId = currentUserRepository.getCurrentUserId()
+            ?: throw IllegalArgumentException("UseId cannot be null")
+        return flow<Resource<List<Genre>>> {
+            emit(Resource.loading())
+            val response = mutableListOf<Genre>()
+            val allGenre = Genre(GENRE_ALL_ID, "All", null)
+            response.add(allGenre)
+
+            try {
+                val result by genresApi.getGenres(userId = userId,
+                    parentId = libraryId,
+                    includeItemTypes = listOf(itemType.type),
+                    enableTotalRecordCount = false)
+                result.items?.forEachIndexed { index, item ->
+                    val genre = Genre(id = index + 1, name = item.name, genreId = item.id)
+                    response.add(genre)
+                }
+                emit(Resource.success(response))
+            } catch (e: Exception) {
+                // Return all genres even if there is an error
+                emit(Resource.success(response))
+            }
+        }.flowOn(networkDispatcher)
     }
 
     override fun clearCache() {

@@ -5,12 +5,12 @@ object CollectionType {
     const val TV_SHOWS = "tvshows"
 }
 
-object ItemType {
-    const val MOVIE = "Movie"
-    const val EPISODE = "Episode"
-    const val TV_CHANNEL = "TvChannel"
-    const val SERIES = "Series"
-    const val SEASON = "Season"
+enum class ItemType(val type: String) {
+    MOVIE("Movie"),
+    EPISODE("Episode"),
+    TV_CHANNEL("TvChannel"),
+    SERIES("Series"),
+    SEASON("Season")
 }
 
 object PersonType {
