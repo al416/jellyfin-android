@@ -1,4 +1,6 @@
 include ':data'
 include ':domain'
 include ':app'
+include ':tv'
+
 rootProject.name = "Jellyfin"
