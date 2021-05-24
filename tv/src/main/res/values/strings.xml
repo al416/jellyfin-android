@@ -17,7 +17,6 @@
     <string name="error_fragment_message">An error occurred</string>
     <string name="dismiss_error">Dismiss</string>
 
-
     <!-- Login Fragment -->
     <string name="login_fragment_server_url">Server URL</string>
     <string name="login_fragment_username">Username</string>
@@ -29,5 +28,20 @@
     <string name="login_fragment_error_dialog_title">Login Error</string>
     <string name="login_fragment_error_dialog_ok">OK</string>
     <string name="login_fragment_progress_text">Logging In. Please wait..</string>
+
+    <!-- Add Server Fragment -->
+    <string name="add_server_page_title">Manage Servers</string>
+    <string name="add_server_dialog_title_add">Add Server</string>
+    <string name="add_server_dialog_title_edit">Edit Server</string>
+    <string name="add_server_button_label">Add a server</string>
+    <string name="add_server_available_servers">Available servers:</string>
+    <string name="add_server_no_available_servers">No available servers</string>
+    <string name="add_server_server_name">Server Name</string>
+    <string name="add_server_server_name_hint">Server Name (e.g. Home Server)</string>
+    <string name="add_server_server_url">Server URL</string>
+    <string name="add_server_server_url_hint">Server URL (e.g. https://demo.jellyfin.org/stable)</string>
+    <string name="add_server_dialog_positive_label">OK</string>
+    <string name="add_server_dialog_negative_label">Cancel</string>
+    <string name="add_server_menu_save">Save</string>
 
 </resources>
