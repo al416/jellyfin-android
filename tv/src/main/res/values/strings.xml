@@ -16,4 +16,18 @@
     <!-- Error messages -->
     <string name="error_fragment_message">An error occurred</string>
     <string name="dismiss_error">Dismiss</string>
+
+
+    <!-- Login Fragment -->
+    <string name="login_fragment_server_url">Server URL</string>
+    <string name="login_fragment_username">Username</string>
+    <string name="login_fragment_password">Password</string>
+    <string name="login_fragment_login_button_text">Login</string>
+    <string name="login_fragment_select_server_text">Select Server:</string>
+    <string name="login_fragment_add_a_server_text">Add a server</string>
+    <string name="login_fragment_manage_servers_text">Manage Servers</string>
+    <string name="login_fragment_error_dialog_title">Login Error</string>
+    <string name="login_fragment_error_dialog_ok">OK</string>
+    <string name="login_fragment_progress_text">Logging In. Please wait..</string>
+
 </resources>

@@ -5,4 +5,10 @@
     <color name="search_opaque">#ffaa3f</color>
     <color name="selected_background">#ffaa3f</color>
     <color name="default_background">#3d3d3d</color>
+
+    <color name="dark_gradient_start">#000B25</color>
+    <color name="dark_gradient_end">#01184F</color>
+
+    <color name="background_active">#005B7A</color>
+    <color name="background_inactive">#2F3F63</color>
 </resources>
