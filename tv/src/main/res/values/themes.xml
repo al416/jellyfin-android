@@ -1,4 +1,8 @@
 <resources>
 
-    <style name="Theme.Jellyfin" parent="@style/Theme.Leanback" />
+    <style name="Theme.Jellyfin" parent="@style/Theme.Leanback">
+
+        <item name="gradientStart">@color/dark_gradient_start</item>
+        <item name="gradientEnd">@color/dark_gradient_end</item>
+    </style>
 </resources>
