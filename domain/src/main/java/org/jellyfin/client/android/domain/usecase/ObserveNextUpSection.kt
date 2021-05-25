@@ -17,8 +17,8 @@ class ObserveNextUpSection @Inject constructor(@Named("network") dispatcher: Cor
         if (params == null) {
             throw IllegalArgumentException("Expecting valid parameters")
         }
-        return viewsRepository.getNextUpSection(params.retrieveFromCache)
+        return viewsRepository.getNextUpSection(params.rowId, params.retrieveFromCache)
     }
 
-    data class RequestParam(val retrieveFromCache: Boolean)
+    data class RequestParam(val rowId: Int, val retrieveFromCache: Boolean)
 }

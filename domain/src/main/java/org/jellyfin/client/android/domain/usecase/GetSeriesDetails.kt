@@ -70,7 +70,7 @@ class GetSeriesDetails @Inject constructor(@Named("network") dispatcher: Corouti
                                 homeCardAction = HomeCardAction.DETAILS,
                                 itemType = ItemType.SEASON)
                         }
-                        seriesDetails.seasons = HomeSectionRow(0, "Seasons", cards)
+                        seriesDetails.seasons = HomeSectionRow(0, "Seasons", cards, Status.SUCCESS)
                     }
                     flow { emit(Resource.success(seriesDetails)) }
                 }

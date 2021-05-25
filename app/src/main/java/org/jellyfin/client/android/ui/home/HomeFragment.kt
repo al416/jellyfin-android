@@ -10,10 +10,12 @@ import android.view.ViewTreeObserver
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.android.support.DaggerFragment
+import kotlinx.coroutines.flow.collect
 import org.jellyfin.client.android.R
 import org.jellyfin.client.android.databinding.FragmentHomeBinding
 import org.jellyfin.client.android.domain.constants.Constants.ASPECT_RATIO_16_9
@@ -95,6 +97,15 @@ class HomeFragment : DaggerFragment() {
             }
         }
 
+        lifecycleScope.launchWhenStarted {
+            homeViewModel.uiState.collect {uiState ->
+                println("JELLYDEBUG new UI state $uiState")
+            }
+        }
+
+
+        /*
+
         homeViewModel.getRows().observe(viewLifecycleOwner, { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
@@ -119,6 +130,10 @@ class HomeFragment : DaggerFragment() {
                 }
             }
         })
+
+
+         */
+
     }
 
     private fun setupRecentItems() {

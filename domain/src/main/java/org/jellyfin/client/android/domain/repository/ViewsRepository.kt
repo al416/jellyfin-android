@@ -17,9 +17,9 @@ interface ViewsRepository {
 
     suspend fun getMyMediaSection(retrieveFromCache: Boolean): Flow<Resource<List<Library>>>
 
-    suspend fun getContinueWatchingSection(mediaTypes: List<String>?, retrieveFromCache: Boolean): Flow<Resource<HomeSectionRow>>
+    suspend fun getContinueWatchingSection(mediaTypes: List<String>?, rowId: Int, retrieveFromCache: Boolean): Flow<Resource<HomeSectionRow>>
 
-    suspend fun getNextUpSection(retrieveFromCache: Boolean): Flow<Resource<HomeSectionRow>>
+    suspend fun getNextUpSection(rowId: Int, retrieveFromCache: Boolean): Flow<Resource<HomeSectionRow>>
 
     suspend fun getLatestSection(libraries: List<Library>, retrieveFromCache: Boolean): Flow<Resource<List<HomeSectionRow>>>
 

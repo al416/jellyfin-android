@@ -1,6 +1,7 @@
 package org.jellyfin.client.android.data.repository
 
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -11,6 +12,7 @@ import org.jellyfin.client.android.domain.constants.PersonType
 import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.Library
 import org.jellyfin.client.android.domain.models.Resource
+import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.domain.models.display_model.Genre
 import org.jellyfin.client.android.domain.models.display_model.HomeCardAction
 import org.jellyfin.client.android.domain.models.display_model.HomeCardType
@@ -23,6 +25,7 @@ import org.jellyfin.client.android.domain.models.display_model.Season
 import org.jellyfin.client.android.domain.models.display_model.SeriesDetails
 import org.jellyfin.client.android.domain.repository.CurrentUserRepository
 import org.jellyfin.client.android.domain.repository.ViewsRepository
+import org.jellyfin.sdk.api.operations.DisplayPreferencesApi
 import org.jellyfin.sdk.api.operations.GenresApi
 import org.jellyfin.sdk.api.operations.ImageApi
 import org.jellyfin.sdk.api.operations.ItemsApi
@@ -40,12 +43,14 @@ import javax.inject.Named
 
 class ViewsRepositoryImpl @Inject constructor(
     @Named("network") private val networkDispatcher: CoroutineDispatcher,
+    @Named("network") private val networkDispatcher2: CoroutineDispatcher,
     private val userViewsApi: UserViewsApi,
     private val itemsApi: ItemsApi,
     private val tvShowsApi: TvShowsApi,
     private val userLibraryApi: UserLibraryApi,
     private val imageApi: ImageApi,
     private val genresApi: GenresApi,
+    private val displayPreferencesApi: DisplayPreferencesApi,
     private val currentUserRepository: CurrentUserRepository
 ) : ViewsRepository {
 
@@ -81,6 +86,7 @@ class ViewsRepositoryImpl @Inject constructor(
 
     override suspend fun getContinueWatchingSection(
         mediaTypes: List<String>?,
+        rowId: Int,
         retrieveFromCache: Boolean
     ): Flow<Resource<HomeSectionRow>> {
         val userId = currentUserRepository.getCurrentUserId()
@@ -92,6 +98,8 @@ class ViewsRepositoryImpl @Inject constructor(
                 emit(Resource.success(row))
             } else {
                 try {
+                    println("JELLYDEBUG getContinueWatchingSection called")
+                    delay(10000)
                     val cards = mutableListOf<HomeSectionCard>()
                     val result by itemsApi.getResumeItems(
                         userId = userId,
@@ -140,7 +148,7 @@ class ViewsRepositoryImpl @Inject constructor(
                         emit(Resource.success(null))
                     } else {
                         val row = HomeSectionRow(
-                            id = HomeSectionType.CONTINUE_WATCHING.ordinal,
+                            id = rowId,
                             title = "Continue Watching",
                             cards = cards
                         )
@@ -167,7 +175,8 @@ class ViewsRepositoryImpl @Inject constructor(
         }.flowOn(networkDispatcher)
     }
 
-    override suspend fun getNextUpSection(retrieveFromCache: Boolean): Flow<Resource<HomeSectionRow>> {
+    override suspend fun getNextUpSection(rowId: Int, retrieveFromCache: Boolean): Flow<Resource<HomeSectionRow>> {
+        //Thread.sleep(50000)
         val userId = currentUserRepository.getCurrentUserId()
             ?: throw IllegalArgumentException("UseId cannot be null")
         return flow<Resource<HomeSectionRow>> {
@@ -177,6 +186,8 @@ class ViewsRepositoryImpl @Inject constructor(
                 emit(Resource.success(row))
             } else {
                 try {
+                    delay(30000)
+                    println("JELLYDEBUG getNextUpSection called")
                     val cards = mutableListOf<HomeSectionCard>()
                     val result by tvShowsApi.getNextUp(
                         userId = userId,
@@ -222,11 +233,12 @@ class ViewsRepositoryImpl @Inject constructor(
                         emit(Resource.success(null))
                     } else {
                         val row = HomeSectionRow(
-                            id = HomeSectionType.NEXT_UP.ordinal,
+                            id = rowId,
                             title = "Next Up",
                             cards = cards
                         )
                         homeRowCache[HomeSectionType.NEXT_UP.name] = row
+                        Thread.sleep(50000)
                         emit(Resource.success(row))
                     }
                 } catch (e: Exception) {
@@ -246,7 +258,7 @@ class ViewsRepositoryImpl @Inject constructor(
                     )
                 }
             }
-        }.flowOn(networkDispatcher)
+        }.flowOn(networkDispatcher2)
     }
 
     override suspend fun getLatestSection(
@@ -258,6 +270,7 @@ class ViewsRepositoryImpl @Inject constructor(
         return flow<Resource<List<HomeSectionRow>>> {
             emit(Resource.loading())
             try {
+                println("JELLYDEBUG getLatestSection called")
                 val rows = mutableListOf<HomeSectionRow>()
                 libraries.forEachIndexed { libraryIndex, library ->
                     val cachedRow = homeRowCache[library.id.toString()]
@@ -369,31 +382,50 @@ class ViewsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getHomeSections(): Flow<Resource<List<HomeSectionType>>> {
+        val userId = currentUserRepository.getCurrentUserId()
+            ?: throw IllegalArgumentException("UseId cannot be null")
         return flow<Resource<List<HomeSectionType>>> {
             emit(Resource.loading())
+            val response = mutableListOf<HomeSectionType>()
             try {
+                // Get the web display preferences (i.e. set client to emby)
+                val result by displayPreferencesApi.getDisplayPreferences(userId = userId, displayPreferencesId = "usersettings", client = "emby")
                 // TODO: Figure out the API call the returns the actual list of home sections and add them to the response in the correct order
-                val response = mutableListOf<HomeSectionType>()
-                response.add(HomeSectionType.MY_MEDIA)
-                response.add(HomeSectionType.CONTINUE_WATCHING)
-                response.add(HomeSectionType.NEXT_UP)
-                response.add(HomeSectionType.LATEST_MEDIA)
-                emit(Resource.success(response))
+                for (i in 0..6) {
+                    val key = "homesection$i"
+                    val pref = result.customPrefs?.get(key)
+                    pref?.let {type ->
+                        val item = when (type) {
+                            HomeSectionType.MY_MEDIA.type -> HomeSectionType.MY_MEDIA
+                            HomeSectionType.CONTINUE_WATCHING.type -> HomeSectionType.CONTINUE_WATCHING
+                            HomeSectionType.NEXT_UP.type -> HomeSectionType.NEXT_UP
+                            HomeSectionType.LATEST_MEDIA.type -> HomeSectionType.LATEST_MEDIA
+                            else -> null
+                        }
+                        item?.let {
+                            if (!response.contains(it)) {
+                                response.add(it)
+                            }
+                        }
+                    }
+                }
             } catch (e: Exception) {
-                val error = e.message
-                emit(
-                    Resource.error(
-                        listOf(
-                            Error(
-                                null,
-                                1,
-                                "Could not load Home section $error",
-                                null
-                            )
-                        )
-                    )
-                )
+
             }
+            // If any section was not set in a custom order then set it
+            if (!response.contains(HomeSectionType.MY_MEDIA)) {
+                response.add(HomeSectionType.MY_MEDIA)
+            }
+            if (!response.contains(HomeSectionType.CONTINUE_WATCHING)) {
+                response.add(HomeSectionType.CONTINUE_WATCHING)
+            }
+            if (!response.contains(HomeSectionType.NEXT_UP)) {
+                response.add(HomeSectionType.NEXT_UP)
+            }
+            if (!response.contains(HomeSectionType.LATEST_MEDIA)) {
+                response.add(HomeSectionType.LATEST_MEDIA)
+            }
+            emit(Resource.success(response))
         }.flowOn(networkDispatcher)
     }
 
