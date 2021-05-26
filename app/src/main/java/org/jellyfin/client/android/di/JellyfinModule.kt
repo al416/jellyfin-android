@@ -8,6 +8,7 @@ import org.jellyfin.client.android.domain.constants.ContainerTypes
 import org.jellyfin.sdk.Jellyfin
 import org.jellyfin.sdk.api.client.HttpClientOptions
 import org.jellyfin.sdk.api.client.KtorClient
+import org.jellyfin.sdk.api.operations.DisplayPreferencesApi
 import org.jellyfin.sdk.api.operations.GenresApi
 import org.jellyfin.sdk.api.operations.ImageApi
 import org.jellyfin.sdk.api.operations.ItemsApi
@@ -50,8 +51,10 @@ object JellyfinModule {
     internal fun providesJellyfin(): Jellyfin {
         return Jellyfin {
             // TODO: Set correct client and device info
-            clientInfo = ClientInfo(name = "Jellyfin Web", version = "10.7.1")
-            deviceInfo = DeviceInfo(id = UUID.randomUUID().toString(), name = "Firefox")
+            clientInfo = ClientInfo(name = "Jellyfin Test Client", version = "0.1")
+            // TODO: The DeviceId probably needs to be stored in the database
+            val deviceId = UUID.randomUUID().toString()
+            deviceInfo = DeviceInfo(id = deviceId, name = "Android")
         }
     }
 
@@ -123,6 +126,12 @@ object JellyfinModule {
     @Reusable
     internal fun providesGenresApi(api: KtorClient): GenresApi {
         return GenresApi(api)
+    }
+
+    @Provides
+    @Reusable
+    internal fun providesDisplayPreferencesApi(api: KtorClient): DisplayPreferencesApi {
+        return DisplayPreferencesApi(api)
     }
 
     @Provides

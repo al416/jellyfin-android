@@ -6,9 +6,9 @@ data class HomeSectionRow(
     val cards: List<HomeSectionCard>
 )
 
-enum class HomeSectionType {
-    MY_MEDIA,
-    CONTINUE_WATCHING,
-    NEXT_UP,
-    LATEST_MEDIA
+enum class HomeSectionType(val type: String) {
+    MY_MEDIA("smalllibrarytiles"),
+    CONTINUE_WATCHING("resume"),
+    NEXT_UP("nextup"),
+    LATEST_MEDIA("latestmedia")
 }
