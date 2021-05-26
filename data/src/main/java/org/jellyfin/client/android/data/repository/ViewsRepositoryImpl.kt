@@ -23,6 +23,7 @@ import org.jellyfin.client.android.domain.models.display_model.Season
 import org.jellyfin.client.android.domain.models.display_model.SeriesDetails
 import org.jellyfin.client.android.domain.repository.CurrentUserRepository
 import org.jellyfin.client.android.domain.repository.ViewsRepository
+import org.jellyfin.sdk.api.operations.DisplayPreferencesApi
 import org.jellyfin.sdk.api.operations.GenresApi
 import org.jellyfin.sdk.api.operations.ImageApi
 import org.jellyfin.sdk.api.operations.ItemsApi
@@ -46,6 +47,7 @@ class ViewsRepositoryImpl @Inject constructor(
     private val userLibraryApi: UserLibraryApi,
     private val imageApi: ImageApi,
     private val genresApi: GenresApi,
+    private val displayPreferencesApi: DisplayPreferencesApi,
     private val currentUserRepository: CurrentUserRepository
 ) : ViewsRepository {
 
@@ -369,31 +371,52 @@ class ViewsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getHomeSections(): Flow<Resource<List<HomeSectionType>>> {
+        val userId = currentUserRepository.getCurrentUserId()
+            ?: throw IllegalArgumentException("UseId cannot be null")
         return flow<Resource<List<HomeSectionType>>> {
             emit(Resource.loading())
+            val response = mutableListOf<HomeSectionType>()
             try {
+                // Get the web display preferences (i.e. set client to emby)
+                val result by displayPreferencesApi.getDisplayPreferences(userId = userId, displayPreferencesId = "usersettings", client = "emby")
                 // TODO: Figure out the API call the returns the actual list of home sections and add them to the response in the correct order
-                val response = mutableListOf<HomeSectionType>()
-                response.add(HomeSectionType.MY_MEDIA)
-                response.add(HomeSectionType.CONTINUE_WATCHING)
-                response.add(HomeSectionType.NEXT_UP)
-                response.add(HomeSectionType.LATEST_MEDIA)
-                emit(Resource.success(response))
+                for (i in 0..6) {
+                    val key = "homesection$i"
+                    val pref = result.customPrefs?.get(key)
+                    pref?.let {type ->
+                        val item = when (type) {
+                            HomeSectionType.MY_MEDIA.type -> HomeSectionType.MY_MEDIA
+                            HomeSectionType.CONTINUE_WATCHING.type -> HomeSectionType.CONTINUE_WATCHING
+                            HomeSectionType.NEXT_UP.type -> HomeSectionType.NEXT_UP
+                            HomeSectionType.LATEST_MEDIA.type -> HomeSectionType.LATEST_MEDIA
+                            else -> null
+                        }
+                        item?.let {
+                            if (!response.contains(it)) {
+                                response.add(it)
+                            }
+                        }
+                    }
+                }
             } catch (e: Exception) {
-                val error = e.message
-                emit(
-                    Resource.error(
-                        listOf(
-                            Error(
-                                null,
-                                1,
-                                "Could not load Home section $error",
-                                null
-                            )
-                        )
-                    )
-                )
+
             }
+
+            // If any section was not set in a custom order then set it
+            if (!response.contains(HomeSectionType.MY_MEDIA)) {
+                response.add(HomeSectionType.MY_MEDIA)
+            }
+            if (!response.contains(HomeSectionType.CONTINUE_WATCHING)) {
+                response.add(HomeSectionType.CONTINUE_WATCHING)
+            }
+            if (!response.contains(HomeSectionType.NEXT_UP)) {
+                response.add(HomeSectionType.NEXT_UP)
+            }
+            if (!response.contains(HomeSectionType.LATEST_MEDIA)) {
+                response.add(HomeSectionType.LATEST_MEDIA)
+            }
+
+            emit(Resource.success(response))
         }.flowOn(networkDispatcher)
     }
 

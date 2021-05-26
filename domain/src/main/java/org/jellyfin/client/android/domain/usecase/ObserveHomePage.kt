@@ -13,6 +13,7 @@ import org.jellyfin.client.android.domain.models.Library
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
+import org.jellyfin.client.android.domain.models.display_model.HomeSectionType
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
@@ -33,12 +34,42 @@ class ObserveHomePage @Inject constructor(
             throw IllegalArgumentException("Expecting valid parameters.")
         }
 
+        return getHomeSections.invoke().flatMapLatest {
+            when (it.status) {
+                Status.ERROR -> {
+                    flow { emit(Resource.error<List<HomeSectionRow>>(it.messages)) }
+                }
+                Status.LOADING -> {
+                    flow { emit(Resource.loading<List<HomeSectionRow>>()) }
+                }
+                Status.SUCCESS -> {
+                    loadAvailableSections(it.data ?: emptyList(), params.retrieveFromCache)
+                }
+            }
+        }
+    }
+
+    private suspend fun loadAvailableSections(sections: List<HomeSectionType>, retrieveFromCache: Boolean): Flow<Resource<List<HomeSectionRow>>> {
         return channelFlow<Resource<List<HomeSectionRow>>> {
             send(Resource.loading())
 
-            val flowNextUp = observeNextUpSection.invoke(ObserveNextUpSection.RequestParam(params.retrieveFromCache))
-            val flowContinueWatching = observeContinueWatchingSection.invoke(ObserveContinueWatchingSection.RequestParams(listOf("Video"), params.retrieveFromCache))
-            val flowLatestItems = loadLatestItemsFromMyMedia(params.retrieveFromCache)
+            val flowNextUp = if (sections.contains(HomeSectionType.NEXT_UP)) {
+                observeNextUpSection.invoke(ObserveNextUpSection.RequestParam(retrieveFromCache))
+            } else {
+                flow { emit(Resource.success(null)) }
+            }
+
+            val flowContinueWatching = if (sections.contains(HomeSectionType.CONTINUE_WATCHING)) {
+                observeContinueWatchingSection.invoke(ObserveContinueWatchingSection.RequestParams(listOf("Video"), retrieveFromCache))
+            } else {
+                flow { emit(Resource.success(null)) }
+            }
+
+            val flowLatestItems = if (sections.contains(HomeSectionType.LATEST_MEDIA)) {
+                loadLatestItemsFromMyMedia(retrieveFromCache)
+            } else {
+                flow { emit(Resource.success(null)) }
+            }
 
             val flowCombine = combine(
                 flowNextUp,

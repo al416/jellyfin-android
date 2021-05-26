@@ -104,7 +104,7 @@ class AddServerFragment : DaggerFragment(), View.OnClickListener {
                         }
                     }
                     Status.ERROR -> {
-                        Toast.makeText(requireContext(), resource.messages?.first()?.message, Toast.LENGTH_LONG).show()
+                        Toast.makeText(requireContext(), resource.messages?.first()?.message, Toast.LENGTH_SHORT).show()
                     }
                     Status.LOADING -> {
 
