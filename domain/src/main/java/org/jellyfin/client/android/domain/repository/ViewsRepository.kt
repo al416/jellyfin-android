@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.models.Library
 import org.jellyfin.client.android.domain.models.Resource
+import org.jellyfin.client.android.domain.models.display_model.Episode
 import org.jellyfin.client.android.domain.models.display_model.Genre
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
@@ -36,6 +37,8 @@ interface ViewsRepository {
     suspend fun getLibraryItems(pageNumber: Int, pageSize: Int, library: Library, genre: Genre): List<HomeSectionCard>
 
     suspend fun getGenres(libraryId: UUID, itemType: ItemType): Flow<Resource<List<Genre>>>
+
+    suspend fun getEpisodes(): Flow<Resource<List<Episode>>>
 
     fun clearCache()
 }

@@ -11,6 +11,7 @@ import org.jellyfin.client.android.domain.constants.PersonType
 import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.Library
 import org.jellyfin.client.android.domain.models.Resource
+import org.jellyfin.client.android.domain.models.display_model.Episode
 import org.jellyfin.client.android.domain.models.display_model.Genre
 import org.jellyfin.client.android.domain.models.display_model.HomeCardAction
 import org.jellyfin.client.android.domain.models.display_model.HomeCardType
@@ -124,6 +125,8 @@ class ViewsRepositoryImpl @Inject constructor(
                             ItemType.SERIES.type -> ItemType.SERIES
                             else -> ItemType.MOVIE
                         }
+                        val map = if (item.imageBlurHashes.containsKey(ImageType.BACKDROP)) item.imageBlurHashes[ImageType.BACKDROP] else null
+                        val blurHash = if (map?.isNotEmpty() == true) map.values.first() else null
                         cards.add(
                             HomeSectionCard(
                                 id = index,
@@ -133,7 +136,8 @@ class ViewsRepositoryImpl @Inject constructor(
                                 uuid = item.id,
                                 homeCardType = HomeCardType.BACKDROP,
                                 homeCardAction = HomeCardAction.PLAY,
-                                itemType = itemType
+                                itemType = itemType,
+                                blurHash = blurHash
                             )
                         )
                     }
@@ -206,6 +210,8 @@ class ViewsRepositoryImpl @Inject constructor(
                             ItemType.SERIES.type -> ItemType.SERIES
                             else -> ItemType.MOVIE
                         }
+                        val map = if (item.imageBlurHashes.containsKey(ImageType.BACKDROP)) item.imageBlurHashes[ImageType.BACKDROP] else null
+                        val blurHash = if (map?.isNotEmpty() == true) map.values.first() else null
                         cards.add(
                             HomeSectionCard(
                                 id = index,
@@ -215,7 +221,8 @@ class ViewsRepositoryImpl @Inject constructor(
                                 uuid = item.id,
                                 homeCardType = HomeCardType.BACKDROP,
                                 homeCardAction = HomeCardAction.PLAY,
-                                itemType = itemType
+                                itemType = itemType,
+                                blurHash = blurHash
                             )
                         )
                     }
@@ -326,6 +333,8 @@ class ViewsRepositoryImpl @Inject constructor(
                                     ItemType.SERIES.type -> ItemType.SERIES
                                     else -> ItemType.MOVIE
                                 }
+                                val map = if (item.imageBlurHashes.containsKey(ImageType.PRIMARY)) item.imageBlurHashes[ImageType.PRIMARY] else null
+                                val blurHash = if (map?.isNotEmpty() == true) map.values.first() else null
                                 cards.add(
                                     HomeSectionCard(
                                         id = resultIndex,
@@ -335,7 +344,8 @@ class ViewsRepositoryImpl @Inject constructor(
                                         uuid = itemId,
                                         homeCardType = homeCardType,
                                         homeCardAction = HomeCardAction.DETAILS,
-                                        itemType = itemType
+                                        itemType = itemType,
+                                        blurHash = blurHash
                                     )
                                 )
                             }
@@ -490,6 +500,8 @@ class ViewsRepositoryImpl @Inject constructor(
                         ItemType.SERIES.type -> ItemType.SERIES
                         else -> ItemType.MOVIE
                     }
+                    val map = if (item.imageBlurHashes.containsKey(ImageType.BACKDROP)) item.imageBlurHashes[ImageType.BACKDROP] else null
+                    val blurHash = if (map?.isNotEmpty() == true) map.values.first() else null
                     response.add(
                         HomeSectionCard(
                             id = index,
@@ -499,7 +511,8 @@ class ViewsRepositoryImpl @Inject constructor(
                             homeCardType = HomeCardType.BACKDROP,
                             uuid = itemId,
                             homeCardAction = HomeCardAction.NO_ACTION,
-                            itemType = itemType
+                            itemType = itemType,
+                            blurHash = blurHash
                         )
                     )
                 }
@@ -550,6 +563,13 @@ class ViewsRepositoryImpl @Inject constructor(
                     maxWidth = 1000,
                     maxHeight = 1500
                 )
+
+                val backdropMap = if (result.imageBlurHashes.containsKey(ImageType.BACKDROP)) result.imageBlurHashes[ImageType.BACKDROP] else null
+                val backdropBlurHash = if (backdropMap?.isNotEmpty() == true) backdropMap.values.first() else null
+
+                val posterMap = if (result.imageBlurHashes.containsKey(ImageType.PRIMARY)) result.imageBlurHashes[ImageType.PRIMARY] else null
+                val posterBlurHash = if (posterMap?.isNotEmpty() == true) posterMap.values.first() else null
+
                 val response = MovieDetails(
                     id = movieId,
                     name = result.name,
@@ -566,7 +586,9 @@ class ViewsRepositoryImpl @Inject constructor(
                     actors = people?.filter { it.type != null && it.type.equals(PersonType.ACTOR) },
                     directors = people?.filter { it.type != null && it.type.equals(PersonType.DIRECTOR) },
                     runTimeTicks = result.runTimeTicks,
-                    tagLines = result.taglines
+                    tagLines = result.taglines,
+                    backdropBlurHash = backdropBlurHash,
+                    posterBlurHash = posterBlurHash
                 )
                 emit(Resource.success(response))
             } catch (e: Exception) {
@@ -615,6 +637,12 @@ class ViewsRepositoryImpl @Inject constructor(
                     maxWidth = 500,
                     maxHeight = 750
                 )
+                val backdropMap = if (result.imageBlurHashes.containsKey(ImageType.BACKDROP)) result.imageBlurHashes[ImageType.BACKDROP] else null
+                val backdropBlurHash = if (backdropMap?.isNotEmpty() == true) backdropMap.values.first() else null
+
+                val posterMap = if (result.imageBlurHashes.containsKey(ImageType.PRIMARY)) result.imageBlurHashes[ImageType.PRIMARY] else null
+                val posterBlurHash = if (posterMap?.isNotEmpty() == true) posterMap.values.first() else null
+
                 val response = SeriesDetails(
                     id = seriesId,
                     name = result.name,
@@ -633,7 +661,9 @@ class ViewsRepositoryImpl @Inject constructor(
                     runTimeTicks = result.runTimeTicks,
                     tagLines = result.taglines,
                     seasons = null,
-                    nextEpisode = null
+                    nextEpisode = null,
+                    backdropBlurHash = backdropBlurHash,
+                    posterBlurHash = posterBlurHash
                 )
                 emit(Resource.success(response))
             } catch (e: Exception) {
@@ -671,12 +701,16 @@ class ViewsRepositoryImpl @Inject constructor(
                     maxHeight = 1500
                 )
                 result.items?.forEachIndexed { index, item ->
+                    val map = if (item.imageBlurHashes.containsKey(ImageType.PRIMARY)) item.imageBlurHashes[ImageType.PRIMARY] else null
+                    val blurHash = if (map?.isNotEmpty() == true) map.values.first() else null
                     val season = Season(id = index,
                         seasonId = item.id,
                         name = item.name,
                         seriesId = seriesId,
                         imageUrl = posterUrl,
-                        unPlayedItemCount = item.userData?.unplayedItemCount ?: 0)
+                        unPlayedItemCount = item.userData?.unplayedItemCount ?: 0,
+                        blurHash = blurHash
+                    )
                     response.add(season)
                 }
                 emit(Resource.success(response))
@@ -725,6 +759,8 @@ class ViewsRepositoryImpl @Inject constructor(
                 itemId = item.id,
                 imageType = ImageType.PRIMARY
             )
+            val map = if (item.imageBlurHashes.containsKey(ImageType.PRIMARY)) item.imageBlurHashes[ImageType.PRIMARY] else null
+            val blurHash = if (map?.isNotEmpty() == true) map.values.first() else null
             response.add(
                 HomeSectionCard(
                     id = index,
@@ -734,7 +770,8 @@ class ViewsRepositoryImpl @Inject constructor(
                     homeCardType = HomeCardType.POSTER,
                     uuid = item.id,
                     homeCardAction = HomeCardAction.DETAILS,
-                    itemType = library.type
+                    itemType = library.type,
+                    blurHash = blurHash
                 )
             )
         }
@@ -764,6 +801,27 @@ class ViewsRepositoryImpl @Inject constructor(
             } catch (e: Exception) {
                 // Return all genres even if there is an error
                 emit(Resource.success(response))
+            }
+        }.flowOn(networkDispatcher)
+    }
+
+    override suspend fun getEpisodes(): Flow<Resource<List<Episode>>> {
+        val userId = currentUserRepository.getCurrentUserId()
+            ?: throw IllegalArgumentException("UseId cannot be null")
+        return flow<Resource<List<Episode>>> {
+            emit(Resource.loading())
+            try {
+                val response = mutableListOf<Episode>()
+                /*
+                val result by tvShowsApi.getEpisodes()
+                result.items?.forEachIndexed { index, item ->
+                    val episode = Episode(id = index + 1, name = item.name)
+                    response.add(episode)
+                }
+                 */
+                emit(Resource.success(response))
+            } catch (e: Exception) {
+
             }
         }.flowOn(networkDispatcher)
     }

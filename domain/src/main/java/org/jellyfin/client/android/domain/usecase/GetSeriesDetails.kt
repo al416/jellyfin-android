@@ -68,7 +68,8 @@ class GetSeriesDetails @Inject constructor(@Named("network") dispatcher: Corouti
                                 homeCardType = HomeCardType.POSTER,
                                 uuid = season.seasonId,
                                 homeCardAction = HomeCardAction.DETAILS,
-                                itemType = ItemType.SEASON)
+                                itemType = ItemType.SEASON,
+                                blurHash = season.blurHash)
                         }
                         seriesDetails.seasons = HomeSectionRow(0, "Seasons", cards)
                     }

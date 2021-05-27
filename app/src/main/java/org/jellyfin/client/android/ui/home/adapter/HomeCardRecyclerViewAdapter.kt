@@ -1,5 +1,7 @@
 package org.jellyfin.client.android.ui.home.adapter
 
+import android.content.Context
+import android.graphics.drawable.BitmapDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,10 +13,15 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import org.jellyfin.client.android.R
+import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_BACKDROP_HEIGHT
+import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_BACKDROP_WIDTH
+import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_POSTER_HEIGHT
+import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_POSTER_WIDTH
 import org.jellyfin.client.android.domain.models.display_model.HomeCardType
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
+import org.jellyfin.client.android.ui.shared.BlurHashDecoder
 
-class HomeCardRecyclerViewAdapter() :
+class HomeCardRecyclerViewAdapter(private val context: Context) :
     ListAdapter<HomeSectionCard, HomeCardRecyclerViewAdapter.CardViewHolder>(Companion) {
 
     var onCardClick: ((HomeSectionCard) -> Unit)? = null
@@ -44,9 +51,13 @@ class HomeCardRecyclerViewAdapter() :
     override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
         val card = getItem(position)
         // TODO: Add the correct placeholder and error images
+        val width = if (card.homeCardType == HomeCardType.POSTER) BLUR_HASH_POSTER_WIDTH else BLUR_HASH_BACKDROP_WIDTH
+        val height = if (card.homeCardType == HomeCardType.POSTER) BLUR_HASH_POSTER_HEIGHT else BLUR_HASH_BACKDROP_HEIGHT
+        val bitmap = BlurHashDecoder.decode(card.blurHash, width, height)
+        val drawable = BitmapDrawable(context.resources, bitmap)
         holder.cardBackgroundImage.load(card.imageUrl) {
-            placeholder(R.drawable.ic_launcher_foreground)
-            error(R.drawable.ic_launcher_background)
+            placeholder(drawable)
+            error(drawable)
         }
         holder.itemView.setOnClickListener {
             onCardClick?.invoke(card)

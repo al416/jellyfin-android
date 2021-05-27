@@ -1,6 +1,7 @@
 package org.jellyfin.client.android.ui.home
 
 import android.content.Intent
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,10 +12,13 @@ import androidx.lifecycle.ViewModelProvider
 import coil.load
 import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.databinding.FragmentRecentItemsBinding
+import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_BACKDROP_HEIGHT
+import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_BACKDROP_WIDTH
 import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_MEDIA_UUID
 import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_POSITION
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.ui.player.PlayerActivity
+import org.jellyfin.client.android.ui.shared.BlurHashDecoder
 import javax.inject.Inject
 
 class RecentItemFragment : DaggerFragment() {
@@ -62,7 +66,12 @@ class RecentItemFragment : DaggerFragment() {
                     val item = resource.data?.get(position)
                     item?.let {card ->
                         binding.tvTitle.text = card.title
-                        binding.background.load(card.imageUrl)
+                        val bitmap = BlurHashDecoder.decode(card.blurHash, BLUR_HASH_BACKDROP_WIDTH, BLUR_HASH_BACKDROP_HEIGHT)
+                        val drawable = BitmapDrawable(requireContext().resources, bitmap)
+                        binding.background.load(card.imageUrl) {
+                            placeholder(drawable)
+                            error(drawable)
+                        }
                         binding.btnPlay.setOnClickListener {
                             val intent = Intent(requireActivity(), PlayerActivity::class.java)
                             intent.putExtra(BUNDLE_TAG_MEDIA_UUID, card.uuid.toString())

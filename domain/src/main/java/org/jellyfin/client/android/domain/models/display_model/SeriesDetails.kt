@@ -20,7 +20,9 @@ data class SeriesDetails(
     val runTimeTicks: Long?,
     val tagLines: List<String>?,
     var seasons: HomeSectionRow? = null,
-    var nextEpisode: Episode?
+    var nextEpisode: Episode?,
+    val backdropBlurHash: String?,
+    val posterBlurHash: String?
 )
 
 data class Season(val id: Int,
@@ -28,6 +30,7 @@ data class Season(val id: Int,
                   val name: String?,
                   val seriesId: UUID,
                   val imageUrl: String,
-                  val unPlayedItemCount: Int)
+                  val unPlayedItemCount: Int,
+                  var blurHash: String?)
 
 data class Episode(val id: UUID)

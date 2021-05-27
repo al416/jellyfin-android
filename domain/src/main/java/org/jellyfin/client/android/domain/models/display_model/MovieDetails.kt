@@ -19,7 +19,9 @@ data class MovieDetails(
     val actors: List<Person>?,
     val directors: List<Person>?,
     val runTimeTicks: Long?,
-    val tagLines: List<String>?
+    val tagLines: List<String>?,
+    val backdropBlurHash: String?,
+    val posterBlurHash: String?
 )
 
 data class ExternalUrl(val name: String, val url: String)
