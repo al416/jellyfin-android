@@ -39,7 +39,7 @@ class HomeRowRecyclerViewAdapter(private val context: Context,
         val layoutManager = PrefetchLayoutManager(context, LinearLayoutManager.HORIZONTAL, false, extraSpace)
         holder.binding.cardsRecyclerView.layoutManager = layoutManager
 
-        val adapter = HomeCardRecyclerViewAdapter()
+        val adapter = HomeCardRecyclerViewAdapter(context)
         val row = getItem(position)
         holder.binding.row = row
         holder.binding.cardsRecyclerView.adapter = adapter

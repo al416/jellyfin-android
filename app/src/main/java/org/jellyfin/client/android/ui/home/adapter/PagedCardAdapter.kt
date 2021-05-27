@@ -1,5 +1,7 @@
 package org.jellyfin.client.android.ui.home.adapter
 
+import android.content.Context
+import android.graphics.drawable.BitmapDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,10 +13,13 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import org.jellyfin.client.android.R
+import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_POSTER_HEIGHT
+import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_POSTER_WIDTH
 import org.jellyfin.client.android.domain.models.display_model.HomeCardType
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
+import org.jellyfin.client.android.ui.shared.BlurHashDecoder
 
-class PagedCardAdapter() : PagingDataAdapter<HomeSectionCard, PagedCardAdapter.CardViewHolder>(Companion) {
+class PagedCardAdapter(private val context: Context) : PagingDataAdapter<HomeSectionCard, PagedCardAdapter.CardViewHolder>(Companion) {
 
     var onCardClick: ((HomeSectionCard) -> Unit)? = null
 
@@ -45,9 +50,11 @@ class PagedCardAdapter() : PagingDataAdapter<HomeSectionCard, PagedCardAdapter.C
         val card = getItem(position)
         // TODO: Add the correct placeholder and error images
         card?.let {
+            val bitmap = BlurHashDecoder.decode(card.blurHash, BLUR_HASH_POSTER_WIDTH, BLUR_HASH_POSTER_HEIGHT)
+            val drawable = BitmapDrawable(context.resources, bitmap)
             holder.cardBackgroundImage.load(card.imageUrl) {
-                placeholder(R.drawable.ic_launcher_foreground)
-                error(R.drawable.ic_launcher_background)
+                placeholder(drawable)
+                error(drawable)
             }
             holder.itemView.setOnClickListener {
                 onCardClick?.invoke(card)
