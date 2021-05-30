@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="episode"
+            type="org.jellyfin.client.android.domain.models.display_model.Episode" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="120dp">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginStart="10dp"
+            android:layout_width="177dp"
+            android:layout_height="100dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp">
+
+            <ImageView
+                android:id="@+id/card_background_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:src="@drawable/ic_launcher_background" />
+        </androidx.cardview.widget.CardView>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="0dp"
+            app:layout_constraintLeft_toRightOf="@id/card"
+            app:layout_constraintRight_toLeftOf="@+id/button_container"
+            android:layout_marginLeft="10dp"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/tvEpisodeTitle"
+                style="@style/TextViewTitle"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="10dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?colorOnPrimary"
+                android:text="@{episode.name}"
+                tools:text="Some TV Show" />
+
+            <TextView
+                android:id="@+id/tvEpisodeLength"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvEpisodeTitle"
+                tools:text="42 mins"
+                android:text="@{episode.runTime}" />
+
+            <TextView
+                android:id="@+id/tvImdbRating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintLeft_toRightOf="@id/tvEpisodeLength"
+                app:layout_constraintTop_toBottomOf="@id/tvEpisodeTitle"
+                tools:text="7.3"
+                android:text="@{episode.communityRating.toString()}"
+                app:drawableLeftCompat="@drawable/ic_star" />
+
+            <TextView
+                android:id="@+id/tvEpisodeDescription"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintLeft_toLeftOf="parent"
+                android:ellipsize="end"
+                android:maxLines="4"
+                app:layout_constraintTop_toBottomOf="@id/tvEpisodeLength"
+                tools:text="This is a long description of the episode. This is a long description of the episode. This is a long description of the episode. This is a long description of the episode."
+                android:text="@{episode.description}" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <LinearLayout
+            android:id="@+id/button_container"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:orientation="vertical">
+
+            <!-- TODO: Set correct button -->
+            <ImageButton
+                android:id="@+id/btnWatchedStatus"
+                android:src="@drawable/ic_download"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <ImageButton
+                android:id="@+id/btnFavorite"
+                android:src="@drawable/ic_download"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <ImageButton
+                android:id="@+id/btnDownload"
+                android:src="@drawable/ic_download"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

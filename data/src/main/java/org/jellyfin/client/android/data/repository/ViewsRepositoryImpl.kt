@@ -305,11 +305,6 @@ class ViewsRepositoryImpl @Inject constructor(
                                     ItemType.EPISODE.type -> item.seriesName
                                     else -> item.name
                                 }
-                                val subtitle = when (item.type) {
-                                    ItemType.EPISODE.type -> item.name
-                                    ItemType.TV_CHANNEL.type -> item.currentProgram?.name
-                                    else -> null
-                                }
                                 val homeCardType = when (item.type) {
                                     ItemType.TV_CHANNEL.type -> HomeCardType.BACKDROP
                                     else -> HomeCardType.POSTER
@@ -340,7 +335,7 @@ class ViewsRepositoryImpl @Inject constructor(
                                         id = resultIndex,
                                         imageUrl = imageUrl,
                                         title = title,
-                                        subtitle = subtitle,
+                                        subtitle = null,
                                         uuid = itemId,
                                         homeCardType = homeCardType,
                                         homeCardAction = HomeCardAction.DETAILS,
@@ -805,20 +800,36 @@ class ViewsRepositoryImpl @Inject constructor(
         }.flowOn(networkDispatcher)
     }
 
-    override suspend fun getEpisodes(): Flow<Resource<List<Episode>>> {
+    override suspend fun getEpisodes(seriesId: UUID, seasonId: UUID): Flow<Resource<List<Episode>>> {
         val userId = currentUserRepository.getCurrentUserId()
             ?: throw IllegalArgumentException("UseId cannot be null")
         return flow<Resource<List<Episode>>> {
             emit(Resource.loading())
             try {
                 val response = mutableListOf<Episode>()
-                /*
-                val result by tvShowsApi.getEpisodes()
+                val result by tvShowsApi.getEpisodes(seriesId = seriesId,
+                    userId = userId,
+                    seasonId = seasonId,
+                    fields = listOf(ItemFields.ITEM_COUNTS, ItemFields.OVERVIEW))
                 result.items?.forEachIndexed { index, item ->
-                    val episode = Episode(id = index + 1, name = item.name)
+                    val imageUrl = imageApi.getItemImageUrl(
+                        itemId = item.id,
+                        imageType = ImageType.PRIMARY,
+                        fillWidth = 500,
+                        fillHeight = 500
+                    )
+                    val map = if (item.imageBlurHashes.containsKey(ImageType.BACKDROP)) item.imageBlurHashes[ImageType.BACKDROP] else null
+                    val blurHash = if (map?.isNotEmpty() == true) map.values.first() else null
+                    val episode = Episode(id = index + 1,
+                        episodeId = item.id,
+                        name = item.name,
+                        description = item.overview,
+                        runTime = item.runTimeTicks?.toString(), // TODO: format as time string (i.e. 43 mins)
+                        communityRating = item.communityRating,
+                        imageUrl = imageUrl,
+                        blurHash = blurHash)
                     response.add(episode)
                 }
-                 */
                 emit(Resource.success(response))
             } catch (e: Exception) {
 

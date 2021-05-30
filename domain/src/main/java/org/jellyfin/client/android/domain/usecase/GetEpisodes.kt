@@ -2,10 +2,8 @@ package org.jellyfin.client.android.domain.usecase
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.display_model.Episode
-import org.jellyfin.client.android.domain.models.display_model.Genre
 import org.jellyfin.client.android.domain.repository.ViewsRepository
 import java.util.*
 import javax.inject.Inject
@@ -20,8 +18,8 @@ class GetEpisodes @Inject constructor(@Named("network") dispatcher: CoroutineDis
             throw IllegalArgumentException("No parameters passed! Please pass the required parameters.")
         }
 
-        return viewsRepository.getEpisodes()
+        return viewsRepository.getEpisodes(params.seriesId, params.seasonId)
     }
 
-    data class RequestParams(val libraryId: UUID, val itemType: ItemType)
+    data class RequestParams(val seriesId: UUID, val seasonId: UUID)
 }

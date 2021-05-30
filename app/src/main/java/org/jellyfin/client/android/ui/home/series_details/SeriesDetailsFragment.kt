@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
@@ -69,6 +70,11 @@ class SeriesDetailsFragment : DaggerFragment() {
         binding.contents.seasonAdapter = adapter
         binding.contents.seasonsRecyclerView.layoutManager = LinearLayoutManager(requireActivity())
         binding.executePendingBindings()
+
+        adapter.onCardClick = {card ->
+            val action = SeriesDetailsFragmentDirections.actionSeasonDetails(seriesId = args.uuid.toString(), seasonId = card.uuid.toString())
+            findNavController().navigate(action)
+        }
 
         seriesDetailsViewModel.getSeriesDetails().observe(viewLifecycleOwner, { resource ->
             when (resource.status) {

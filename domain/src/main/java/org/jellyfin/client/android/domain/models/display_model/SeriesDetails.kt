@@ -33,4 +33,11 @@ data class Season(val id: Int,
                   val unPlayedItemCount: Int,
                   var blurHash: String?)
 
-data class Episode(val id: UUID)
+data class Episode(val id: Int,
+                   val episodeId: UUID,
+                   val name: String?,
+                   val description: String?,
+                   val runTime: String?,
+                   val communityRating: Float?,
+                   val imageUrl: String,
+                   var blurHash: String?)

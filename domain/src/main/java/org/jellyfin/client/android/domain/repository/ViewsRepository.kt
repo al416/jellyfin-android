@@ -38,7 +38,7 @@ interface ViewsRepository {
 
     suspend fun getGenres(libraryId: UUID, itemType: ItemType): Flow<Resource<List<Genre>>>
 
-    suspend fun getEpisodes(): Flow<Resource<List<Episode>>>
+    suspend fun getEpisodes(seriesId: UUID, seasonId: UUID): Flow<Resource<List<Episode>>>
 
     fun clearCache()
 }

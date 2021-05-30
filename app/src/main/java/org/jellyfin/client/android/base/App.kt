@@ -20,6 +20,7 @@ class App : DaggerApplication(), ImageLoaderFactory {
     override fun applicationInjector(): AndroidInjector<out DaggerApplication> = initDagger(this)
 
     override fun newImageLoader(): ImageLoader {
+        // TODO: Add interceptor code to retry failed OkHttp calls
         return ImageLoader.Builder(this)
             .crossfade(true)
             .okHttpClient {

@@ -22,6 +22,16 @@
         android:name="org.jellyfin.client.android.ui.home.series_details.SeriesDetailsFragment">
         <argument android:name="uuid"
             app:argType="string"/>
+        <action android:id="@+id/action_season_details"
+            app:destination="@id/season_details_fragment"/>
+    </fragment>
+
+    <fragment android:id="@+id/season_details_fragment"
+        android:name="org.jellyfin.client.android.ui.home.season_details.SeasonDetailsFragment">
+        <argument android:name="seriesId"
+            app:argType="string"/>
+        <argument android:name="seasonId"
+            app:argType="string"/>
     </fragment>
 
     <fragment android:id="@+id/library_home_fragment"
