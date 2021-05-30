@@ -12,6 +12,7 @@ import org.jellyfin.client.android.ui.home.RecentItemViewModel
 import org.jellyfin.client.android.ui.home.library.LibraryViewModel
 import org.jellyfin.client.android.ui.home.library_home.LibraryHomeViewModel
 import org.jellyfin.client.android.ui.home.movie_details.MovieDetailsViewModel
+import org.jellyfin.client.android.ui.home.season_details.SeasonDetailsViewModel
 import org.jellyfin.client.android.ui.home.series_details.SeriesDetailsViewModel
 import org.jellyfin.client.android.ui.login.LoginViewModel
 import org.jellyfin.client.android.ui.login.add_server.AddServerViewModel
@@ -68,6 +69,11 @@ abstract class ViewModelModule {
     @IntoMap
     @ViewModelKey(LibraryHomeViewModel::class)
     abstract fun bindsLibraryHomeViewModel(libraryHomeViewModel: LibraryHomeViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(SeasonDetailsViewModel::class)
+    abstract fun bindsSeasonDetailsViewModel(seasonDetailsViewModel: SeasonDetailsViewModel): ViewModel
 }
 
 @MustBeDocumented

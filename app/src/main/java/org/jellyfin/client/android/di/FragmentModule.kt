@@ -7,6 +7,7 @@ import org.jellyfin.client.android.ui.home.RecentItemFragment
 import org.jellyfin.client.android.ui.home.library.LibraryFragment
 import org.jellyfin.client.android.ui.home.library_home.LibraryHomeFragment
 import org.jellyfin.client.android.ui.home.movie_details.MovieDetailsFragment
+import org.jellyfin.client.android.ui.home.season_details.SeasonDetailsFragment
 import org.jellyfin.client.android.ui.home.series_details.SeriesDetailsFragment
 import org.jellyfin.client.android.ui.login.LoginFragment
 import org.jellyfin.client.android.ui.login.add_server.AddServerDialog
@@ -41,4 +42,7 @@ abstract class FragmentModule {
 
     @ContributesAndroidInjector
     abstract fun contributesLibraryHomeFragment(): LibraryHomeFragment
+
+    @ContributesAndroidInjector
+    abstract fun contributesSeasonDetailsFragment(): SeasonDetailsFragment
 }
