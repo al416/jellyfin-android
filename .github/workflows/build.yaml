@@ -1,0 +1,45 @@
+name: Build App
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: adopt
+          java-version: 11
+
+      - name: Setup Gradle cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Gradle Build
+        run: ./gradlew --no-daemon app:assemble
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build-artifacts
+          retention-days: 14
+          if-no-files-found: error
+          path: '**/*.apk'
