@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -35,6 +36,7 @@ class EpisodeRowRecyclerViewAdapter(private val context: Context) :
     }
 
     class EpisodeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        var cardView: CardView = ViewCompat.requireViewById(itemView, R.id.card)
         var cardBackgroundImage: ImageView = ViewCompat.requireViewById(itemView, R.id.card_background_image)
         var title: TextView = ViewCompat.requireViewById(itemView, R.id.tvEpisodeTitle)
         var description: TextView = ViewCompat.requireViewById(itemView, R.id.tvEpisodeDescription)
@@ -54,7 +56,7 @@ class EpisodeRowRecyclerViewAdapter(private val context: Context) :
             placeholder(drawable)
             error(drawable)
         }
-        holder.itemView.setOnClickListener {
+        holder.cardView.setOnClickListener {
             onCardClick?.invoke(episode)
         }
         holder.title.text = episode.name

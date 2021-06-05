@@ -1,5 +1,6 @@
 package org.jellyfin.client.android.ui.home.season_details
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,8 +11,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.android.support.DaggerFragment
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.jellyfin.client.android.databinding.FragmentSeasonDetailsBinding
+import org.jellyfin.client.android.domain.constants.Tags
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.ui.home.adapter.EpisodeRowRecyclerViewAdapter
+import org.jellyfin.client.android.ui.player.PlayerActivity
 import java.util.*
 import javax.inject.Inject
 
@@ -47,6 +50,12 @@ class SeasonDetailsFragment : DaggerFragment() {
         binding.adapter = adapter
         binding.itemsRecyclerView.layoutManager = LinearLayoutManager(requireActivity())
         binding.executePendingBindings()
+
+        adapter.onCardClick = {episode ->
+            val intent = Intent(requireActivity(), PlayerActivity::class.java)
+            intent.putExtra(Tags.BUNDLE_TAG_MEDIA_UUID, episode.episodeId.toString())
+            startActivity(intent)
+        }
 
         seasonDetailsViewModel.getSeasonDetails().observe(viewLifecycleOwner, { resource ->
             when (resource.status) {

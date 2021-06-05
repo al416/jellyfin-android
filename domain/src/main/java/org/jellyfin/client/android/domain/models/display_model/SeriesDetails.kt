@@ -40,4 +40,6 @@ data class Episode(val id: Int,
                    val runTime: String?,
                    val communityRating: Float?,
                    val imageUrl: String,
-                   var blurHash: String?)
+                   var blurHash: String?,
+                   var isFavorite: Boolean = false,
+                   var isWatched: Boolean = false)

@@ -72,7 +72,11 @@ class SeriesDetailsFragment : DaggerFragment() {
         binding.executePendingBindings()
 
         adapter.onCardClick = {card ->
-            val action = SeriesDetailsFragmentDirections.actionSeasonDetails(seriesId = args.uuid.toString(), seasonId = card.uuid.toString())
+            val action = SeriesDetailsFragmentDirections.actionSeasonDetails(
+                title = card.title ?: "",
+                seriesId = args.uuid.toString(),
+                seasonId = card.uuid.toString()
+            )
             findNavController().navigate(action)
         }
 

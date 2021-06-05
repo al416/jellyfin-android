@@ -148,9 +148,7 @@ class HomeActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
         arguments: Bundle?
     ) {
         if (destination.id == R.id.home_fragment) {
-
-        } else {
-
+            binding.toolbar.title = getString(R.string.app_name)
         }
     }
 }
