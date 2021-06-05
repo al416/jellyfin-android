@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels:
+      - ci
+      - dependencies
+      - github_actions
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+      - gradle
+      - kotlin
+    open-pull-requests-limit: 10
