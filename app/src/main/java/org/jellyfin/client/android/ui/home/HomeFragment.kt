@@ -82,10 +82,10 @@ class HomeFragment : DaggerFragment() {
             val card = it
             if (card.homeCardAction == HomeCardAction.DETAILS) {
                 if (card.itemType == ItemType.MOVIE) {
-                    val action = HomeFragmentDirections.actionMovieDetails(card.uuid.toString())
+                    val action = HomeFragmentDirections.actionMovieDetails(card.title ?: "", card.uuid.toString())
                     findNavController().navigate(action)
                 } else if (card.itemType == ItemType.SERIES) {
-                    val action = HomeFragmentDirections.actionSeriesDetails(card.uuid.toString())
+                    val action = HomeFragmentDirections.actionSeriesDetails(card.title ?: "", card.uuid.toString())
                     findNavController().navigate(action)
                 }
             } else if (card.homeCardAction == HomeCardAction.PLAY) {

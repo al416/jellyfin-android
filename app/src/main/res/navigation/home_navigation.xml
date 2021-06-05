@@ -4,51 +4,77 @@
     android:id="@+id/home_navigation"
     app:startDestination="@id/home_fragment">
 
-    <fragment android:id="@+id/home_fragment"
+    <fragment
+        android:id="@+id/home_fragment"
         android:name="org.jellyfin.client.android.ui.home.HomeFragment">
-        <action android:id="@+id/action_movie_details"
-            app:destination="@id/movie_details_fragment"/>
-        <action android:id="@+id/action_series_details"
-            app:destination="@id/series_details_fragment"/>
+        <action
+            android:id="@+id/action_movie_details"
+            app:destination="@id/movie_details_fragment" />
+        <action
+            android:id="@+id/action_series_details"
+            app:destination="@id/series_details_fragment" />
     </fragment>
 
-    <fragment android:id="@+id/movie_details_fragment"
-        android:name="org.jellyfin.client.android.ui.home.movie_details.MovieDetailsFragment">
-        <argument android:name="uuid"
-            app:argType="string"/>
+    <fragment
+        android:id="@+id/movie_details_fragment"
+        android:name="org.jellyfin.client.android.ui.home.movie_details.MovieDetailsFragment"
+        android:label="{title}">
+        <argument
+            android:name="title"
+            app:argType="string" />
+        <argument
+            android:name="uuid"
+            app:argType="string" />
     </fragment>
 
-    <fragment android:id="@+id/series_details_fragment"
-        android:name="org.jellyfin.client.android.ui.home.series_details.SeriesDetailsFragment">
-        <argument android:name="uuid"
-            app:argType="string"/>
-        <action android:id="@+id/action_season_details"
-            app:destination="@id/season_details_fragment"/>
+    <fragment
+        android:id="@+id/series_details_fragment"
+        android:name="org.jellyfin.client.android.ui.home.series_details.SeriesDetailsFragment"
+        android:label="{title}">
+        <argument
+            android:name="title"
+            app:argType="string" />
+        <argument
+            android:name="uuid"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_season_details"
+            app:destination="@id/season_details_fragment" />
     </fragment>
 
-    <fragment android:id="@+id/season_details_fragment"
-        android:name="org.jellyfin.client.android.ui.home.season_details.SeasonDetailsFragment">
-        <argument android:name="seriesId"
-            app:argType="string"/>
-        <argument android:name="seasonId"
-            app:argType="string"/>
+    <fragment
+        android:id="@+id/season_details_fragment"
+        android:name="org.jellyfin.client.android.ui.home.season_details.SeasonDetailsFragment"
+        android:label="{title}">
+        <argument
+            android:name="title"
+            app:argType="string" />
+        <argument
+            android:name="seriesId"
+            app:argType="string" />
+        <argument
+            android:name="seasonId"
+            app:argType="string" />
     </fragment>
 
-    <fragment android:id="@+id/library_home_fragment"
+    <fragment
+        android:id="@+id/library_home_fragment"
         android:name="org.jellyfin.client.android.ui.home.library_home.LibraryHomeFragment"
         android:label="{title}">
-        <argument android:name="title"
-            app:argType="string"/>
-        <argument android:name="library"
-            app:argType="org.jellyfin.client.android.domain.models.Library"/>
+        <argument
+            android:name="title"
+            app:argType="string" />
+        <argument
+            android:name="library"
+            app:argType="org.jellyfin.client.android.domain.models.Library" />
     </fragment>
 
     <!-- Global actions (i.e. these fragments can be reached from any fragments -->
     <action
         android:id="@+id/action_home"
-        app:destination="@id/home_fragment"/>
+        app:destination="@id/home_fragment" />
 
     <action
         android:id="@+id/action_library"
-        app:destination="@id/library_home_fragment"/>
+        app:destination="@id/library_home_fragment" />
 </navigation>
