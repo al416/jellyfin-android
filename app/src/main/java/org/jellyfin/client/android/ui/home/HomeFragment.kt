@@ -174,7 +174,7 @@ class HomeFragment : DaggerFragment() {
         autoRotateTimer = fixedRateTimer(
             "Rotate recent items",
             true,
-            0L,
+            RECENT_ITEM_AUTO_ROTATE_TIME_IN_SECONDS * 1000L,
             RECENT_ITEM_AUTO_ROTATE_TIME_IN_SECONDS * 1000L
         ) {
             requireActivity().runOnUiThread {

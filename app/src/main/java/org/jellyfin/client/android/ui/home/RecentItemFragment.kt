@@ -9,11 +9,13 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import coil.load
 import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.databinding.FragmentRecentItemsBinding
 import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_BACKDROP_HEIGHT
 import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_BACKDROP_WIDTH
+import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_MEDIA_UUID
 import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_POSITION
 import org.jellyfin.client.android.domain.models.Status
@@ -78,6 +80,15 @@ class RecentItemFragment : DaggerFragment() {
                                     val intent = Intent(requireActivity(), PlayerActivity::class.java)
                                     intent.putExtra(BUNDLE_TAG_MEDIA_UUID, card.uuid.toString())
                                     startActivity(intent)
+                                }
+                                binding.btnInfo.setOnClickListener {
+                                    if (card.itemType == ItemType.MOVIE) {
+                                        val action = HomeFragmentDirections.actionMovieDetails(card.title ?: "", card.uuid.toString())
+                                        findNavController().navigate(action)
+                                    } else if (card.itemType == ItemType.SERIES || card.itemType == ItemType.EPISODE) {
+                                        val action = HomeFragmentDirections.actionSeriesDetails(card.title ?: "", card.seriesUUID.toString())
+                                        findNavController().navigate(action)
+                                    }
                                 }
                                 binding.executePendingBindings()
                             }

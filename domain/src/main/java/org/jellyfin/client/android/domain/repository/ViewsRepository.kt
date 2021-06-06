@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.models.Library
 import org.jellyfin.client.android.domain.models.Resource
+import org.jellyfin.client.android.domain.models.cached_model.CachedRecentItem
 import org.jellyfin.client.android.domain.models.display_model.Episode
 import org.jellyfin.client.android.domain.models.display_model.Genre
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
@@ -26,7 +27,7 @@ interface ViewsRepository {
 
     suspend fun getHomeSections(): Flow<Resource<List<HomeSectionType>>>
 
-    suspend fun getRecentItems(): Flow<Resource<List<HomeSectionCard>>>
+    suspend fun getRecentItems(): Flow<Resource<List<CachedRecentItem>>>
 
     suspend fun getMovieDetails(movieId: UUID): Flow<Resource<MovieDetails>>
 

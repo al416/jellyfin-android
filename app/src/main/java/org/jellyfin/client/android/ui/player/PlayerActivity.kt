@@ -12,6 +12,7 @@ import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
 import com.google.android.exoplayer2.ui.PlayerView
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.EventLogger
@@ -48,6 +49,7 @@ class PlayerActivity : DaggerAppCompatActivity() {
         mediaId = intent.getStringExtra(BUNDLE_TAG_MEDIA_UUID) ?: ""
         playerView = findViewById(R.id.player_view)
         playerView.player = exoPlayer
+        //playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
 
         playerViewModel.getVideoPlaybackInformation().observe(this, Observer {resource ->
             when (resource.status) {
