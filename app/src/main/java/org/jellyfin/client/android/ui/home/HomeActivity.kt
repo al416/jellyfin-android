@@ -19,12 +19,14 @@ import dagger.android.support.DaggerAppCompatActivity
 import org.jellyfin.client.android.HomeNavigationDirections
 import org.jellyfin.client.android.R
 import org.jellyfin.client.android.databinding.ActivityHomeBinding
+import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.ui.login.LoginActivity
 import org.jellyfin.client.android.ui.login.LoginViewModel
 import javax.inject.Inject
 
-class HomeActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemSelectedListener,
+class HomeActivity : DaggerAppCompatActivity(),
+    NavigationView.OnNavigationItemSelectedListener,
     NavController.OnDestinationChangedListener {
 
     private lateinit var binding: ActivityHomeBinding
@@ -95,8 +97,8 @@ class HomeActivity : DaggerAppCompatActivity(), NavigationView.OnNavigationItemS
                     val mediaSubMenu = binding.leftNav.menu.getItem(1).subMenu
                     it.data?.forEachIndexed {index, library ->
                         val item = mediaSubMenu.add(R.id.media_group, library.id, 0, library.title)
-                        // TODO: Set icon depending on library type (Shows, Movies)
-                        item.icon = ContextCompat.getDrawable(this, R.drawable.ic_movies)
+                        val icon = if (library.type == ItemType.MOVIE) R.drawable.ic_movies else R.drawable.ic_tv_shows
+                        item.icon = ContextCompat.getDrawable(this, icon)
                     }
                 }
                 else -> {

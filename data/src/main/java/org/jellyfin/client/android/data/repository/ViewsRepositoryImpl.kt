@@ -6,11 +6,13 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.constants.CollectionType
+import org.jellyfin.client.android.domain.constants.ConfigurationConstants.RECENT_ITEMS_MAX_COUNT
 import org.jellyfin.client.android.domain.constants.Constants.GENRE_ALL_ID
 import org.jellyfin.client.android.domain.constants.PersonType
 import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.Library
 import org.jellyfin.client.android.domain.models.Resource
+import org.jellyfin.client.android.domain.models.cached_model.CachedRecentItem
 import org.jellyfin.client.android.domain.models.display_model.Episode
 import org.jellyfin.client.android.domain.models.display_model.Genre
 import org.jellyfin.client.android.domain.models.display_model.HomeCardAction
@@ -425,105 +427,37 @@ class ViewsRepositoryImpl @Inject constructor(
         }.flowOn(networkDispatcher)
     }
 
-    override suspend fun getRecentItems(): Flow<Resource<List<HomeSectionCard>>> {
-        val userId = currentUserRepository.getCurrentUserId()
-            ?: throw IllegalArgumentException("UseId cannot be null")
-        return flow<Resource<List<HomeSectionCard>>> {
+    override suspend fun getRecentItems(): Flow<Resource<List<CachedRecentItem>>> {
+        val userId = currentUserRepository.getCurrentUserId() ?: throw IllegalArgumentException("UserId cannot be null")
+        return flow<Resource<List<CachedRecentItem>>> {
             emit(Resource.loading())
             try {
                 val result by userLibraryApi.getLatestMedia(
                     userId = userId,
-                    limit = 10,
+                    limit = RECENT_ITEMS_MAX_COUNT,
                     fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.OVERVIEW),
                     imageTypeLimit = 1,
                     enableImageTypes = listOf(ImageType.LOGO, ImageType.BACKDROP)
                 )
-                // TODO: This filters out any item that was added recently if it does not have a backdrop image.
-                //  Is this desirable or should a placeholder be loaded if there is no backdrop image?
-                val filteredResult =
-                    result.filter { it.backdropImageTags?.isNotEmpty() == true || it.parentBackdropImageTags?.isNotEmpty() == true }
-                val response = mutableListOf<HomeSectionCard>()
-                filteredResult.forEachIndexed { index, item ->
-                    // TODO: All of this logic needs to be done on demand (i.e. AFTER user clicks the Play button then figure out which item to play next. This will be moved to a use case soon
-                    val itemId = when (item.type) {
-                        ItemType.EPISODE.type -> item.id
-                        ItemType.SERIES.type -> {
-                            val nextUpResults by tvShowsApi.getNextUp(
-                                userId = userId,
-                                limit = 1,
-                                fields = listOf(
-                                    ItemFields.PRIMARY_IMAGE_ASPECT_RATIO,
-                                    ItemFields.BASIC_SYNC_INFO
-                                ),
-                                imageTypeLimit = 1,
-                                parentId = item.id,
-                                enableImageTypes = listOf(ImageType.BACKDROP),
-                                disableFirstEpisode = false
-                            )
-                            if (nextUpResults.items?.isEmpty() == true) {
-                                val seriesItems by itemsApi.getItems(
-                                    userId = userId,
-                                    recursive = true,
-                                    parentId = item.id,
-                                    limit = 1,
-                                    filters = listOf(ItemFilter.IS_NOT_FOLDER),
-                                    mediaTypes = listOf("Video"), sortBy = listOf("SortName")
-                                )
-                                seriesItems.items?.first()?.id ?: item.id
-                            } else {
-                                nextUpResults.items?.first()?.id ?: item.id
-                            }
-                        }
-                        else -> item.id
-                    }
-                    val title = when (item.type) {
-                        ItemType.EPISODE.type -> item.seriesName
-                        else -> item.name
-                    }
-                    val subtitle = when (item.type) {
-                        ItemType.EPISODE.type -> item.name
-                        else -> null
-                    }
-                    val imageItemId =
-                        if (item.type == ItemType.EPISODE.type) item.seriesId ?: item.id else item.id
-                    val imageUrl = imageApi.getItemImageUrl(
-                        itemId = imageItemId,
-                        imageType = ImageType.BACKDROP
-                    )
-                    val itemType = when (item.type) {
-                        ItemType.MOVIE.type -> ItemType.MOVIE
-                        ItemType.SERIES.type -> ItemType.SERIES
-                        else -> ItemType.MOVIE
-                    }
+                val response = mutableListOf<CachedRecentItem>()
+                result.forEachIndexed { index, item ->
                     val map = if (item.imageBlurHashes.containsKey(ImageType.BACKDROP)) item.imageBlurHashes[ImageType.BACKDROP] else null
                     val blurHash = if (map?.isNotEmpty() == true) map.values.first() else null
-                    response.add(
-                        HomeSectionCard(
-                            id = index,
-                            imageUrl = imageUrl,
-                            title = title,
-                            subtitle = subtitle,
-                            homeCardType = HomeCardType.BACKDROP,
-                            uuid = itemId,
-                            homeCardAction = HomeCardAction.NO_ACTION,
-                            itemType = itemType,
-                            blurHash = blurHash
-                        )
-                    )
+                    response.add(CachedRecentItem(id = index,
+                        uuid = item.id,
+                        seriesId = item.seriesId,
+                        blurHash = blurHash,
+                        containsBackdropImages = item.backdropImageTags?.isNotEmpty() == true || item.parentBackdropImageTags?.isNotEmpty() == true,
+                        type = item.type,
+                        name = item.name,
+                        seriesName = item.seriesName
+                    ))
                 }
                 emit(Resource.success(response))
             } catch (e: Exception) {
                 val error = e.message
-                emit(
-                    Resource.error(
-                        listOf(
-                            Error(
-                                null,
-                                1,
-                                "Could not load Recent Items section $error",
-                                null
-                            )
-                        )
+                emit(Resource.error(
+                    listOf(Error(null, 1, "Could not load Recent Items section $error",null))
                     )
                 )
             }
