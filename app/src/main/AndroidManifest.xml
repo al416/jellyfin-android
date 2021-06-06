@@ -24,6 +24,8 @@
         </activity>
         <activity android:name=".ui.player.PlayerActivity" android:configChanges="orientation|screenSize|layoutDirection">
         </activity>
+        <activity android:name=".ui.player.VlcPlayerActivity" android:configChanges="orientation|screenSize|layoutDirection">
+        </activity>
     </application>
 
 </manifest>

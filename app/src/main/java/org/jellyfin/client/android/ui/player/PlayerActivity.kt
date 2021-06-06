@@ -25,6 +25,8 @@ import org.jellyfin.client.android.domain.models.VideoPlayType
 import org.jellyfin.client.android.domain.models.VideoPlaybackInformation
 import javax.inject.Inject
 
+// TODO: This activity and all ExoPlayer code will be removed once libVlc implementation is stable
+@Deprecated("This activity is deprecated. Use VlcPlayerActivity instead")
 class PlayerActivity : DaggerAppCompatActivity() {
 
     @Inject
