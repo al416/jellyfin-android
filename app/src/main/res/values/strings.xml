@@ -1,6 +1,7 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Application wide -->
     <string name="app_name">Jellyfin</string>
+    <string name="loading" tools:ignore="TypographyEllipsis">Loading...</string>
 
     <!-- Login Fragment -->
     <string name="login_fragment_server_url">Server URL</string>

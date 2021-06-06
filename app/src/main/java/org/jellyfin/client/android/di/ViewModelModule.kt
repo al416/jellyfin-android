@@ -8,7 +8,6 @@ import dagger.Module
 import dagger.multibindings.IntoMap
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.jellyfin.client.android.ui.home.HomeViewModel
-import org.jellyfin.client.android.ui.home.RecentItemViewModel
 import org.jellyfin.client.android.ui.home.library.LibraryViewModel
 import org.jellyfin.client.android.ui.home.library_home.LibraryHomeViewModel
 import org.jellyfin.client.android.ui.home.movie_details.MovieDetailsViewModel
@@ -44,11 +43,6 @@ abstract class ViewModelModule {
     @IntoMap
     @ViewModelKey(PlayerViewModel::class)
     abstract fun bindsPlayerViewModel(playerViewModel: PlayerViewModel): ViewModel
-
-    @Binds
-    @IntoMap
-    @ViewModelKey(RecentItemViewModel::class)
-    abstract fun bindsRecentItemViewModel(recentItemViewModel: RecentItemViewModel): ViewModel
 
     @Binds
     @IntoMap

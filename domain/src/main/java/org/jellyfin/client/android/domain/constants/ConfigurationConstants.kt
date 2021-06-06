@@ -1,6 +1,8 @@
 package org.jellyfin.client.android.domain.constants
 
 object ConfigurationConstants {
+    // Home screen
+    const val RECENT_ITEM_AUTO_ROTATE_TIME_IN_SECONDS = 10
 
     // Library
     const val LIBRARY_PAGE_SIZE = 30

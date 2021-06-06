@@ -1,6 +1,7 @@
 package org.jellyfin.client.android.ui.home
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,46 +11,48 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.jellyfin.client.android.domain.models.Library
 import org.jellyfin.client.android.domain.models.Resource
-import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
+import org.jellyfin.client.android.domain.models.Status
+import org.jellyfin.client.android.domain.models.display_model.HomePage
 import org.jellyfin.client.android.domain.usecase.ObserveHomePage
 import org.jellyfin.client.android.domain.usecase.ObserveMyMediaSection
 import javax.inject.Inject
 import javax.inject.Named
 
 @ExperimentalCoroutinesApi
-class HomeViewModel
-@Inject constructor(
+class HomeViewModel @Inject constructor(
     @Named("computation") private val computationDispatcher: CoroutineDispatcher,
     private val observeHomePage: ObserveHomePage,
     private val observeMyMediaSection: ObserveMyMediaSection
 ) : ViewModel() {
 
-    private val rows: MutableLiveData<Resource<List<HomeSectionRow>>> by lazy {
-        val data = MutableLiveData<Resource<List<HomeSectionRow>>>()
-        loadRows(data, false)
+    private val homePage: MediatorLiveData<Resource<HomePage>> by lazy {
+        val data = MediatorLiveData<Resource<HomePage>>()
+        data.addSource(libraries) { resource ->
+            if (resource.status == Status.SUCCESS) {
+                loadHomePage(data, resource.data ?: emptyList(), false)
+            }
+        }
         data
     }
 
-    fun getRows(): LiveData<Resource<List<HomeSectionRow>>> = rows
+    fun getHomePage(): LiveData<Resource<HomePage>> = homePage
 
-    private fun loadRows(data: MutableLiveData<Resource<List<HomeSectionRow>>>, retrieveFromCache: Boolean) {
-        // TODO: Both loadRows and loadLibraries call observeMyMediaSection to get the list of libraries
-        // Since both loadRows and loadLibraries are executed around the same time, this call is made to the server twice
-        // Code needs to be updated so the call is made only once
+    private fun loadHomePage(data: MediatorLiveData<Resource<HomePage>>, libraries: List<Library>, retrieveFromCache: Boolean) {
         viewModelScope.launch {
-            observeHomePage.invoke(ObserveHomePage.RequestParam(retrieveFromCache)).collectLatest {
+            observeHomePage.invoke(ObserveHomePage.RequestParam(libraries, retrieveFromCache)).collectLatest {
                 data.postValue(it)
             }
         }
     }
 
     fun refresh(forceRefresh: Boolean) {
-        loadRows(rows, !forceRefresh)
+        val libraries = libraries.value?.data ?: emptyList<Library>()
+        loadHomePage(homePage, libraries, true)
     }
 
     fun clearErrors() {
-        val data = rows.value?.data
-        rows.postValue(Resource.Companion.success(data))
+        val data = homePage.value?.data
+        homePage.postValue(Resource.Companion.success(data))
     }
 
     private val libraries: MutableLiveData<Resource<List<Library>>> by lazy {
