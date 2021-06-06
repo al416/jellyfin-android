@@ -46,8 +46,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun refresh(forceRefresh: Boolean) {
-        val libraries = libraries.value?.data ?: emptyList<Library>()
-        loadHomePage(homePage, libraries, true)
+        loadLibraries(libraries, !forceRefresh)
     }
 
     fun clearErrors() {
@@ -57,15 +56,15 @@ class HomeViewModel @Inject constructor(
 
     private val libraries: MutableLiveData<Resource<List<Library>>> by lazy {
         val data = MutableLiveData<Resource<List<Library>>>()
-        loadLibraries(data)
+        loadLibraries(data, false)
         data
     }
 
     fun getLibraries(): LiveData<Resource<List<Library>>> = libraries
 
-    private fun loadLibraries(data: MutableLiveData<Resource<List<Library>>>) {
+    private fun loadLibraries(data: MutableLiveData<Resource<List<Library>>>, retrieveFromCache: Boolean) {
         viewModelScope.launch {
-            observeMyMediaSection.invoke(ObserveMyMediaSection.RequestParam(true)).collectLatest {
+            observeMyMediaSection.invoke(ObserveMyMediaSection.RequestParam(retrieveFromCache)).collectLatest {
                 data.postValue(it)
             }
         }

@@ -67,6 +67,12 @@
         <argument
             android:name="library"
             app:argType="org.jellyfin.client.android.domain.models.Library" />
+        <action
+            android:id="@+id/action_movie_details"
+            app:destination="@id/movie_details_fragment" />
+        <action
+            android:id="@+id/action_series_details"
+            app:destination="@id/series_details_fragment" />
     </fragment>
 
     <!-- Global actions (i.e. these fragments can be reached from any fragments -->

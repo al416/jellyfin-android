@@ -7,10 +7,11 @@
             android:title="@string/home_activity_navigation_home" />
     </group>
 
-    <group android:id="@+id/media_group">
+    <group
+        android:id="@+id/media_group"
+        android:checkableBehavior="single">
         <item android:title="@string/home_activity_navigation_my_media_label">
-            <menu>
-            </menu>
+            <menu />
         </item>
     </group>
 

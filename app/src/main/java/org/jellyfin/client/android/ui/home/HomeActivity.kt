@@ -6,6 +6,7 @@ import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
@@ -94,14 +95,21 @@ class HomeActivity : DaggerAppCompatActivity(),
         homeViewModel.getLibraries().observe(this, {
             when (it.status) {
                 Status.SUCCESS -> {
+                    // Unlock the drawer
+                    binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
                     val mediaSubMenu = binding.leftNav.menu.getItem(1).subMenu
+                    mediaSubMenu.clear()
                     it.data?.forEachIndexed {index, library ->
                         val item = mediaSubMenu.add(R.id.media_group, library.id, 0, library.title)
                         val icon = if (library.type == ItemType.MOVIE) R.drawable.ic_movies else R.drawable.ic_tv_shows
                         item.icon = ContextCompat.getDrawable(this, icon)
                     }
                 }
-                else -> {
+                Status.LOADING -> {
+                    // Lock the drawer then the list of libraries is loading
+                    binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+                }
+                Status.ERROR -> {
 
                 }
             }
@@ -109,13 +117,17 @@ class HomeActivity : DaggerAppCompatActivity(),
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        selectItem(item)
         return when (item.itemId) {
             R.id.logout -> {
                 loginViewModel.doUserLogout()
+                binding.drawerLayout.close()
                 true
             }
             R.id.home -> {
-                // TODO: Move to home fragment
+                val action = HomeNavigationDirections.actionHome()
+                navController.navigate(action)
+                binding.drawerLayout.close()
                 true
             }
             else -> {
@@ -144,13 +156,21 @@ class HomeActivity : DaggerAppCompatActivity(),
         }
     }
 
-    override fun onDestinationChanged(
-        controller: NavController,
-        destination: NavDestination,
-        arguments: Bundle?
-    ) {
+    override fun onDestinationChanged(controller: NavController, destination: NavDestination, arguments: Bundle?) {
         if (destination.id == R.id.home_fragment) {
             binding.toolbar.title = getString(R.string.app_name)
+            val homeMenuItem = binding.leftNav.menu.getItem(0)
+            selectItem(homeMenuItem)
         }
+    }
+
+    private fun selectItem(item: MenuItem) {
+        val homeMenuItem = binding.leftNav.menu.getItem(0)
+        homeMenuItem.isChecked = false
+        val mediaSubMenu = binding.leftNav.menu.getItem(1).subMenu
+        for (i in 0 until mediaSubMenu.size()) {
+            mediaSubMenu.getItem(i).isChecked = false
+        }
+        item.isChecked = true
     }
 }

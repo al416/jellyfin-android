@@ -7,16 +7,19 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import dagger.android.support.DaggerFragment
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import org.jellyfin.client.android.databinding.FragmentLibraryBinding
+import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_GENRE
 import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_LIBRARY
 import org.jellyfin.client.android.domain.models.Library
 import org.jellyfin.client.android.domain.models.display_model.Genre
 import org.jellyfin.client.android.ui.home.adapter.PagedCardAdapter
+import org.jellyfin.client.android.ui.home.library_home.LibraryHomeFragmentDirections
 import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
@@ -69,6 +72,16 @@ class LibraryFragment : DaggerFragment() {
 
         binding.itemsRecyclerView.layoutManager = GridLayoutManager(requireContext(), 3)
         binding.executePendingBindings()
+
+        adapter.onCardClick = { card ->
+            if (card.itemType == ItemType.MOVIE) {
+                val action = LibraryHomeFragmentDirections.actionMovieDetails(card.title ?: "", card.uuid.toString())
+                findNavController().navigate(action)
+            } else if (card.itemType == ItemType.SERIES) {
+                val action = LibraryHomeFragmentDirections.actionSeriesDetails(card.title ?: "", card.uuid.toString())
+                findNavController().navigate(action)
+            }
+        }
 
         libraryViewModel.getItems().observe(viewLifecycleOwner) {
             viewLifecycleOwner.lifecycleScope.launch {
