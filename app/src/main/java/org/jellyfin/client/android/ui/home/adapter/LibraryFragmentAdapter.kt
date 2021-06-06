@@ -5,7 +5,6 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.jellyfin.client.android.domain.models.Library
 import org.jellyfin.client.android.domain.models.display_model.Genre
-import org.jellyfin.client.android.ui.home.RecentItemFragment
 import org.jellyfin.client.android.ui.home.library.LibraryFragment
 
 @ExperimentalCoroutinesApi

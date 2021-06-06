@@ -16,6 +16,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import dagger.android.support.DaggerFragment
 import org.jellyfin.client.android.R
 import org.jellyfin.client.android.databinding.FragmentHomeBinding
+import org.jellyfin.client.android.domain.constants.ConfigurationConstants.RECENT_ITEM_AUTO_ROTATE_TIME_IN_SECONDS
 import org.jellyfin.client.android.domain.constants.Constants.ASPECT_RATIO_16_9
 import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_MEDIA_UUID
@@ -31,10 +32,6 @@ import kotlin.concurrent.fixedRateTimer
 
 class HomeFragment : DaggerFragment() {
 
-    companion object {
-        private const val RECENT_ITEM_AUTO_ROTATE_TIME_IN_SECOND = 10
-    }
-
     private lateinit var binding: FragmentHomeBinding
 
     @Inject
@@ -44,17 +41,9 @@ class HomeFragment : DaggerFragment() {
         ViewModelProvider(requireActivity(), viewModelFactory).get(HomeViewModel::class.java)
     }
 
-    private val recentItemViewModel: RecentItemViewModel by lazy {
-        ViewModelProvider(requireActivity(), viewModelFactory).get(RecentItemViewModel::class.java)
-    }
-
     private var autoRotateTimer: Timer? = null
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentHomeBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -63,6 +52,7 @@ class HomeFragment : DaggerFragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecentItems()
         setupSections()
+        loadData()
     }
 
     private fun setupSections() {
@@ -94,12 +84,14 @@ class HomeFragment : DaggerFragment() {
                 startActivity(intent)
             }
         }
+    }
 
-        homeViewModel.getRows().observe(viewLifecycleOwner, { resource ->
+    private fun loadData() {
+        homeViewModel.getHomePage().observe(viewLifecycleOwner, { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
-                    binding.pullToRefresh.isRefreshing = false
-                    resource.data?.let { rows ->
+                    resource.data?.rows.let { rows ->
+                        val adapter = binding.sectionsRecyclerView.adapter as HomeRowRecyclerViewAdapter
                         if (adapter.currentList == rows) {
                             // A duplicate list has been submitted so the adapter won't check if the list has been changed so force a redraw
                             adapter.notifyDataSetChanged()
@@ -107,15 +99,26 @@ class HomeFragment : DaggerFragment() {
                             adapter.submitList(rows)
                         }
                     }
+                    resource.data?.recentItems?.let { recentItems ->
+                        if (recentItems.isNotEmpty()) {
+                            setupTimer()
+                        }
+                        (binding.recentItemsViewPager.adapter as HomeRecentItemsFragmentAdapter).totalItems = recentItems.size
+                        (binding.recentItemsViewPager.adapter as HomeRecentItemsFragmentAdapter).notifyDataSetChanged()
+                        binding.recentItemsViewPager.visibility = View.VISIBLE
+                        binding.tabLayout.visibility = View.VISIBLE
+                    }
                     if (resource.messages?.isNotEmpty() == true) {
                         showErrorDialog()
                     }
-                }
-                Status.ERROR -> {
-                    showErrorDialog()
+                    showContent()
                 }
                 Status.LOADING -> {
                     showLoading()
+                }
+                Status.ERROR -> {
+                    showContent()
+                    showErrorDialog()
                 }
             }
         })
@@ -135,33 +138,17 @@ class HomeFragment : DaggerFragment() {
 
         TabLayoutMediator(binding.tabLayout, binding.recentItemsViewPager) { tab, position ->
         }.attach()
-
-        // TODO: Unify getRecentItems with getRows call
-        recentItemViewModel.getRecentItems().observe(viewLifecycleOwner, { resource ->
-            when (resource.status) {
-                Status.SUCCESS -> {
-                    resource.data?.let {recentItems ->
-                        if (recentItems.isNotEmpty()) {
-                            setupTimer()
-                        }
-                        (binding.recentItemsViewPager.adapter as HomeRecentItemsFragmentAdapter).totalItems = recentItems.size
-                        (binding.recentItemsViewPager.adapter as HomeRecentItemsFragmentAdapter).notifyDataSetChanged()
-                        binding.recentItemsViewPager.visibility = View.VISIBLE
-                        binding.tabLayout.visibility = View.VISIBLE
-                    }
-                }
-                Status.ERROR -> {
-                    //showErrorDialog()
-                }
-                Status.LOADING -> {
-                    //showLoading()
-                }
-            }
-        })
     }
 
     private fun showLoading() {
-        binding.pullToRefresh.isRefreshing = true
+        binding.pullToRefresh.isRefreshing = false
+        binding.pullToRefresh.isEnabled = false
+        binding.loadingScreen.visibility = View.VISIBLE
+    }
+
+    private fun showContent() {
+        binding.pullToRefresh.isEnabled = true
+        binding.loadingScreen.visibility = View.GONE
     }
 
     private fun showErrorDialog() {
@@ -188,7 +175,7 @@ class HomeFragment : DaggerFragment() {
             "Rotate recent items",
             true,
             0L,
-            RECENT_ITEM_AUTO_ROTATE_TIME_IN_SECOND * 1000L
+            RECENT_ITEM_AUTO_ROTATE_TIME_IN_SECONDS * 1000L
         ) {
             requireActivity().runOnUiThread {
                 val itemCount = binding.recentItemsViewPager.adapter?.itemCount ?: 0

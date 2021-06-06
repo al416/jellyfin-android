@@ -32,8 +32,8 @@
             app:layout_constraintRight_toRightOf="parent"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:background="?colorPrimary"
             android:textColor="?colorOnPrimary"
+            android:elevation="10dp"
             tools:text="This is a test title"
             />
 
@@ -42,7 +42,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/home_recent_items_play"
-            app:layout_constraintBottom_toBottomOf="@id/background"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="@id/guideline"
             android:layout_marginEnd="10dp"
             android:drawableLeft="@drawable/ic_play" />
@@ -54,9 +54,17 @@
             android:text="@string/home_recent_items_info"
             android:drawableLeft="@drawable/ic_info"
             android:layout_marginStart="10dp"
-            app:layout_constraintBottom_toBottomOf="@id/background"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="@id/guideline"
             />
+
+        <LinearLayout
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_width="match_parent"
+            android:alpha="0.7"
+            android:background="@drawable/global_background"
+            android:layout_height="80dp"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

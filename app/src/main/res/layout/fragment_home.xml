@@ -84,6 +84,12 @@
                     </LinearLayout>
                 </androidx.core.widget.NestedScrollView>
             </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+            <include
+                android:id="@+id/loading_screen"
+                android:visibility="gone"
+                layout="@layout/loading_screen"/>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

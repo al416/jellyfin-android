@@ -35,8 +35,8 @@ class RecentItemFragment : DaggerFragment() {
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
 
-    private val recentItemViewModel: RecentItemViewModel by lazy {
-        ViewModelProvider(requireActivity(), viewModelFactory).get(RecentItemViewModel::class.java)
+    private val homeViewModel: HomeViewModel by lazy {
+        ViewModelProvider(requireActivity(), viewModelFactory).get(HomeViewModel::class.java)
     }
 
     private lateinit var binding: FragmentRecentItemsBinding
@@ -60,24 +60,28 @@ class RecentItemFragment : DaggerFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        recentItemViewModel.getRecentItems().observe(viewLifecycleOwner, { resource ->
+        homeViewModel.getHomePage().observe(viewLifecycleOwner, { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
-                    val item = resource.data?.get(position)
-                    item?.let {card ->
-                        binding.tvTitle.text = card.title
-                        val bitmap = BlurHashDecoder.decode(card.blurHash, BLUR_HASH_BACKDROP_WIDTH, BLUR_HASH_BACKDROP_HEIGHT)
-                        val drawable = BitmapDrawable(requireContext().resources, bitmap)
-                        binding.background.load(card.imageUrl) {
-                            placeholder(drawable)
-                            error(drawable)
+                    resource.data?.recentItems?.let { items ->
+                        if (items.size > position) {
+                            val item = resource.data?.recentItems?.get(position)
+                            item?.let {card ->
+                                binding.tvTitle.text = card.title
+                                val bitmap = BlurHashDecoder.decode(card.blurHash, BLUR_HASH_BACKDROP_WIDTH, BLUR_HASH_BACKDROP_HEIGHT)
+                                val drawable = BitmapDrawable(requireContext().resources, bitmap)
+                                binding.background.load(card.imageUrl) {
+                                    placeholder(drawable)
+                                    error(drawable)
+                                }
+                                binding.btnPlay.setOnClickListener {
+                                    val intent = Intent(requireActivity(), PlayerActivity::class.java)
+                                    intent.putExtra(BUNDLE_TAG_MEDIA_UUID, card.uuid.toString())
+                                    startActivity(intent)
+                                }
+                                binding.executePendingBindings()
+                            }
                         }
-                        binding.btnPlay.setOnClickListener {
-                            val intent = Intent(requireActivity(), PlayerActivity::class.java)
-                            intent.putExtra(BUNDLE_TAG_MEDIA_UUID, card.uuid.toString())
-                            startActivity(intent)
-                        }
-                        binding.executePendingBindings()
                     }
                 }
                 // TODO: Display error message

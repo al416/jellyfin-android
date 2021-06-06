@@ -12,6 +12,7 @@ import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.Library
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.Status
+import org.jellyfin.client.android.domain.models.display_model.HomePage
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionRow
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionType
 import java.util.*
@@ -23,13 +24,13 @@ import javax.inject.Named
 class ObserveHomePage @Inject constructor(
     @Named("network") dispatcher: CoroutineDispatcher,
     private val getHomeSections: GetHomeSections,
-    private val observeMyMediaSection: ObserveMyMediaSection,
     private val observeContinueWatchingSection: ObserveContinueWatchingSection,
     private val observeNextUpSection: ObserveNextUpSection,
-    private val observeLatestSection: ObserveLatestSection
-) : BaseUseCase<List<HomeSectionRow>, ObserveHomePage.RequestParam?>(dispatcher) {
+    private val observeLatestSection: ObserveLatestSection,
+    private val observeRecentItems: ObserveRecentItems
+) : BaseUseCase<HomePage, ObserveHomePage.RequestParam?>(dispatcher) {
 
-    override suspend fun invokeInternal(params: RequestParam?): Flow<Resource<List<HomeSectionRow>>> {
+    override suspend fun invokeInternal(params: RequestParam?): Flow<Resource<HomePage>> {
         if (params == null) {
             throw IllegalArgumentException("Expecting valid parameters.")
         }
@@ -37,20 +38,20 @@ class ObserveHomePage @Inject constructor(
         return getHomeSections.invoke().flatMapLatest {
             when (it.status) {
                 Status.ERROR -> {
-                    flow { emit(Resource.error<List<HomeSectionRow>>(it.messages)) }
+                    flow { emit(Resource.error<HomePage>(it.messages)) }
                 }
                 Status.LOADING -> {
-                    flow { emit(Resource.loading<List<HomeSectionRow>>()) }
+                    flow { emit(Resource.loading<HomePage>()) }
                 }
                 Status.SUCCESS -> {
-                    loadAvailableSections(it.data ?: emptyList(), params.retrieveFromCache)
+                    loadAvailableSections(it.data ?: emptyList(), params.libraries, params.retrieveFromCache)
                 }
             }
         }
     }
 
-    private suspend fun loadAvailableSections(sections: List<HomeSectionType>, retrieveFromCache: Boolean): Flow<Resource<List<HomeSectionRow>>> {
-        return channelFlow<Resource<List<HomeSectionRow>>> {
+    private suspend fun loadAvailableSections(sections: List<HomeSectionType>, libraries: List<Library>, retrieveFromCache: Boolean): Flow<Resource<HomePage>> {
+        return channelFlow<Resource<HomePage>> {
             send(Resource.loading())
 
             val flowNextUp = if (sections.contains(HomeSectionType.NEXT_UP)) {
@@ -66,16 +67,19 @@ class ObserveHomePage @Inject constructor(
             }
 
             val flowLatestItems = if (sections.contains(HomeSectionType.LATEST_MEDIA)) {
-                loadLatestItemsFromMyMedia(retrieveFromCache)
+                loadLatest(libraries, retrieveFromCache)
             } else {
                 flow { emit(Resource.success(null)) }
             }
 
+            val flowRecentItems = observeRecentItems.invoke()
+
             val flowCombine = combine(
                 flowNextUp,
                 flowContinueWatching,
-                flowLatestItems
-            ) { nextUp, continueWatching, latestItemsFromMyMedia ->
+                flowLatestItems,
+                flowRecentItems
+            ) { nextUp, continueWatching, latestItemsFromMyMedia, recentItems ->
                 // If all the sections have finished loading (either successfully or with errors) then emit the list of rows
                 if (nextUp.status != Status.LOADING && continueWatching.status != Status.LOADING && latestItemsFromMyMedia.status != Status.LOADING) {
                     val rows = mutableListOf<HomeSectionRow>()
@@ -98,7 +102,7 @@ class ObserveHomePage @Inject constructor(
                     latestItemsFromMyMedia.messages?.let {
                         errors.addAll(it)
                     }
-                    return@combine Resource.success(rows.toList(), errors)
+                    return@combine Resource.success(HomePage(recentItems.data ?: emptyList(), rows.toList()), errors)
                 } else {
                     return@combine Resource.loading()
                 }
@@ -108,22 +112,6 @@ class ObserveHomePage @Inject constructor(
                 send(it)
             }
         }
-    }
-
-    private suspend fun loadLatestItemsFromMyMedia(retrieveFromCache: Boolean): Flow<Resource<List<HomeSectionRow>>> {
-        return observeMyMediaSection.invoke(ObserveMyMediaSection.RequestParam(retrieveFromCache))
-            .flatMapLatest { resource ->
-                when (resource.status) {
-                    Status.ERROR -> flow { emit(Resource.error<List<HomeSectionRow>>(resource.messages)) }
-                    Status.LOADING -> flow {
-                        // Don't emit another LOADING resource because the first request in the chain already emitted a LOADING resource
-                    }
-                    Status.SUCCESS -> {
-                        val libraries = resource.data ?: emptyList()
-                        loadLatest(libraries, retrieveFromCache)
-                    }
-                }
-            }
     }
 
     private suspend fun loadLatest(libraries: List<Library>, retrieveFromCache: Boolean): Flow<Resource<List<HomeSectionRow>>> {
@@ -147,5 +135,5 @@ class ObserveHomePage @Inject constructor(
             }
     }
 
-    data class RequestParam(val retrieveFromCache: Boolean)
+    data class RequestParam(val libraries: List<Library>, val retrieveFromCache: Boolean)
 }
