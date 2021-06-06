@@ -19,6 +19,7 @@ import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_
 import org.jellyfin.client.android.domain.constants.Tags
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.ui.player.PlayerActivity
+import org.jellyfin.client.android.ui.player.VlcPlayerActivity
 import org.jellyfin.client.android.ui.shared.BlurHashDecoder
 import java.util.*
 import javax.inject.Inject
@@ -51,7 +52,7 @@ class MovieDetailsFragment : DaggerFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.contents.btnPlay.setOnClickListener {
-            val intent = Intent(requireActivity(), PlayerActivity::class.java)
+            val intent = Intent(requireActivity(), VlcPlayerActivity::class.java)
             intent.putExtra(Tags.BUNDLE_TAG_MEDIA_UUID, args.uuid)
             startActivity(intent)
         }

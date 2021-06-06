@@ -25,6 +25,7 @@ import org.jellyfin.client.android.domain.models.display_model.HomeCardAction
 import org.jellyfin.client.android.ui.home.adapter.HomeRecentItemsFragmentAdapter
 import org.jellyfin.client.android.ui.home.adapter.HomeRowRecyclerViewAdapter
 import org.jellyfin.client.android.ui.player.PlayerActivity
+import org.jellyfin.client.android.ui.player.VlcPlayerActivity
 import java.util.*
 import javax.inject.Inject
 import kotlin.concurrent.fixedRateTimer
@@ -79,7 +80,7 @@ class HomeFragment : DaggerFragment() {
                     findNavController().navigate(action)
                 }
             } else if (card.homeCardAction == HomeCardAction.PLAY) {
-                val intent = Intent(requireActivity(), PlayerActivity::class.java)
+                val intent = Intent(requireActivity(), VlcPlayerActivity::class.java)
                 intent.putExtra(BUNDLE_TAG_MEDIA_UUID, card.uuid.toString())
                 startActivity(intent)
             }

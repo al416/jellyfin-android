@@ -20,6 +20,7 @@ import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_MEDIA_UUID
 import org.jellyfin.client.android.domain.constants.Tags.BUNDLE_TAG_POSITION
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.ui.player.PlayerActivity
+import org.jellyfin.client.android.ui.player.VlcPlayerActivity
 import org.jellyfin.client.android.ui.shared.BlurHashDecoder
 import javax.inject.Inject
 
@@ -77,7 +78,7 @@ class RecentItemFragment : DaggerFragment() {
                                     error(drawable)
                                 }
                                 binding.btnPlay.setOnClickListener {
-                                    val intent = Intent(requireActivity(), PlayerActivity::class.java)
+                                    val intent = Intent(requireActivity(), VlcPlayerActivity::class.java)
                                     intent.putExtra(BUNDLE_TAG_MEDIA_UUID, card.uuid.toString())
                                     startActivity(intent)
                                 }

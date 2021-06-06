@@ -5,6 +5,7 @@ import dagger.android.ContributesAndroidInjector
 import org.jellyfin.client.android.ui.home.HomeActivity
 import org.jellyfin.client.android.ui.login.LoginActivity
 import org.jellyfin.client.android.ui.player.PlayerActivity
+import org.jellyfin.client.android.ui.player.VlcPlayerActivity
 
 @Suppress("unused")
 @Module
@@ -17,4 +18,7 @@ abstract class ActivityModule {
 
     @ContributesAndroidInjector()
     abstract fun contributesPlayerActivity(): PlayerActivity
+
+    @ContributesAndroidInjector()
+    abstract fun contributesVlcPlayerActivity(): VlcPlayerActivity
 }

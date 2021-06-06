@@ -15,6 +15,7 @@ import org.jellyfin.client.android.domain.constants.Tags
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.ui.home.adapter.EpisodeRowRecyclerViewAdapter
 import org.jellyfin.client.android.ui.player.PlayerActivity
+import org.jellyfin.client.android.ui.player.VlcPlayerActivity
 import java.util.*
 import javax.inject.Inject
 
@@ -52,7 +53,7 @@ class SeasonDetailsFragment : DaggerFragment() {
         binding.executePendingBindings()
 
         adapter.onCardClick = {episode ->
-            val intent = Intent(requireActivity(), PlayerActivity::class.java)
+            val intent = Intent(requireActivity(), VlcPlayerActivity::class.java)
             intent.putExtra(Tags.BUNDLE_TAG_MEDIA_UUID, episode.episodeId.toString())
             startActivity(intent)
         }
