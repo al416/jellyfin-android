@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.core.content.res.ResourcesCompat
 import androidx.databinding.DataBindingUtil
@@ -13,6 +14,7 @@ import dagger.android.support.DaggerAppCompatActivity
 import org.jellyfin.client.android.R
 import org.jellyfin.client.android.databinding.ActivityVlcPlayerBinding
 import org.jellyfin.client.android.domain.constants.Tags
+import org.jellyfin.client.android.domain.extensions.formatTime
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.domain.models.VideoPlaybackInformation
 import org.videolan.libvlc.LibVLC
@@ -21,7 +23,9 @@ import org.videolan.libvlc.MediaPlayer
 import org.videolan.libvlc.interfaces.IMedia
 import javax.inject.Inject
 
-class VlcPlayerActivity : DaggerAppCompatActivity(), MediaPlayer.EventListener {
+class VlcPlayerActivity : DaggerAppCompatActivity(),
+    MediaPlayer.EventListener,
+    SeekBar.OnSeekBarChangeListener {
 
     companion object {
         const val USE_TEXTURE_VIEW = false
@@ -92,6 +96,8 @@ class VlcPlayerActivity : DaggerAppCompatActivity(), MediaPlayer.EventListener {
             }
         }
 
+        binding.seekbar.setOnSeekBarChangeListener(this)
+
         mediaPlayer.setEventListener(this)
 
         playerViewModel.getVideoPlaybackInformation().observe(this, { resource ->
@@ -161,6 +167,9 @@ class VlcPlayerActivity : DaggerAppCompatActivity(), MediaPlayer.EventListener {
             } else {
                 mediaPlayer.media = media
             }
+            // Set seekbar duration
+            binding.seekbar.max = media.duration.toInt()
+            binding.tvDuration.text = getString(R.string.media_duration, getString(R.string.initial_time), media.duration.formatTime())
             // Options for network playback only
             media.addOption(":network-caching=5000")
             media.addOption(":clock-jitter=0")
@@ -185,6 +194,10 @@ class VlcPlayerActivity : DaggerAppCompatActivity(), MediaPlayer.EventListener {
                     displayOverlay()
                     binding.btnPlayPause.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_play, null))
                 }
+                MediaPlayer.Event.TimeChanged -> {
+                    binding.seekbar.progress = mediaPlayer.time.toInt()
+                    binding.tvDuration.text = getString(R.string.media_duration, mediaPlayer.time.formatTime(), mediaPlayer.media?.duration?.formatTime())
+                }
             }
         }
     }
@@ -197,5 +210,25 @@ class VlcPlayerActivity : DaggerAppCompatActivity(), MediaPlayer.EventListener {
     private fun displayOverlay() {
         displaySystemUi()
         binding.overlay.visibility = View.VISIBLE
+    }
+
+    override fun onProgressChanged(seekbar: SeekBar?, progress: Int, fromUser: Boolean) {
+        if (fromUser) {
+            if (mediaPlayer.isPlaying) {
+                mediaPlayer.time = progress.toLong()
+            } else {
+                mediaPlayer.play()
+                mediaPlayer.time = progress.toLong()
+                mediaPlayer.pause()
+            }
+        }
+    }
+
+    override fun onStartTrackingTouch(seekbar: SeekBar?) {
+
+    }
+
+    override fun onStopTrackingTouch(seekbar: SeekBar?) {
+
     }
 }
