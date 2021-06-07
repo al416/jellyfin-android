@@ -174,15 +174,17 @@ object JellyfinModule {
 
         val videoAudioCodecProfile = CodecProfile(CodecType.VIDEO_AUDIO, codec = null, conditions = listOf(
             ProfileCondition(
-                ProfileConditionType.LESS_THAN_EQUAL, ProfileConditionValue.AUDIO_CHANNELS, "6", isRequired = true
+                // TODO: Changing audio channels less than equal to 7 will cause the client to transcode (because DTS has 8 channels)
+                ProfileConditionType.LESS_THAN_EQUAL, ProfileConditionValue.AUDIO_CHANNELS, "9", isRequired = true
             )
         ))
 
         // TODO: Fix this profile (need to check if device supports HEVC and 10 bit or not
         // see here: https://github.com/jellyfin/jellyfin-androidtv/blob/bef42e8f54176301348fa79b289f8976ff01c45b/app/src/main/java/org/jellyfin/androidtv/util/ProfileHelper.java
         val hevcProfile = CodecProfile(CodecType.VIDEO, codec = CodecTypes.HEVC, conditions = listOf(
+            // TODO: Changing audio channels less than equal to 7 will cause the client to transcode (because DTS has 8 channels)
             ProfileCondition(
-                ProfileConditionType.LESS_THAN_EQUAL, ProfileConditionValue.AUDIO_CHANNELS, "6", isRequired = true
+                ProfileConditionType.LESS_THAN_EQUAL, ProfileConditionValue.AUDIO_CHANNELS, "9", isRequired = true
             )
         ))
 
@@ -234,7 +236,8 @@ object JellyfinModule {
                 CodecTypes.EAC3,
                 CodecTypes.AAC_LATM,
                 CodecTypes.MP3,
-                CodecTypes.MP2
+                CodecTypes.MP2,
+                CodecTypes.TRUEHD
             )
         )
 
@@ -256,6 +259,7 @@ object JellyfinModule {
                 CodecTypes.WAV,
                 CodecTypes.WMA,
                 CodecTypes.MP2,
+                CodecTypes.TRUEHD,
                 ContainerTypes.OGG,
                 ContainerTypes.OGA,
                 ContainerTypes.WEBMA,
