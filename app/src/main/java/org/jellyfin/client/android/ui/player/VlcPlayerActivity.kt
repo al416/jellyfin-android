@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.PopupMenu
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.core.content.res.ResourcesCompat
@@ -15,6 +16,7 @@ import org.jellyfin.client.android.R
 import org.jellyfin.client.android.databinding.ActivityVlcPlayerBinding
 import org.jellyfin.client.android.domain.constants.Tags
 import org.jellyfin.client.android.domain.extensions.formatTime
+import org.jellyfin.client.android.domain.extensions.getSubtitleDescription
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.domain.models.VideoPlaybackInformation
 import org.videolan.libvlc.LibVLC
@@ -57,14 +59,6 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
 
         mediaId = intent.getStringExtra(Tags.BUNDLE_TAG_MEDIA_UUID) ?: throw Exception("MediaId required to play media")
 
-        val args = mutableListOf<String>()
-        args.add("-vvv")    // verbosity
-        args.add("--aout=opensles")
-        args.add("--audio-time-stretch")
-
-        libVlc = LibVLC(this, args)
-        mediaPlayer = MediaPlayer(libVlc)
-
         binding.overlay.setOnClickListener {
             hideOverlay()
         }
@@ -97,8 +91,6 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
         }
 
         binding.seekbar.setOnSeekBarChangeListener(this)
-
-        mediaPlayer.setEventListener(this)
 
         playerViewModel.getVideoPlaybackInformation().observe(this, { resource ->
             when (resource.status) {
@@ -158,10 +150,57 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
             return
         }
         val playableUrl = videoPlaybackInformation.url!!
-        mediaPlayer.attachViews(binding.videoLayout, null, ENABLE_SUBTITLES, USE_TEXTURE_VIEW)
         try {
+            val tempArgs = mutableListOf<String>()
+            tempArgs.add("-vvv")    // verbosity
+            tempArgs.add("--aout=opensles")
+            val temporaryLibVlc = LibVLC(this, tempArgs)
+            val temporaryMedia = Media(temporaryLibVlc, Uri.parse(playableUrl))
+            temporaryMedia.parse(IMedia.Parse.ParseNetwork)
+
+            val args = mutableListOf<String>()
+            args.add("-vvv")    // verbosity
+            args.add("--aout=opensles")
+            args.add("--audio-time-stretch")
+
+            val subtitleTracks = mutableListOf<IMedia.SubtitleTrack>()
+            for (i in 0 until temporaryMedia.trackCount) {
+                val track = temporaryMedia.getTrack(i)
+                if (track is IMedia.SubtitleTrack) {
+                    subtitleTracks.add(track)
+                }
+            }
+            if (subtitleTracks.isNotEmpty()) {
+                args.add("--sub-track=0")   // first track is 0, second track is 1, etc
+            }
+
+            binding.btnSubtitles.setOnClickListener {
+                val popUp = PopupMenu(this, binding.btnSubtitles)
+
+                subtitleTracks.forEachIndexed { index, subtitleTrack ->
+                    val description = if (subtitleTrack.description.isNullOrBlank()) {
+                        subtitleTrack.language.getSubtitleDescription()
+                    } else {
+                        getString(R.string.subtitle_description, subtitleTrack.description, subtitleTrack.language.getSubtitleDescription())
+                    }
+                    popUp.menu.add(0, index, index, description)
+                }
+
+                popUp.setOnMenuItemClickListener {
+
+                    true
+                }
+                popUp.show()
+            }
+
+
+            libVlc = LibVLC(this, args)
+            mediaPlayer = MediaPlayer(libVlc)
             val media = Media(libVlc, Uri.parse(playableUrl))
             media.parse(IMedia.Parse.ParseNetwork)
+            mediaPlayer.setEventListener(this)
+            mediaPlayer.attachViews(binding.videoLayout, null, ENABLE_SUBTITLES, USE_TEXTURE_VIEW)
+
             if (media.subItems() != null && media.subItems().count > 0 && media.subItems().getMediaAt(0) != null) {
                 mediaPlayer.media = media.subItems().getMediaAt(0)
             } else {
