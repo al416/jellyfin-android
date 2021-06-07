@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider
 import dagger.android.support.DaggerAppCompatActivity
 import org.jellyfin.client.android.R
 import org.jellyfin.client.android.databinding.ActivityVlcPlayerBinding
+import org.jellyfin.client.android.domain.constants.ConfigurationConstants.ENABLE_SUBTITLES
 import org.jellyfin.client.android.domain.constants.Tags
 import org.jellyfin.client.android.domain.extensions.formatTime
 import org.jellyfin.client.android.domain.extensions.getSubtitleDescription
@@ -31,7 +32,6 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
 
     companion object {
         const val USE_TEXTURE_VIEW = false
-        const val ENABLE_SUBTITLES = true
     }
 
     private lateinit var binding: ActivityVlcPlayerBinding
@@ -40,9 +40,6 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
     private lateinit var mediaPlayer: MediaPlayer
 
     private lateinit var mediaId: String
-
-    // TODO: Move this logic into the ViewModel so it survives rotation changes
-    private var orientationLocked = false
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -56,41 +53,9 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_vlc_player)
-
         mediaId = intent.getStringExtra(Tags.BUNDLE_TAG_MEDIA_UUID) ?: throw Exception("MediaId required to play media")
 
-        binding.overlay.setOnClickListener {
-            hideOverlay()
-        }
-
-        binding.container.setOnClickListener {
-            displayOverlay()
-        }
-
-        binding.btnScreenRotation.setOnClickListener {
-            if (orientationLocked) {
-                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
-                binding.btnScreenRotation.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_screen_rotation, null))
-            } else {
-                val currentOrientation = resources.configuration.orientation
-                val drawable = if (currentOrientation == Configuration.ORIENTATION_LANDSCAPE)
-                    R.drawable.ic_screen_lock_landscape else R.drawable.ic_screen_lock_portrait
-                binding.btnScreenRotation.setImageDrawable(ResourcesCompat.getDrawable(resources, drawable, null))
-                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
-            }
-            orientationLocked = !orientationLocked
-        }
-
-        binding.btnPlayPause.setOnClickListener {
-            if (mediaPlayer.isPlaying) {
-                mediaPlayer.pause()
-            } else {
-                binding.btnPlayPause.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_pause, null))
-                mediaPlayer.play()
-            }
-        }
-
-        binding.seekbar.setOnSeekBarChangeListener(this)
+        setupStaticControls()
 
         playerViewModel.getVideoPlaybackInformation().observe(this, { resource ->
             when (resource.status) {
@@ -132,6 +97,41 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
         //hideSystemUi()
     }
 
+    private fun setupStaticControls() {
+        binding.overlay.setOnClickListener {
+            hideOverlay()
+        }
+
+        binding.container.setOnClickListener {
+            displayOverlay()
+        }
+
+        binding.btnScreenRotation.setOnClickListener {
+            if (playerViewModel.orientationLocked) {
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
+                binding.btnScreenRotation.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_screen_rotation, null))
+            } else {
+                val currentOrientation = resources.configuration.orientation
+                val drawable = if (currentOrientation == Configuration.ORIENTATION_LANDSCAPE)
+                    R.drawable.ic_screen_lock_landscape else R.drawable.ic_screen_lock_portrait
+                binding.btnScreenRotation.setImageDrawable(ResourcesCompat.getDrawable(resources, drawable, null))
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
+            }
+            playerViewModel.orientationLocked = !playerViewModel.orientationLocked
+        }
+
+        binding.btnPlayPause.setOnClickListener {
+            if (mediaPlayer.isPlaying) {
+                mediaPlayer.pause()
+            } else {
+                binding.btnPlayPause.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_pause, null))
+                mediaPlayer.play()
+            }
+        }
+
+        binding.seekbar.setOnSeekBarChangeListener(this)
+    }
+
     private fun hideSystemUi() {
         binding.videoLayout.systemUiVisibility = (View.SYSTEM_UI_FLAG_LOW_PROFILE
             or View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -149,74 +149,11 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
         if (videoPlaybackInformation.url.isNullOrBlank()) {
             return
         }
-        val playableUrl = videoPlaybackInformation.url!!
+        playerViewModel.url = videoPlaybackInformation.url!!
         try {
-            val tempArgs = mutableListOf<String>()
-            tempArgs.add("-vvv")    // verbosity
-            tempArgs.add("--aout=opensles")
-            val temporaryLibVlc = LibVLC(this, tempArgs)
-            val temporaryMedia = Media(temporaryLibVlc, Uri.parse(playableUrl))
-            temporaryMedia.parse(IMedia.Parse.ParseNetwork)
-
-            val args = mutableListOf<String>()
-            args.add("-vvv")    // verbosity
-            args.add("--aout=opensles")
-            args.add("--audio-time-stretch")
-
-            val subtitleTracks = mutableListOf<IMedia.SubtitleTrack>()
-            for (i in 0 until temporaryMedia.trackCount) {
-                val track = temporaryMedia.getTrack(i)
-                if (track is IMedia.SubtitleTrack) {
-                    subtitleTracks.add(track)
-                }
-            }
-            if (subtitleTracks.isNotEmpty()) {
-                args.add("--sub-track=0")   // first track is 0, second track is 1, etc
-            }
-
-            binding.btnSubtitles.setOnClickListener {
-                val popUp = PopupMenu(this, binding.btnSubtitles)
-
-                subtitleTracks.forEachIndexed { index, subtitleTrack ->
-                    val description = if (subtitleTrack.description.isNullOrBlank()) {
-                        subtitleTrack.language.getSubtitleDescription()
-                    } else {
-                        getString(R.string.subtitle_description, subtitleTrack.description, subtitleTrack.language.getSubtitleDescription())
-                    }
-                    popUp.menu.add(0, index, index, description)
-                }
-
-                popUp.setOnMenuItemClickListener {
-
-                    true
-                }
-                popUp.show()
-            }
-
-
-            libVlc = LibVLC(this, args)
-            mediaPlayer = MediaPlayer(libVlc)
-            val media = Media(libVlc, Uri.parse(playableUrl))
-            media.parse(IMedia.Parse.ParseNetwork)
-            mediaPlayer.setEventListener(this)
-            mediaPlayer.attachViews(binding.videoLayout, null, ENABLE_SUBTITLES, USE_TEXTURE_VIEW)
-
-            if (media.subItems() != null && media.subItems().count > 0 && media.subItems().getMediaAt(0) != null) {
-                mediaPlayer.media = media.subItems().getMediaAt(0)
-            } else {
-                mediaPlayer.media = media
-            }
-            // Set seekbar duration
-            binding.seekbar.max = media.duration.toInt()
-            binding.tvDuration.text = getString(R.string.media_duration, getString(R.string.initial_time), media.duration.formatTime())
-            // Options for network playback only
-            media.addOption(":network-caching=5000")
-            media.addOption(":clock-jitter=0")
-            media.addOption(":clock-synchro=0")
-            // Enable hardware decoding
-            media.setHWDecoderEnabled(true, false)
-            media.release()
-            mediaPlayer.play()
+            getVideoInformation()
+            setupDynamicControls()
+            playVideo()
         } catch (e: Exception) {
             // TODO: Handle error
         }
@@ -227,6 +164,8 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
             when (it) {
                 MediaPlayer.Event.Playing -> {
                     hideOverlay()
+                    binding.seekbar.progress = playerViewModel.currentPosition.toInt()
+                    mediaPlayer.time = playerViewModel.currentPosition
                     binding.btnPlayPause.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_pause, null))
                 }
                 MediaPlayer.Event.Paused -> {
@@ -234,6 +173,7 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
                     binding.btnPlayPause.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_play, null))
                 }
                 MediaPlayer.Event.TimeChanged -> {
+                    playerViewModel.currentPosition = mediaPlayer.time
                     binding.seekbar.progress = mediaPlayer.time.toInt()
                     binding.tvDuration.text = getString(R.string.media_duration, mediaPlayer.time.formatTime(), mediaPlayer.media?.duration?.formatTime())
                 }
@@ -269,5 +209,90 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
 
     override fun onStopTrackingTouch(seekbar: SeekBar?) {
 
+    }
+
+    private fun getVideoInformation() {
+        val tempArgs = mutableListOf<String>()
+        tempArgs.add("-vvv")    // verbosity
+        tempArgs.add("--aout=opensles")
+        val temporaryLibVlc = LibVLC(this, tempArgs)
+        val temporaryMedia = Media(temporaryLibVlc, Uri.parse(playerViewModel.url))
+        temporaryMedia.parse(IMedia.Parse.ParseNetwork)
+
+        for (i in 0 until temporaryMedia.trackCount) {
+            val track = temporaryMedia.getTrack(i)
+            if (track is IMedia.SubtitleTrack) {
+                playerViewModel.subtitleTracks.add(track)
+            }
+        }
+    }
+
+    private fun setupDynamicControls() {
+        binding.btnSubtitles.setOnClickListener {
+            val popUp = PopupMenu(this, binding.btnSubtitles)
+
+            playerViewModel.subtitleTracks.forEachIndexed { index, subtitleTrack ->
+                val description = if (subtitleTrack.description.isNullOrBlank()) {
+                    subtitleTrack.language.getSubtitleDescription()
+                } else {
+                    getString(R.string.subtitle_description, subtitleTrack.description, subtitleTrack.language.getSubtitleDescription())
+                }
+                val menuItem = popUp.menu.add(0, index, index, description)
+                menuItem.isCheckable = true
+                menuItem.isChecked = index == playerViewModel.selectedSubtitleTrack
+            }
+
+            popUp.setOnMenuItemClickListener {
+                it.isChecked = true
+                subtitleSelected(it.itemId)
+                true
+            }
+            popUp.show()
+        }
+    }
+
+    private fun subtitleSelected(subtitleTrackIndex: Int) {
+        playerViewModel.selectedSubtitleTrack = subtitleTrackIndex
+        mediaPlayer.stop()
+        mediaPlayer.detachViews()
+        mediaPlayer.release()
+        libVlc.release()
+        playVideo()
+    }
+
+    private fun playVideo() {
+        val args = mutableListOf<String>()
+        args.add("-vvv")    // verbosity
+        args.add("--aout=opensles")
+        args.add("--audio-time-stretch")
+
+        playerViewModel.selectedSubtitleTrack?.let {
+            args.add("--sub-track=$it")   // first track is 0, second track is 1, etc
+        }
+
+        libVlc = LibVLC(this, args)
+        mediaPlayer = MediaPlayer(libVlc)
+        val media = Media(libVlc, Uri.parse(playerViewModel.url))
+        media.parse(IMedia.Parse.ParseNetwork)
+        mediaPlayer.setEventListener(this)
+        mediaPlayer.attachViews(binding.videoLayout, null, ENABLE_SUBTITLES, USE_TEXTURE_VIEW)
+
+        if (media.subItems() != null && media.subItems().count > 0 && media.subItems().getMediaAt(0) != null) {
+            mediaPlayer.media = media.subItems().getMediaAt(0)
+        } else {
+            mediaPlayer.media = media
+        }
+
+        // Set seekbar duration
+        binding.seekbar.max = media.duration.toInt()
+        binding.tvDuration.text = getString(R.string.media_duration, getString(R.string.initial_time), media.duration.formatTime())
+        // Options for network playback only
+        media.addOption(":network-caching=5000")
+        media.addOption(":clock-jitter=0")
+        media.addOption(":clock-synchro=0")
+        // Enable hardware decoding
+        media.setHWDecoderEnabled(true, false)
+        media.release()
+        mediaPlayer.play()
     }
 }
