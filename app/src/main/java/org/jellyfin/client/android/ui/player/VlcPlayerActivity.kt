@@ -28,7 +28,7 @@ import javax.inject.Inject
 
 class VlcPlayerActivity : DaggerAppCompatActivity(),
     MediaPlayer.EventListener,
-    SeekBar.OnSeekBarChangeListener {
+    SeekBar.OnSeekBarChangeListener, View.OnClickListener {
 
     companion object {
         const val USE_TEXTURE_VIEW = false
@@ -36,8 +36,8 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
 
     private lateinit var binding: ActivityVlcPlayerBinding
 
-    private lateinit var libVlc: LibVLC
-    private lateinit var mediaPlayer: MediaPlayer
+    private var libVlc: LibVLC? = null
+    private var mediaPlayer: MediaPlayer? = null
 
     private lateinit var mediaId: String
 
@@ -55,6 +55,7 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
         binding = DataBindingUtil.setContentView(this, R.layout.activity_vlc_player)
         mediaId = intent.getStringExtra(Tags.BUNDLE_TAG_MEDIA_UUID) ?: throw Exception("MediaId required to play media")
 
+        setControlsInitialStates()
         setupStaticControls()
 
         playerViewModel.getVideoPlaybackInformation().observe(this, { resource ->
@@ -82,14 +83,14 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
 
     override fun onDestroy() {
         super.onDestroy()
-        mediaPlayer.release()
-        libVlc.release()
+        mediaPlayer?.release()
+        libVlc?.release()
     }
 
     override fun onStop() {
         super.onStop()
-        mediaPlayer.stop()
-        mediaPlayer.detachViews()
+        mediaPlayer?.stop()
+        mediaPlayer?.detachViews()
     }
 
     override fun onResume() {
@@ -121,11 +122,11 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
         }
 
         binding.btnPlayPause.setOnClickListener {
-            if (mediaPlayer.isPlaying) {
-                mediaPlayer.pause()
+            if (mediaPlayer?.isPlaying == true) {
+                mediaPlayer?.pause()
             } else {
                 binding.btnPlayPause.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_pause, null))
-                mediaPlayer.play()
+                mediaPlayer?.play()
             }
         }
 
@@ -151,8 +152,6 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
         }
         playerViewModel.url = videoPlaybackInformation.url!!
         try {
-            getVideoInformation()
-            setupDynamicControls()
             playVideo()
         } catch (e: Exception) {
             // TODO: Handle error
@@ -163,9 +162,12 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
         event?.type.let {
             when (it) {
                 MediaPlayer.Event.Playing -> {
+                    if (!playerViewModel.mediaParsingComplete) {
+                        getVideoInformation()
+                    }
                     hideOverlay()
                     binding.seekbar.progress = playerViewModel.currentPosition.toInt()
-                    mediaPlayer.time = playerViewModel.currentPosition
+                    mediaPlayer?.time = playerViewModel.currentPosition
                     binding.btnPlayPause.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_pause, null))
                 }
                 MediaPlayer.Event.Paused -> {
@@ -173,12 +175,26 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
                     binding.btnPlayPause.setImageDrawable(ResourcesCompat.getDrawable(resources, R.drawable.ic_play, null))
                 }
                 MediaPlayer.Event.TimeChanged -> {
-                    playerViewModel.currentPosition = mediaPlayer.time
-                    binding.seekbar.progress = mediaPlayer.time.toInt()
-                    binding.tvDuration.text = getString(R.string.media_duration, mediaPlayer.time.formatTime(), mediaPlayer.media?.duration?.formatTime())
+                    mediaPlayer?.let {player ->
+                        playerViewModel.currentPosition = player.time
+                        binding.seekbar.progress = player.time.toInt()
+                        binding.tvDuration.text = getString(R.string.media_duration, player.time.formatTime(), player.media?.duration?.formatTime())
+                    }
+                }
+                else -> {
+
                 }
             }
         }
+    }
+
+    private fun setControlsInitialStates() {
+        binding.btnSubtitles.isEnabled = false
+        binding.btnSubtitles.isClickable = false
+        binding.btnAudioTrack.isEnabled = false
+        binding.btnAudioTrack.isClickable = false
+        binding.seekbar.isEnabled = false
+        binding.seekbar.isClickable = false
     }
 
     private fun hideOverlay() {
@@ -193,12 +209,12 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
 
     override fun onProgressChanged(seekbar: SeekBar?, progress: Int, fromUser: Boolean) {
         if (fromUser) {
-            if (mediaPlayer.isPlaying) {
-                mediaPlayer.time = progress.toLong()
+            if (mediaPlayer?.isPlaying == true) {
+                mediaPlayer?.time = progress.toLong()
             } else {
-                mediaPlayer.play()
-                mediaPlayer.time = progress.toLong()
-                mediaPlayer.pause()
+                mediaPlayer?.play()
+                mediaPlayer?.time = progress.toLong()
+                mediaPlayer?.pause()
             }
         }
     }
@@ -212,51 +228,43 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
     }
 
     private fun getVideoInformation() {
-        val tempArgs = mutableListOf<String>()
-        tempArgs.add("-vvv")    // verbosity
-        tempArgs.add("--aout=opensles")
-        val temporaryLibVlc = LibVLC(this, tempArgs)
-        val temporaryMedia = Media(temporaryLibVlc, Uri.parse(playerViewModel.url))
-        temporaryMedia.parse(IMedia.Parse.ParseNetwork)
-
-        for (i in 0 until temporaryMedia.trackCount) {
-            val track = temporaryMedia.getTrack(i)
-            if (track is IMedia.SubtitleTrack) {
-                playerViewModel.subtitleTracks.add(track)
+        playerViewModel.mediaParsingComplete = true
+        mediaPlayer?.let { player ->
+            player.media?.let { media ->
+                for (i in 0 until media.trackCount) {
+                    val track = media.getTrack(i)
+                    if (track is IMedia.SubtitleTrack) {
+                        playerViewModel.subtitleTracks.add(track)
+                    }
+                }
             }
         }
+        setupDynamicControls()
     }
 
     private fun setupDynamicControls() {
-        binding.btnSubtitles.setOnClickListener {
-            val popUp = PopupMenu(this, binding.btnSubtitles)
-
-            playerViewModel.subtitleTracks.forEachIndexed { index, subtitleTrack ->
-                val description = if (subtitleTrack.description.isNullOrBlank()) {
-                    subtitleTrack.language.getSubtitleDescription()
-                } else {
-                    getString(R.string.subtitle_description, subtitleTrack.description, subtitleTrack.language.getSubtitleDescription())
-                }
-                val menuItem = popUp.menu.add(0, index, index, description)
-                menuItem.isCheckable = true
-                menuItem.isChecked = index == playerViewModel.selectedSubtitleTrack
+        // Set seekbar duration
+        mediaPlayer?.let { player ->
+            player.media?.let { media ->
+                binding.seekbar.isEnabled = true
+                binding.seekbar.isClickable = true
+                binding.seekbar.max = media.duration.toInt()
+                binding.tvDuration.text = getString(R.string.media_duration, getString(R.string.initial_time), media.duration.formatTime())
             }
-
-            popUp.setOnMenuItemClickListener {
-                it.isChecked = true
-                subtitleSelected(it.itemId)
-                true
-            }
-            popUp.show()
+        }
+        if (!playerViewModel.subtitleTracks.isNullOrEmpty()) {
+            binding.btnSubtitles.isEnabled = true
+            binding.btnSubtitles.isClickable = true
+            binding.btnSubtitles.setOnClickListener(this)
         }
     }
 
     private fun subtitleSelected(subtitleTrackIndex: Int) {
         playerViewModel.selectedSubtitleTrack = subtitleTrackIndex
-        mediaPlayer.stop()
-        mediaPlayer.detachViews()
-        mediaPlayer.release()
-        libVlc.release()
+        mediaPlayer?.stop()
+        mediaPlayer?.detachViews()
+        mediaPlayer?.release()
+        libVlc?.release()
         playVideo()
     }
 
@@ -274,18 +282,15 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
         mediaPlayer = MediaPlayer(libVlc)
         val media = Media(libVlc, Uri.parse(playerViewModel.url))
         media.parse(IMedia.Parse.ParseNetwork)
-        mediaPlayer.setEventListener(this)
-        mediaPlayer.attachViews(binding.videoLayout, null, ENABLE_SUBTITLES, USE_TEXTURE_VIEW)
+        mediaPlayer?.setEventListener(this)
+        mediaPlayer?.attachViews(binding.videoLayout, null, ENABLE_SUBTITLES, USE_TEXTURE_VIEW)
 
         if (media.subItems() != null && media.subItems().count > 0 && media.subItems().getMediaAt(0) != null) {
-            mediaPlayer.media = media.subItems().getMediaAt(0)
+            mediaPlayer?.media = media.subItems().getMediaAt(0)
         } else {
-            mediaPlayer.media = media
+            mediaPlayer?.media = media
         }
 
-        // Set seekbar duration
-        binding.seekbar.max = media.duration.toInt()
-        binding.tvDuration.text = getString(R.string.media_duration, getString(R.string.initial_time), media.duration.formatTime())
         // Options for network playback only
         media.addOption(":network-caching=5000")
         media.addOption(":clock-jitter=0")
@@ -293,6 +298,35 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
         // Enable hardware decoding
         media.setHWDecoderEnabled(true, false)
         media.release()
-        mediaPlayer.play()
+        mediaPlayer?.play()
+    }
+
+    override fun onClick(view: View?) {
+        when (view) {
+            binding.btnSubtitles -> {
+                val popUp = PopupMenu(this, binding.btnSubtitles)
+
+                playerViewModel.subtitleTracks.forEachIndexed { index, subtitleTrack ->
+                    val description = if (subtitleTrack.description.isNullOrBlank()) {
+                        subtitleTrack.language.getSubtitleDescription()
+                    } else {
+                        getString(R.string.subtitle_description, subtitleTrack.description, subtitleTrack.language.getSubtitleDescription())
+                    }
+                    val menuItem = popUp.menu.add(0, index, index, description)
+                    menuItem.isCheckable = true
+                    menuItem.isChecked = index == playerViewModel.selectedSubtitleTrack
+                }
+
+                popUp.setOnMenuItemClickListener {
+                    it.isChecked = true
+                    subtitleSelected(it.itemId)
+                    true
+                }
+                popUp.show()
+            }
+            else -> {
+
+            }
+        }
     }
 }

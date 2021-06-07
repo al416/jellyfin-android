@@ -188,7 +188,17 @@ object JellyfinModule {
             )
         ))
 
-        return listOf(videoCodecProfile, refFramesProfile, refFramesProfile2, videoAudioCodecProfile, hevcProfile)
+        val vc1Profile = CodecProfile(CodecType.VIDEO, codec = CodecTypes.VC1, conditions = listOf(
+            ProfileCondition(
+                ProfileConditionType.LESS_THAN_EQUAL, ProfileConditionValue.REF_FRAMES, "2", isRequired = true
+            ),
+        ), applyConditions = listOf(
+            ProfileCondition(
+                ProfileConditionType.GREATER_THAN_EQUAL, ProfileConditionValue.WIDTH, "1900", isRequired = false
+            )
+        ))
+
+        return listOf(videoCodecProfile, refFramesProfile, refFramesProfile2, videoAudioCodecProfile, hevcProfile, vc1Profile)
     }
 
     @Provides
@@ -219,6 +229,7 @@ object JellyfinModule {
         val videoCodecs = mutableListOf<String>()
         videoCodecs.addAll(
             listOf(
+                CodecTypes.VC1,
                 CodecTypes.H264,
                 CodecTypes.HEVC,
                 CodecTypes.VP8,
@@ -268,6 +279,11 @@ object JellyfinModule {
             )
         )
 
+        if (allowDTS) {
+            audioContainers.add(CodecTypes.DCA);
+            audioContainers.add(CodecTypes.DTS);
+        }
+
         val audioDirectPlayProfile = DirectPlayProfile(container = audioContainers.joinToString(","), videoCodec = null,
             audioCodec = null, type = DlnaProfileType.AUDIO)
 
@@ -307,10 +323,10 @@ object JellyfinModule {
         result.add(SubtitleProfile("srt", SubtitleDeliveryMethod.EXTERNAL))
         result.add(SubtitleProfile("srt", SubtitleDeliveryMethod.EMBED))
         result.add(SubtitleProfile("subrip", SubtitleDeliveryMethod.EMBED))
-        result.add(SubtitleProfile("ass", SubtitleDeliveryMethod.ENCODE))
-        result.add(SubtitleProfile("ssa", SubtitleDeliveryMethod.ENCODE))
-        result.add(SubtitleProfile("pgs", SubtitleDeliveryMethod.ENCODE))
-        result.add(SubtitleProfile("pgssub", SubtitleDeliveryMethod.ENCODE))
+        result.add(SubtitleProfile("ass", SubtitleDeliveryMethod.EMBED))
+        result.add(SubtitleProfile("ssa", SubtitleDeliveryMethod.EMBED))
+        result.add(SubtitleProfile("pgs", SubtitleDeliveryMethod.EMBED))
+        result.add(SubtitleProfile("pgssub", SubtitleDeliveryMethod.EMBED))
         result.add(SubtitleProfile("dvdsub", SubtitleDeliveryMethod.EMBED))
         result.add(SubtitleProfile("vtt", SubtitleDeliveryMethod.EMBED))
         result.add(SubtitleProfile("sub", SubtitleDeliveryMethod.EMBED))

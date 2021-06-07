@@ -25,6 +25,7 @@ class PlayerViewModel @Inject constructor(@Named("computation") private val comp
     val subtitleTracks = mutableListOf<IMedia.SubtitleTrack>()
     lateinit var url: String
     var currentPosition: Long = 0
+    var mediaParsingComplete = false
 
     fun initialize(mediaId: String) {
         this.mediaId = UUID.fromString(mediaId)

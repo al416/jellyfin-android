@@ -24,6 +24,7 @@ object CodecTypes {
     const val WMAV2 = "wmav2"
 
     /* Video Codec Types */
+    const val VC1 = "vc1"
     const val AVC = "avc"
     const val H264 = "h264"
     const val H265 = "h265"
