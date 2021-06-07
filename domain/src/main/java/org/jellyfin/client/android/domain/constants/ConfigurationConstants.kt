@@ -14,4 +14,6 @@ object ConfigurationConstants {
     const val BLUR_HASH_BACKDROP_HEIGHT = 12
     const val BLUR_HASH_BACKDROP_WIDTH = 20
 
+    // Media Player
+    const val ENABLE_SUBTITLES = true
 }

@@ -10,17 +10,21 @@ import kotlinx.coroutines.launch
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.VideoPlaybackInformation
 import org.jellyfin.client.android.domain.usecase.GetVideoPlaybackInformation
+import org.videolan.libvlc.interfaces.IMedia
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
 
-class PlayerViewModel @Inject constructor(
-    @Named("computation") private val computationDispatcher: CoroutineDispatcher,
-    private val getVideoPlaybackInformation: GetVideoPlaybackInformation
-
+class PlayerViewModel @Inject constructor(@Named("computation") private val computationDispatcher: CoroutineDispatcher,
+                                          private val getVideoPlaybackInformation: GetVideoPlaybackInformation
 ) : ViewModel() {
 
     private lateinit var mediaId: UUID
+    var orientationLocked = false
+    var selectedSubtitleTrack: Int? = null
+    val subtitleTracks = mutableListOf<IMedia.SubtitleTrack>()
+    lateinit var url: String
+    var currentPosition: Long = 0
 
     fun initialize(mediaId: String) {
         this.mediaId = UUID.fromString(mediaId)
