@@ -235,6 +235,8 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
                     val track = media.getTrack(i)
                     if (track is IMedia.SubtitleTrack) {
                         playerViewModel.subtitleTracks.add(track)
+                    } else if (track is IMedia.AudioTrack) {
+                        playerViewModel.audioTracks.add(track)
                     }
                 }
             }
@@ -256,11 +258,37 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
             binding.btnSubtitles.isEnabled = true
             binding.btnSubtitles.isClickable = true
             binding.btnSubtitles.setOnClickListener(this)
+            if (playerViewModel.selectedSubtitleTrack == null) {
+                mediaPlayer?.let { player ->
+                    val item = player.media?.getTrack(player.spuTrack)
+                    playerViewModel.selectedSubtitleTrack = playerViewModel.subtitleTracks.indexOf(item)
+                }
+            }
+        }
+        if (!playerViewModel.audioTracks.isNullOrEmpty()) {
+            binding.btnAudioTrack.isEnabled = true
+            binding.btnAudioTrack.isClickable = true
+            binding.btnAudioTrack.setOnClickListener(this)
+            if (playerViewModel.selectedAudioTrack == null) {
+                mediaPlayer?.let { player ->
+                    val item = player.media?.getTrack(player.audioTrack)
+                    playerViewModel.selectedAudioTrack = playerViewModel.audioTracks.indexOf(item)
+                }
+            }
         }
     }
 
-    private fun subtitleSelected(subtitleTrackIndex: Int) {
+    private fun subtitleSelected(subtitleTrackIndex: Int?) {
         playerViewModel.selectedSubtitleTrack = subtitleTrackIndex
+        mediaPlayer?.stop()
+        mediaPlayer?.detachViews()
+        mediaPlayer?.release()
+        libVlc?.release()
+        playVideo()
+    }
+
+    private fun audioSelected(audioTrackIndex: Int?) {
+        playerViewModel.selectedAudioTrack = audioTrackIndex
         mediaPlayer?.stop()
         mediaPlayer?.detachViews()
         mediaPlayer?.release()
@@ -278,6 +306,10 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
             args.add("--sub-track=$it")   // first track is 0, second track is 1, etc
         }
 
+        playerViewModel.selectedAudioTrack?.let {
+            args.add("--audio-track=$it")   // first track is 0, second track is 1, etc
+        }
+
         libVlc = LibVLC(this, args)
         mediaPlayer = MediaPlayer(libVlc)
         val media = Media(libVlc, Uri.parse(playerViewModel.url))
@@ -292,7 +324,7 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
         }
 
         // Options for network playback only
-        media.addOption(":network-caching=5000")
+        media.addOption(":network-caching=1000")
         media.addOption(":clock-jitter=0")
         media.addOption(":clock-synchro=0")
         // Enable hardware decoding
@@ -318,8 +350,39 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
                 }
 
                 popUp.setOnMenuItemClickListener {
-                    it.isChecked = true
-                    subtitleSelected(it.itemId)
+                    val currentStatus = it.isChecked
+                    it.isChecked = !currentStatus
+                    if (it.isChecked) {
+                        subtitleSelected(it.itemId)
+                    } else {
+                        subtitleSelected(null)
+                    }
+                    true
+                }
+                popUp.show()
+            }
+            binding.btnAudioTrack -> {
+                val popUp = PopupMenu(this, binding.btnAudioTrack)
+
+                playerViewModel.audioTracks.forEachIndexed { index, audioTrack ->
+                    val description = if (audioTrack.description.isNullOrBlank()) {
+                        audioTrack.language.getSubtitleDescription()
+                    } else {
+                        getString(R.string.audio_description, audioTrack.description, audioTrack.language.getSubtitleDescription())
+                    }
+                    val menuItem = popUp.menu.add(0, index, index, description)
+                    menuItem.isCheckable = true
+                    menuItem.isChecked = index == playerViewModel.selectedAudioTrack
+                }
+
+                popUp.setOnMenuItemClickListener {
+                    val currentStatus = it.isChecked
+                    it.isChecked = !currentStatus
+                    if (it.isChecked) {
+                        audioSelected(it.itemId)
+                    } else {
+                        audioSelected(null)
+                    }
                     true
                 }
                 popUp.show()
