@@ -22,7 +22,9 @@ class PlayerViewModel @Inject constructor(@Named("computation") private val comp
     private lateinit var mediaId: UUID
     var orientationLocked = false
     var selectedSubtitleTrack: Int? = null
+    var selectedAudioTrack: Int? = null
     val subtitleTracks = mutableListOf<IMedia.SubtitleTrack>()
+    val audioTracks = mutableListOf<IMedia.AudioTrack>()
     lateinit var url: String
     var currentPosition: Long = 0
     var mediaParsingComplete = false

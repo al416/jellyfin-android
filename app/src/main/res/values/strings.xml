@@ -59,5 +59,6 @@
     <string name="initial_time">00:00:00</string>
     <string name="media_duration">%1$s / %2$s</string>
     <string name="subtitle_description">%1$s - %2$s</string>
+    <string name="audio_description">%1$s - %2$s</string>
 
 </resources>

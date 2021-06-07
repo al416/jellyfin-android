@@ -139,12 +139,6 @@ object JellyfinModule {
     internal fun providesCodecProfiles(): List<CodecProfile> {
         val videoCodecProfile = CodecProfile(CodecType.VIDEO, codec = CodecTypes.H264, conditions = listOf(
             ProfileCondition(
-                ProfileConditionType.EQUALS_ANY,
-                isRequired = true,
-                property = ProfileConditionValue.VIDEO_PROFILE,
-                value = "high|main|baseline|constrained baseline"
-            ),
-            ProfileCondition(
                 ProfileConditionType.LESS_THAN_EQUAL,
                 isRequired = true,
                 property = ProfileConditionValue.VIDEO_LEVEL,
@@ -242,6 +236,7 @@ object JellyfinModule {
         val audioCodecs = mutableListOf<String>()
         audioCodecs.addAll(
             listOf(
+                CodecTypes.FLAC,
                 CodecTypes.AAC,
                 CodecTypes.AC3,
                 CodecTypes.EAC3,
@@ -264,6 +259,7 @@ object JellyfinModule {
         val audioContainers = mutableListOf<String>()
         audioContainers.addAll(
             listOf(
+                CodecTypes.FLAC,
                 CodecTypes.AAC,
                 CodecTypes.MP3,
                 CodecTypes.MPA,
