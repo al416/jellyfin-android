@@ -243,7 +243,8 @@ object JellyfinModule {
                 CodecTypes.AAC_LATM,
                 CodecTypes.MP3,
                 CodecTypes.MP2,
-                CodecTypes.TRUEHD
+                CodecTypes.TRUEHD,
+                CodecTypes.OPUS
             )
         )
 

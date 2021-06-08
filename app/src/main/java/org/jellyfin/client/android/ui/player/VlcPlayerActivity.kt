@@ -164,6 +164,9 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
                 MediaPlayer.Event.Playing -> {
                     if (!playerViewModel.mediaParsingComplete) {
                         getVideoInformation()
+                        binding.btnPlayPause.isClickable = true
+                        binding.btnPlayPause.isEnabled = true
+                        binding.progressBar.visibility = View.GONE
                     }
                     hideOverlay()
                     binding.seekbar.progress = playerViewModel.currentPosition.toInt()
@@ -181,6 +184,9 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
                         binding.tvDuration.text = getString(R.string.media_duration, player.time.formatTime(), player.media?.duration?.formatTime())
                     }
                 }
+                MediaPlayer.Event.Opening -> {
+                    binding.progressBar.visibility = View.VISIBLE
+                }
                 else -> {
 
                 }
@@ -195,6 +201,8 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
         binding.btnAudioTrack.isClickable = false
         binding.seekbar.isEnabled = false
         binding.seekbar.isClickable = false
+        binding.btnPlayPause.isClickable = false
+        binding.btnPlayPause.isEnabled = false
     }
 
     private fun hideOverlay() {
@@ -386,6 +394,12 @@ class VlcPlayerActivity : DaggerAppCompatActivity(),
                     true
                 }
                 popUp.show()
+            }
+            binding.btnFitScreen -> {
+                val layoutParams = binding.videoLayout.layoutParams
+                layoutParams.height = 200
+                layoutParams.width = 200
+                binding.videoLayout.layoutParams = layoutParams
             }
             else -> {
 
