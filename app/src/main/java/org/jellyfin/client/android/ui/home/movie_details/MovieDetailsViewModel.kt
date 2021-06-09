@@ -40,4 +40,8 @@ class MovieDetailsViewModel @Inject constructor(
             }
         }
     }
+
+    fun refresh() {
+        loadMovieDetails(movieDetails)
+    }
 }
