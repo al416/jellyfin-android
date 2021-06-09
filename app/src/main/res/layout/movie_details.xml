@@ -14,7 +14,9 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        tools:visibility="visible">
 
         <ImageView
             android:id="@+id/backdrop"
@@ -138,6 +140,7 @@
             app:layout_constraintLeft_toRightOf="@+id/btnPlay"
             app:layout_constraintTop_toTopOf="@+id/btnPlay" />
 
+        <!-- TODO: Display this button once offline mode is working -->
         <Button
             android:id="@+id/btnDownload"
             android:layout_width="wrap_content"
@@ -145,6 +148,7 @@
             android:layout_marginLeft="10dp"
             android:drawableLeft="@drawable/ic_download"
             android:text="@string/series_download"
+            android:visibility="gone"
             app:layout_constraintLeft_toRightOf="@+id/btnImdb"
             app:layout_constraintTop_toTopOf="@+id/btnPlay" />
 
@@ -155,20 +159,51 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/btnPlay" />
 
-        <org.jellyfin.client.android.ui.shared.TitleSubtitleVerticalView
-            android:id="@+id/director"
+        <TextView
+            android:id="@+id/directors"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="@string/movie_details_item_director"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/overview"
+            tools:visibility="visible" />
+
+        <LinearLayout
+            android:id="@+id/directors_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:orientation="vertical"
+            android:visibility="gone"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/overview" />
+            app:layout_constraintTop_toBottomOf="@+id/directors"
+            tools:visibility="visible" />
 
-        <org.jellyfin.client.android.ui.shared.TitleSubtitleVerticalView
+        <TextView
             android:id="@+id/genres"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="@string/movie_details_item_genre"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/directors_container"
+            tools:visibility="visible" />
+
+        <LinearLayout
+            android:id="@+id/genres_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:orientation="vertical"
+            android:visibility="gone"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/director" />
-
+            app:layout_constraintTop_toBottomOf="@+id/genres"
+            tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
