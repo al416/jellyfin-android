@@ -50,6 +50,12 @@
     <string name="home_recent_items_play">Play</string>
     <string name="home_recent_items_info">Info</string>
 
+    <!-- Movie and Series Details -->
+    <string name="series_play">Play</string>
+    <string name="series_imdb">IMDb</string>
+    <string name="series_download">Download</string>
+    <string name="series_duration_with_units">%1$sh %2$sm</string>
+
     <!-- Movie Details -->
     <string name="movie_details_item_overview">Overview</string>
     <string name="movie_details_item_genre">Genre</string>

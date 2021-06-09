@@ -63,6 +63,7 @@ class HomeCardRecyclerViewAdapter(private val context: Context) :
             onCardClick?.invoke(card)
         }
         holder.title.text = card.title
+        holder.title.isSelected = true
         holder.subtitle.text = card.subtitle
     }
 

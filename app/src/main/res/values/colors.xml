@@ -11,4 +11,5 @@
     <color name="dark_gradient_end">#01184F</color>
     <color name="light_gradient_start">#FFFFFF</color>
     <color name="light_gradient_end">#FFFFFF</color>
+    <color name="gray">#7A000000</color>
 </resources>

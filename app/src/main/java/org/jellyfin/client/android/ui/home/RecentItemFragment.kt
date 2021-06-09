@@ -71,6 +71,7 @@ class RecentItemFragment : DaggerFragment() {
                             val item = resource.data?.recentItems?.get(position)
                             item?.let {card ->
                                 binding.tvTitle.text = card.title
+                                binding.tvTitle.isSelected = true
                                 val bitmap = BlurHashDecoder.decode(card.blurHash, BLUR_HASH_BACKDROP_WIDTH, BLUR_HASH_BACKDROP_HEIGHT)
                                 val drawable = BitmapDrawable(requireContext().resources, bitmap)
                                 binding.background.load(card.imageUrl) {

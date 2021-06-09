@@ -17,8 +17,9 @@ import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_
 import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_POSTER_HEIGHT
 import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_POSTER_WIDTH
 import org.jellyfin.client.android.domain.constants.Tags
+import org.jellyfin.client.android.domain.extensions.getHoursFromTicks
+import org.jellyfin.client.android.domain.extensions.getMinutesFromTicks
 import org.jellyfin.client.android.domain.models.Status
-import org.jellyfin.client.android.ui.player.PlayerActivity
 import org.jellyfin.client.android.ui.player.VlcPlayerActivity
 import org.jellyfin.client.android.ui.shared.BlurHashDecoder
 import java.util.*
@@ -39,11 +40,7 @@ class MovieDetailsFragment : DaggerFragment() {
 
     private val args: MovieDetailsFragmentArgs by navArgs()
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentMovieDetailsBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -57,10 +54,10 @@ class MovieDetailsFragment : DaggerFragment() {
             startActivity(intent)
         }
 
-        movieDetailsViewModel.getMovieDetails().observe(viewLifecycleOwner, {resource ->
+        movieDetailsViewModel.getMovieDetails().observe(viewLifecycleOwner, { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
-                    resource.data?.let {movieDetails ->
+                    resource.data?.let { movieDetails ->
                         binding.contents.movie = movieDetails
                         val backdropBitmap = BlurHashDecoder.decode(movieDetails.backdropBlurHash, BLUR_HASH_BACKDROP_WIDTH, BLUR_HASH_BACKDROP_HEIGHT)
                         val backdropDrawable = BitmapDrawable(requireContext().resources, backdropBitmap)
@@ -74,9 +71,14 @@ class MovieDetailsFragment : DaggerFragment() {
                             placeholder(posterDrawable)
                             error(posterDrawable)
                         }
-                        binding.contents.overview.setText(getString(R.string.movie_details_item_overview), movieDetails.overview)
-                        binding.contents.genres.setText(getString(R.string.movie_details_item_genre), "")
-                        binding.contents.director.setText(getString(R.string.movie_details_item_director), "")
+                        movieDetails.runTimeTicks?.let {
+                            val hours = it.getHoursFromTicks()
+                            val minutes = it.getMinutesFromTicks()
+                            binding.contents.tvRuntime.text = getString(R.string.series_duration_with_units, hours, minutes)
+                        }
+                        binding.contents.overview.setTextAndVisibility(getString(R.string.movie_details_item_overview), movieDetails.overview)
+                        binding.contents.genres.setTextAndVisibility(getString(R.string.movie_details_item_genre), "")
+                        binding.contents.director.setTextAndVisibility(getString(R.string.movie_details_item_director), "")
                     }
                 }
                 Status.LOADING -> {

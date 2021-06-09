@@ -587,7 +587,6 @@ class ViewsRepositoryImpl @Inject constructor(
                     overview = result.overview,
                     actors = people?.filter { it.type != null && it.type.equals(PersonType.ACTOR) },
                     directors = people?.filter { it.type != null && it.type.equals(PersonType.DIRECTOR) },
-                    runTimeTicks = result.runTimeTicks,
                     tagLines = result.taglines,
                     seasons = null,
                     nextEpisode = null,

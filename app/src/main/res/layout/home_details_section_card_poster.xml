@@ -30,7 +30,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="5dp"
-        android:ellipsize="end"
+        android:ellipsize="marquee"
+        android:marqueeRepeatLimit="marquee_forever"
         android:singleLine="true"
         android:textColor="?colorOnPrimary"
         tools:text="Some TV Show" />

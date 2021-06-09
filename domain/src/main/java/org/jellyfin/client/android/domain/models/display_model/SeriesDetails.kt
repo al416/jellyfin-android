@@ -17,7 +17,6 @@ data class SeriesDetails(
     val overview: String?,
     val actors: List<Person>?,
     val directors: List<Person>?,
-    val runTimeTicks: Long?,
     val tagLines: List<String>?,
     var seasons: HomeSectionRow? = null,
     var nextEpisode: Episode?,
