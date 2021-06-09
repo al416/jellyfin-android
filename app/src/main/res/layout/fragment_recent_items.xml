@@ -28,44 +28,45 @@
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:elevation="10dp"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
+            android:textColor="?colorOnPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@id/btnPlay"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="?colorOnPrimary"
-            android:elevation="10dp"
-            tools:text="This is a test title"
-            />
+            tools:text="This is a test title" />
 
         <Button
             android:id="@+id/btnPlay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:drawableLeft="@drawable/ic_play"
             android:text="@string/home_recent_items_play"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintRight_toRightOf="@id/guideline"
-            android:layout_marginEnd="10dp"
-            android:drawableLeft="@drawable/ic_play" />
+            app:layout_constraintRight_toRightOf="@id/guideline" />
 
         <Button
             android:id="@+id/btnInfo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/home_recent_items_info"
-            android:drawableLeft="@drawable/ic_info"
             android:layout_marginStart="10dp"
+            android:drawableLeft="@drawable/ic_info"
+            android:text="@string/home_recent_items_info"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="@id/guideline"
-            />
+            app:layout_constraintLeft_toLeftOf="@id/guideline" />
 
         <LinearLayout
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
             android:layout_width="match_parent"
+            android:layout_height="80dp"
             android:alpha="0.7"
             android:background="@drawable/global_background"
-            android:layout_height="80dp"/>
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

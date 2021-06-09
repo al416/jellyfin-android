@@ -24,7 +24,6 @@ import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_
 import org.jellyfin.client.android.domain.constants.Tags
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.ui.home.adapter.HomeRowRecyclerViewAdapter
-import org.jellyfin.client.android.ui.player.PlayerActivity
 import org.jellyfin.client.android.ui.player.VlcPlayerActivity
 import org.jellyfin.client.android.ui.shared.BlurHashDecoder
 import org.jellyfin.client.android.ui.shared.RowWithChevronView
@@ -47,11 +46,7 @@ class SeriesDetailsFragment : DaggerFragment() {
 
     private val args: SeriesDetailsFragmentArgs by navArgs()
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentSeriesDetailsBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -98,7 +93,7 @@ class SeriesDetailsFragment : DaggerFragment() {
                             placeholder(posterDrawable)
                             error(posterDrawable)
                         }
-                        binding.contents.overview.setText(getString(R.string.movie_details_item_overview), seriesDetails.overview)
+                        binding.contents.overview.setTextAndVisibility(getString(R.string.movie_details_item_overview), seriesDetails.overview)
                         seriesDetails.directors?.let { directors ->
                             if (directors.isNotEmpty()) {
                                 binding.contents.directors.visibility = View.VISIBLE

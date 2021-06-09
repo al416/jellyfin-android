@@ -5,6 +5,8 @@
 
     <data>
 
+        <import type="android.view.View" />
+
         <variable
             name="seasonAdapter"
             type="org.jellyfin.client.android.ui.home.adapter.HomeRowRecyclerViewAdapter" />
@@ -22,6 +24,7 @@
             android:id="@+id/backdrop"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:background="@color/gray"
             android:scaleType="fitXY"
             app:layout_constraintDimensionRatio="H,16:9"
             app:layout_constraintEnd_toEndOf="parent"
@@ -50,7 +53,9 @@
             <ImageView
                 android:id="@+id/poster"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                android:background="@color/gray"
+                android:scaleType="fitXY" />
         </androidx.cardview.widget.CardView>
 
         <TextView
@@ -58,13 +63,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
             android:maxEms="10"
+            android:maxLines="3"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
             android:scrollHorizontally="false"
             android:text="@{series.name}"
             android:textSize="20sp"
             app:layout_constraintLeft_toRightOf="@id/cardview"
             app:layout_constraintTop_toBottomOf="@id/barrier"
-            tools:text="Tom Clancy's Without Remorse" />
+            tools:text="Tom Clancy's Without Remorse. Tom Clancy's Without Remorse. Tom Clancy's Without Remorse. Tom Clancy's Without Remorse." />
 
         <TextView
             android:id="@+id/tvYear"
@@ -77,22 +87,16 @@
             tools:text="2021" />
 
         <TextView
-            android:id="@+id/tvRuntime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            app:layout_constraintLeft_toRightOf="@id/tvYear"
-            app:layout_constraintTop_toBottomOf="@id/tvName"
-            tools:text="1h 49m" />
-
-        <TextView
             android:id="@+id/tvImdbRating"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:drawablePadding="6dp"
             android:text="@{series.communityRating.toString()}"
+            android:visibility="@{series.communityRating == null ? View.GONE : View.VISIBLE}"
             app:drawableLeftCompat="@drawable/ic_star"
-            app:layout_constraintLeft_toLeftOf="@id/tvName"
-            app:layout_constraintTop_toBottomOf="@id/tvYear"
+            app:layout_constraintLeft_toRightOf="@id/tvYear"
+            app:layout_constraintTop_toBottomOf="@id/tvName"
             tools:text="7.3" />
 
         <TextView
@@ -100,18 +104,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
+            android:drawablePadding="6dp"
             android:text="@{series.criticRating.toString()}"
+            android:visibility="@{series.criticRating == null ? View.GONE : View.VISIBLE}"
             app:drawableLeftCompat="@drawable/ic_tomato"
             app:layout_constraintLeft_toRightOf="@id/tvImdbRating"
-            app:layout_constraintTop_toBottomOf="@id/tvYear"
+            app:layout_constraintTop_toBottomOf="@id/tvName"
             tools:text="82" />
 
         <Button
             android:id="@+id/btnPlay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:drawableLeft="@drawable/ic_play"
-            android:text="Play"
+            android:text="@string/series_play"
             app:layout_constraintStart_toStartOf="@+id/cardview"
             app:layout_constraintTop_toBottomOf="@+id/cardview" />
 
@@ -119,18 +126,21 @@
             android:id="@+id/btnImdb"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
             android:drawableLeft="@drawable/ic_analytics"
-            android:text="IMDb"
+            android:text="@string/series_imdb"
             app:layout_constraintLeft_toRightOf="@+id/btnPlay"
-            app:layout_constraintTop_toBottomOf="@+id/cardview" />
+            app:layout_constraintTop_toTopOf="@+id/btnPlay" />
 
-        <ImageButton
+        <Button
             android:id="@+id/btnDownload"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_download"
+            android:layout_marginLeft="10dp"
+            android:drawableLeft="@drawable/ic_download"
+            android:text="@string/series_download"
             app:layout_constraintLeft_toRightOf="@+id/btnImdb"
-            app:layout_constraintTop_toBottomOf="@+id/cardview" />
+            app:layout_constraintTop_toTopOf="@+id/btnPlay" />
 
         <org.jellyfin.client.android.ui.shared.TitleSubtitleVerticalView
             android:id="@+id/overview"
@@ -143,6 +153,7 @@
             android:id="@+id/directors"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
             android:text="@string/movie_details_item_director"
             android:textStyle="bold"
             android:visibility="gone"
@@ -154,6 +165,7 @@
             android:id="@+id/directors_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
             android:orientation="vertical"
             android:visibility="gone"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -164,6 +176,7 @@
             android:id="@+id/genres"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
             android:text="@string/movie_details_item_genre"
             android:textStyle="bold"
             android:visibility="gone"
@@ -175,6 +188,7 @@
             android:id="@+id/genres_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
             android:orientation="vertical"
             android:visibility="gone"
             app:layout_constraintLeft_toLeftOf="parent"
