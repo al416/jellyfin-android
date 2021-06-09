@@ -54,6 +54,11 @@ class SeriesDetailsFragment : DaggerFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.pullToRefresh.setOnRefreshListener {
+            showLoading()
+            seriesDetailsViewModel.refresh()
+        }
+
         binding.contents.btnPlay.setOnClickListener {
             val intent = Intent(requireActivity(), VlcPlayerActivity::class.java)
             intent.putExtra(Tags.BUNDLE_TAG_MEDIA_UUID, args.uuid)
@@ -79,7 +84,7 @@ class SeriesDetailsFragment : DaggerFragment() {
         seriesDetailsViewModel.getSeriesDetails().observe(viewLifecycleOwner, { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
-                    resource.data?.let {seriesDetails ->
+                    resource.data?.let { seriesDetails ->
                         binding.contents.series = seriesDetails
                         val backdropBitmap = BlurHashDecoder.decode(seriesDetails.backdropBlurHash, BLUR_HASH_BACKDROP_WIDTH, BLUR_HASH_BACKDROP_HEIGHT)
                         val backdropDrawable = BitmapDrawable(requireContext().resources, backdropBitmap)
@@ -98,6 +103,7 @@ class SeriesDetailsFragment : DaggerFragment() {
                             if (directors.isNotEmpty()) {
                                 binding.contents.directors.visibility = View.VISIBLE
                                 binding.contents.directorsContainer.visibility = View.VISIBLE
+                                binding.contents.directorsContainer.removeAllViews()
                             }
                             directors.forEach {director ->
                                 val row = RowWithChevronView(requireContext())
@@ -109,6 +115,7 @@ class SeriesDetailsFragment : DaggerFragment() {
                             if (genres.isNotEmpty()) {
                                 binding.contents.genres.visibility = View.VISIBLE
                                 binding.contents.genresContainer.visibility = View.VISIBLE
+                                binding.contents.genresContainer.removeAllViews()
                             }
                             genres.forEach {genre ->
                                 val row = RowWithChevronView(requireContext())
@@ -123,15 +130,38 @@ class SeriesDetailsFragment : DaggerFragment() {
                                 adapter.submitList(listOf(row))
                             }
                         }
+                        showContent()
                     }
                 }
                 Status.LOADING -> {
-
+                    showLoading()
                 }
                 Status.ERROR -> {
-
+                    showError()
                 }
             }
         })
+    }
+
+    private fun showLoading() {
+        binding.pullToRefresh.isRefreshing = false
+        binding.pullToRefresh.isEnabled = false
+        binding.contents.root.visibility = View.GONE
+        binding.loadingScreen.visibility = View.VISIBLE
+        binding.errorScreen.visibility = View.GONE
+    }
+
+    private fun showContent() {
+        binding.pullToRefresh.isEnabled = true
+        binding.contents.root.visibility = View.VISIBLE
+        binding.loadingScreen.visibility = View.GONE
+        binding.errorScreen.visibility = View.GONE
+    }
+
+    private fun showError() {
+        binding.pullToRefresh.isEnabled = true
+        binding.contents.root.visibility = View.GONE
+        binding.loadingScreen.visibility = View.GONE
+        binding.errorScreen.visibility = View.VISIBLE
     }
 }

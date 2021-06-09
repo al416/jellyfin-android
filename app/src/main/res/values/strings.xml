@@ -2,6 +2,7 @@
     <!-- Application wide -->
     <string name="app_name">Jellyfin</string>
     <string name="loading" tools:ignore="TypographyEllipsis">Loading...</string>
+    <string name="page_error">The page could not be loaded. Please pull to refresh to try again.</string>
 
     <!-- Login Fragment -->
     <string name="login_fragment_server_url">Server URL</string>

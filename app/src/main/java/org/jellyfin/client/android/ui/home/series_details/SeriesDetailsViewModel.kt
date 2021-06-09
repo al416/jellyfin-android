@@ -43,4 +43,8 @@ class SeriesDetailsViewModel @Inject constructor(
             }
         }
     }
+
+    fun refresh() {
+        loadSeriesDetails(seriesDetails)
+    }
 }
