@@ -597,17 +597,9 @@ class ViewsRepositoryImpl @Inject constructor(
             } catch (e: Exception) {
                 val error = e.message
                 emit(
-                    Resource.error(
-                        listOf(
-                            Error(
-                                null,
-                                1,
+                    Resource.error(listOf(Error(null, 1,
                                 "Could not load Home section $error",
-                                null
-                            )
-                        )
-                    )
-                )
+                                null))))
             }
         }.flowOn(networkDispatcher)
     }
