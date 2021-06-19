@@ -21,7 +21,8 @@ data class SeriesDetails(
     var seasons: HomeSectionRow? = null,
     var nextEpisode: Episode?,
     val backdropBlurHash: String?,
-    val posterBlurHash: String?
+    val posterBlurHash: String?,
+    var similarItems: HomeSectionRow? = null
 )
 
 data class Season(val id: Int,

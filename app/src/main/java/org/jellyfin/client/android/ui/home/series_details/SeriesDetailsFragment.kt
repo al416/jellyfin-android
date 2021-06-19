@@ -21,6 +21,7 @@ import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_
 import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_BACKDROP_WIDTH
 import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_POSTER_HEIGHT
 import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_POSTER_WIDTH
+import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.constants.Tags
 import org.jellyfin.client.android.domain.models.Status
 import org.jellyfin.client.android.ui.home.adapter.HomeRowRecyclerViewAdapter
@@ -72,12 +73,19 @@ class SeriesDetailsFragment : DaggerFragment() {
         binding.contents.seasonsRecyclerView.layoutManager = LinearLayoutManager(requireActivity())
         binding.executePendingBindings()
 
-        adapter.onCardClick = {card ->
-            val action = SeriesDetailsFragmentDirections.actionSeasonDetails(
-                title = card.title ?: "",
-                seriesId = args.uuid.toString(),
-                seasonId = card.uuid.toString()
-            )
+        adapter.onCardClick = { card ->
+            val action = if (card.itemType == ItemType.SEASON) {
+                SeriesDetailsFragmentDirections.actionSeasonDetails(
+                    title = card.title ?: "",
+                    seriesId = args.uuid.toString(),
+                    seasonId = card.uuid.toString()
+                )
+            } else {
+                SeriesDetailsFragmentDirections.actionSeriesDetails(
+                    title = card.title ?: "",
+                    uuid = card.uuid.toString()
+                )
+            }
             findNavController().navigate(action)
         }
 
@@ -105,7 +113,7 @@ class SeriesDetailsFragment : DaggerFragment() {
                                 binding.contents.directorsContainer.visibility = View.VISIBLE
                                 binding.contents.directorsContainer.removeAllViews()
                             }
-                            directors.forEach {director ->
+                            directors.forEach { director ->
                                 val row = RowWithChevronView(requireContext())
                                 row.setText(director.name)
                                 binding.contents.directorsContainer.addView(row)
@@ -117,18 +125,17 @@ class SeriesDetailsFragment : DaggerFragment() {
                                 binding.contents.genresContainer.visibility = View.VISIBLE
                                 binding.contents.genresContainer.removeAllViews()
                             }
-                            genres.forEach {genre ->
+                            genres.forEach { genre ->
                                 val row = RowWithChevronView(requireContext())
                                 row.setText(genre.name)
                                 binding.contents.genresContainer.addView(row)
                             }
                         }
-                        seriesDetails.seasons?.let {row ->
-                            if (adapter.currentList == listOf(row)) {
-                                adapter.notifyDataSetChanged()
-                            } else {
-                                adapter.submitList(listOf(row))
-                            }
+                        val rows = listOf(seriesDetails.seasons, seriesDetails.similarItems)
+                        if (adapter.currentList == listOf(rows)) {
+                            adapter.notifyDataSetChanged()
+                        } else {
+                            adapter.submitList(rows)
                         }
                         showContent()
                     }
