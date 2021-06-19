@@ -3,29 +3,37 @@ package org.jellyfin.client.android.ui.home.movie_details
 import android.content.Intent
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
 import dagger.android.support.DaggerFragment
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.jellyfin.client.android.R
 import org.jellyfin.client.android.databinding.FragmentMovieDetailsBinding
 import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_BACKDROP_HEIGHT
 import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_BACKDROP_WIDTH
 import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_POSTER_HEIGHT
 import org.jellyfin.client.android.domain.constants.ConfigurationConstants.BLUR_HASH_POSTER_WIDTH
+import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.constants.Tags
 import org.jellyfin.client.android.domain.extensions.getHoursFromTicks
 import org.jellyfin.client.android.domain.extensions.getMinutesFromTicks
 import org.jellyfin.client.android.domain.models.Status
+import org.jellyfin.client.android.ui.home.adapter.HomeRowRecyclerViewAdapter
+import org.jellyfin.client.android.ui.home.series_details.SeriesDetailsFragmentDirections
 import org.jellyfin.client.android.ui.player.VlcPlayerActivity
 import org.jellyfin.client.android.ui.shared.BlurHashDecoder
 import org.jellyfin.client.android.ui.shared.RowWithChevronView
 import java.util.*
 import javax.inject.Inject
 
+@ExperimentalCoroutinesApi
 class MovieDetailsFragment : DaggerFragment() {
 
     private lateinit var binding: FragmentMovieDetailsBinding
@@ -58,6 +66,21 @@ class MovieDetailsFragment : DaggerFragment() {
             val intent = Intent(requireActivity(), VlcPlayerActivity::class.java)
             intent.putExtra(Tags.BUNDLE_TAG_MEDIA_UUID, args.uuid)
             startActivity(intent)
+        }
+
+        val displayMetrics = DisplayMetrics()
+        requireActivity().windowManager.defaultDisplay.getMetrics(displayMetrics)
+        val adapter = HomeRowRecyclerViewAdapter(requireActivity(), displayMetrics.widthPixels)
+        binding.contents.detailsAdapter = adapter
+        binding.contents.detailsRecyclerView.layoutManager = LinearLayoutManager(requireActivity())
+        binding.executePendingBindings()
+
+        adapter.onCardClick = { card ->
+            val action = MovieDetailsFragmentDirections.actionMovieDetails(
+                title = card.title ?: "",
+                uuid = card.uuid.toString()
+            )
+            findNavController().navigate(action)
         }
 
         movieDetailsViewModel.getMovieDetails().observe(viewLifecycleOwner, { resource ->
@@ -105,6 +128,13 @@ class MovieDetailsFragment : DaggerFragment() {
                                 val row = RowWithChevronView(requireContext())
                                 row.setText(genre.name)
                                 binding.contents.genresContainer.addView(row)
+                            }
+                        }
+                        movieDetails.similarItems?.let { row ->
+                            if (adapter.currentList == listOf(row)) {
+                                adapter.notifyDataSetChanged()
+                            } else {
+                                adapter.submitList(listOf(row))
                             }
                         }
                         showContent()

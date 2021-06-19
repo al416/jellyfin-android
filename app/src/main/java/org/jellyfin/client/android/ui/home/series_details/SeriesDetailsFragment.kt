@@ -1,6 +1,5 @@
 package org.jellyfin.client.android.ui.home.series_details
 
-
 import android.content.Intent
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle

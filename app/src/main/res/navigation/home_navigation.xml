@@ -25,6 +25,11 @@
         <argument
             android:name="uuid"
             app:argType="string" />
+        <action
+            android:id="@+id/action_movie_details"
+            app:popUpTo="@id/movie_details_fragment"
+            app:popUpToInclusive="true"
+            app:destination="@id/movie_details_fragment" />
     </fragment>
 
     <fragment
