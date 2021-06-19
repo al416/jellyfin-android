@@ -12,6 +12,7 @@ import org.jellyfin.sdk.api.operations.DisplayPreferencesApi
 import org.jellyfin.sdk.api.operations.GenresApi
 import org.jellyfin.sdk.api.operations.ImageApi
 import org.jellyfin.sdk.api.operations.ItemsApi
+import org.jellyfin.sdk.api.operations.LibraryApi
 import org.jellyfin.sdk.api.operations.MediaInfoApi
 import org.jellyfin.sdk.api.operations.TvShowsApi
 import org.jellyfin.sdk.api.operations.UserApi
@@ -132,6 +133,12 @@ object JellyfinModule {
     @Reusable
     internal fun providesDisplayPreferencesApi(api: KtorClient): DisplayPreferencesApi {
         return DisplayPreferencesApi(api)
+    }
+
+    @Provides
+    @Reusable
+    internal fun providesLibraryApi(api: KtorClient): LibraryApi {
+        return LibraryApi(api)
     }
 
     @Provides

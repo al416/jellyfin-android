@@ -40,6 +40,11 @@
         <action
             android:id="@+id/action_season_details"
             app:destination="@id/season_details_fragment" />
+        <action
+            android:id="@+id/action_series_details"
+            app:popUpTo="@id/series_details_fragment"
+            app:popUpToInclusive="true"
+            app:destination="@id/series_details_fragment" />
     </fragment>
 
     <fragment

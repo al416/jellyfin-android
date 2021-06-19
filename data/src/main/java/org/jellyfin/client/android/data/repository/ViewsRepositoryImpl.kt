@@ -13,6 +13,7 @@ import org.jellyfin.client.android.domain.models.Error
 import org.jellyfin.client.android.domain.models.Library
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.cached_model.CachedRecentItem
+import org.jellyfin.client.android.domain.models.cached_model.CachedBaseItem
 import org.jellyfin.client.android.domain.models.display_model.Episode
 import org.jellyfin.client.android.domain.models.display_model.Genre
 import org.jellyfin.client.android.domain.models.display_model.HomeCardAction
@@ -30,12 +31,12 @@ import org.jellyfin.sdk.api.operations.DisplayPreferencesApi
 import org.jellyfin.sdk.api.operations.GenresApi
 import org.jellyfin.sdk.api.operations.ImageApi
 import org.jellyfin.sdk.api.operations.ItemsApi
+import org.jellyfin.sdk.api.operations.LibraryApi
 import org.jellyfin.sdk.api.operations.TvShowsApi
 import org.jellyfin.sdk.api.operations.UserLibraryApi
 import org.jellyfin.sdk.api.operations.UserViewsApi
 import org.jellyfin.sdk.model.api.ImageType
 import org.jellyfin.sdk.model.api.ItemFields
-import org.jellyfin.sdk.model.api.ItemFilter
 import org.jellyfin.sdk.model.api.SortOrder
 import java.util.*
 import javax.inject.Inject
@@ -51,6 +52,7 @@ class ViewsRepositoryImpl @Inject constructor(
     private val imageApi: ImageApi,
     private val genresApi: GenresApi,
     private val displayPreferencesApi: DisplayPreferencesApi,
+    private val libraryApi: LibraryApi,
     private val currentUserRepository: CurrentUserRepository
 ) : ViewsRepository {
 
@@ -754,6 +756,35 @@ class ViewsRepositoryImpl @Inject constructor(
                         imageUrl = imageUrl,
                         blurHash = blurHash)
                     response.add(episode)
+                }
+                emit(Resource.success(response))
+            } catch (e: Exception) {
+
+            }
+        }.flowOn(networkDispatcher)
+    }
+
+    override suspend fun getSimilarItems(mediaId: UUID): Flow<Resource<List<CachedBaseItem>>> {
+        val userId = currentUserRepository.getCurrentUserId() ?: throw IllegalArgumentException("UseId cannot be null")
+        return flow<Resource<List<CachedBaseItem>>> {
+            emit(Resource.loading())
+            try {
+                val response = mutableListOf<CachedBaseItem>()
+                val result by libraryApi.getSimilarItems(itemId = mediaId,
+                    userId = userId,
+                    limit = 10,
+                    fields = null)
+                result.items?.forEachIndexed { index, item ->
+                    val map = if (item.imageBlurHashes.containsKey(ImageType.BACKDROP)) item.imageBlurHashes[ImageType.BACKDROP] else null
+                    val blurHash = if (map?.isNotEmpty() == true) map.values.first() else null
+                    response.add(CachedBaseItem(id = item.id,
+                        seriesId = item.seriesId,
+                        blurHash = blurHash,
+                        containsBackdropImages = item.backdropImageTags?.isNotEmpty() == true || item.parentBackdropImageTags?.isNotEmpty() == true,
+                        type = item.type,
+                        name = item.name,
+                        seriesName = item.seriesName
+                    ))
                 }
                 emit(Resource.success(response))
             } catch (e: Exception) {

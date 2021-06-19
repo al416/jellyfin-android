@@ -22,7 +22,8 @@ import javax.inject.Named
 @ExperimentalCoroutinesApi
 class GetSeriesDetails @Inject constructor(@Named("network") dispatcher: CoroutineDispatcher,
                                            private val viewsRepository: ViewsRepository,
-                                           private val getSeasons: GetSeasons
+                                           private val getSeasons: GetSeasons,
+                                           private val getSimilarItems: GetSimilarItems
 ) : BaseUseCase<SeriesDetails, GetSeriesDetails.RequestParams>(dispatcher) {
 
     override suspend fun invokeInternal(params: RequestParams?): Flow<Resource<SeriesDetails>> {
@@ -42,14 +43,34 @@ class GetSeriesDetails @Inject constructor(@Named("network") dispatcher: Corouti
                     if (it.data == null) {
                         flow { emit(Resource.error<SeriesDetails>(it.messages)) }
                     } else {
-                        getSeasons(params.seriesId, it.data)
+                        getSimilarItems(params.seriesId, it.data)
                     }
                 }
             }
         }
     }
 
-    private suspend fun getSeasons(seriesId: UUID, seriesDetails: SeriesDetails): Flow<Resource<SeriesDetails>> {
+    private suspend fun getSimilarItems(seriesId: UUID, seriesDetails: SeriesDetails): Flow<Resource<SeriesDetails>> {
+        return getSimilarItems.invoke(GetSimilarItems.RequestParams(seriesId)).flatMapLatest {
+            when (it.status) {
+                Status.ERROR -> {
+                    flow { emit(Resource.error<SeriesDetails>(it.messages)) }
+                }
+                Status.LOADING -> {
+                    flow { emit(Resource.loading<SeriesDetails>()) }
+                }
+                Status.SUCCESS -> {
+                    if (it.data == null) {
+                        flow { emit(Resource.error<SeriesDetails>(it.messages)) }
+                    } else {
+                        getSeasons(seriesId, seriesDetails, it.data)
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun getSeasons(seriesId: UUID, seriesDetails: SeriesDetails, similarItems: List<HomeSectionCard>): Flow<Resource<SeriesDetails>> {
         // TODO: Add another call in this chain to get the next episode and add it to the SeriesDetails object
         return getSeasons.invoke(GetSeasons.RequestParams(seriesId)).flatMapLatest {
             when (it.status) {
@@ -72,6 +93,7 @@ class GetSeriesDetails @Inject constructor(@Named("network") dispatcher: Corouti
                                 blurHash = season.blurHash)
                         }
                         seriesDetails.seasons = HomeSectionRow(0, "Seasons", cards)
+                        seriesDetails.similarItems = HomeSectionRow(1, "More Like This", similarItems)
                     }
                     flow { emit(Resource.success(seriesDetails)) }
                 }

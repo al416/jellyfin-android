@@ -5,6 +5,7 @@ import org.jellyfin.client.android.domain.constants.ItemType
 import org.jellyfin.client.android.domain.models.Library
 import org.jellyfin.client.android.domain.models.Resource
 import org.jellyfin.client.android.domain.models.cached_model.CachedRecentItem
+import org.jellyfin.client.android.domain.models.cached_model.CachedBaseItem
 import org.jellyfin.client.android.domain.models.display_model.Episode
 import org.jellyfin.client.android.domain.models.display_model.Genre
 import org.jellyfin.client.android.domain.models.display_model.HomeSectionCard
@@ -40,6 +41,8 @@ interface ViewsRepository {
     suspend fun getGenres(libraryId: UUID, itemType: ItemType): Flow<Resource<List<Genre>>>
 
     suspend fun getEpisodes(seriesId: UUID, seasonId: UUID): Flow<Resource<List<Episode>>>
+
+    suspend fun getSimilarItems(mediaId: UUID): Flow<Resource<List<CachedBaseItem>>>
 
     fun clearCache()
 }
