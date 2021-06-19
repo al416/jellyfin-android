@@ -8,6 +8,10 @@
         <import type="android.view.View" />
 
         <variable
+            name="detailsAdapter"
+            type="org.jellyfin.client.android.ui.home.adapter.HomeRowRecyclerViewAdapter" />
+
+        <variable
             name="movie"
             type="org.jellyfin.client.android.domain.models.display_model.MovieDetails" />
     </data>
@@ -204,6 +208,21 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/genres"
             tools:visibility="visible" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/detailsRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:nestedScrollingEnabled="false"
+            android:scrollbars="none"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/genres_container"
+            app:layout_constraintVertical_weight="2"
+            app:setAdapter="@{detailsAdapter}" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

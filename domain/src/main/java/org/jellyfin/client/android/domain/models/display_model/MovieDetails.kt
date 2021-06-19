@@ -21,7 +21,8 @@ data class MovieDetails(
     val runTimeTicks: Long?,
     val tagLines: List<String>?,
     val backdropBlurHash: String?,
-    val posterBlurHash: String?
+    val posterBlurHash: String?,
+    var similarItems: HomeSectionRow? = null
 )
 
 data class ExternalUrl(val name: String, val url: String)

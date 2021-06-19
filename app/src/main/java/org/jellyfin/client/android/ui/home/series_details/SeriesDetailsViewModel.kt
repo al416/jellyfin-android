@@ -22,12 +22,10 @@ class SeriesDetailsViewModel @Inject constructor(
     private val getSeriesDetails: GetSeriesDetails
 ) : ViewModel() {
 
-    private var seriesId: UUID? = null
+    private lateinit var seriesId: UUID
 
     fun initialize(id: UUID) {
-        if (seriesId == null) {
-            seriesId = id
-        }
+        seriesId = id
     }
 
     private val seriesDetails: MutableLiveData<Resource<SeriesDetails>> by lazy {
@@ -39,22 +37,14 @@ class SeriesDetailsViewModel @Inject constructor(
     fun getSeriesDetails(): LiveData<Resource<SeriesDetails>> = seriesDetails
 
     private fun loadSeriesDetails(data: MutableLiveData<Resource<SeriesDetails>>) {
-        seriesId?.let {
-            viewModelScope.launch(computationDispatcher) {
-                getSeriesDetails.invoke(GetSeriesDetails.RequestParams(it)).collectLatest {
-                    data.postValue(it)
-                }
+        viewModelScope.launch(computationDispatcher) {
+            getSeriesDetails.invoke(GetSeriesDetails.RequestParams(seriesId)).collectLatest {
+                data.postValue(it)
             }
         }
     }
 
     fun refresh() {
         loadSeriesDetails(seriesDetails)
-    }
-
-    // TODO: Remove this fun later if it's not required
-    fun loadSimilarItem(id: UUID) {
-        seriesId = id
-        refresh()
     }
 }
