@@ -22,7 +22,9 @@ import javax.inject.Inject
 @ExperimentalCoroutinesApi
 class SeasonDetailsFragment : DaggerFragment() {
 
-    private lateinit var binding: FragmentSeasonDetailsBinding
+    private var _binding: FragmentSeasonDetailsBinding? = null
+    // This property is only valid between onCreateView and onDestroyView.
+    private val binding get() = _binding!!
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -35,13 +37,14 @@ class SeasonDetailsFragment : DaggerFragment() {
 
     private val args: SeasonDetailsFragmentArgs by navArgs()
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentSeasonDetailsBinding.inflate(inflater, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentSeasonDetailsBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

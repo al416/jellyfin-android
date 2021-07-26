@@ -13,12 +13,12 @@ import javax.inject.Inject
 class LibraryPagingSource @Inject constructor(private val viewsRepository: ViewsRepository
 ) : PagingSource<Int, HomeSectionCard>() {
 
-    lateinit var library: Library
+    private var library: Library? = null
     lateinit var genre: Genre
     private val pageSize = LIBRARY_PAGE_SIZE
     private var pageNumber = 0
 
-    fun setParam(library: Library, genre: Genre) {
+    fun setParam(library: Library?, genre: Genre) {
         this.library = library
         this.genre = genre
     }

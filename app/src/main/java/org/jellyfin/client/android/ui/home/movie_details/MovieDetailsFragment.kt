@@ -36,7 +36,9 @@ import javax.inject.Inject
 @ExperimentalCoroutinesApi
 class MovieDetailsFragment : DaggerFragment() {
 
-    private lateinit var binding: FragmentMovieDetailsBinding
+    private var _binding: FragmentMovieDetailsBinding? = null
+    // This property is only valid between onCreateView and onDestroyView.
+    private val binding get() = _binding!!
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -50,8 +52,13 @@ class MovieDetailsFragment : DaggerFragment() {
     private val args: MovieDetailsFragmentArgs by navArgs()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        binding = FragmentMovieDetailsBinding.inflate(inflater, container, false)
+        _binding = FragmentMovieDetailsBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

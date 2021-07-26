@@ -33,7 +33,9 @@ import javax.inject.Inject
 @ExperimentalCoroutinesApi
 class SeriesDetailsFragment : DaggerFragment() {
 
-    private lateinit var binding: FragmentSeriesDetailsBinding
+    private var _binding: FragmentSeriesDetailsBinding? = null
+    // This property is only valid between onCreateView and onDestroyView.
+    private val binding get() = _binding!!
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -47,8 +49,13 @@ class SeriesDetailsFragment : DaggerFragment() {
     private val args: SeriesDetailsFragmentArgs by navArgs()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        binding = FragmentSeriesDetailsBinding.inflate(inflater, container, false)
+        _binding = FragmentSeriesDetailsBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -126,6 +133,10 @@ class SeriesDetailsFragment : DaggerFragment() {
                             }
                             genres.forEach { genre ->
                                 val row = RowWithChevronView(requireContext())
+                                row.setOnClickListener {
+                                    val action = SeriesDetailsFragmentDirections.actionBrowseGenre(genre.name ?: "", genre)
+                                    findNavController().navigate(action)
+                                }
                                 row.setText(genre.name)
                                 binding.contents.genresContainer.addView(row)
                             }

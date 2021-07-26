@@ -17,7 +17,9 @@ import javax.inject.Inject
 @ExperimentalCoroutinesApi
 class LibraryHomeFragment : DaggerFragment() {
 
-    private lateinit var binding: FragmentLibraryHomeBinding
+    private var _binding: FragmentLibraryHomeBinding? = null
+    // This property is only valid between onCreateView and onDestroyView.
+    private val binding get() = _binding!!
 
     private val args: LibraryHomeFragmentArgs by navArgs()
 
@@ -30,13 +32,14 @@ class LibraryHomeFragment : DaggerFragment() {
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentLibraryHomeBinding.inflate(inflater, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentLibraryHomeBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
