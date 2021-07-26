@@ -50,6 +50,8 @@
             app:popUpTo="@id/series_details_fragment"
             app:popUpToInclusive="true"
             app:destination="@id/series_details_fragment" />
+        <action android:id="@+id/action_browse_genre"
+            app:destination="@id/library_fragment"/>
     </fragment>
 
     <fragment
@@ -83,6 +85,18 @@
         <action
             android:id="@+id/action_series_details"
             app:destination="@id/series_details_fragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/library_fragment"
+        android:name="org.jellyfin.client.android.ui.home.library.LibraryFragment"
+        android:label="{title}">
+    <argument
+        android:name="title"
+        app:argType="string" />
+    <argument
+        android:name="genre"
+        app:argType="org.jellyfin.client.android.domain.models.display_model.Genre" />
     </fragment>
 
     <!-- Global actions (i.e. these fragments can be reached from any fragments -->

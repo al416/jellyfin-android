@@ -36,7 +36,7 @@ interface ViewsRepository {
 
     suspend fun getSeasons(seriesId: UUID): Flow<Resource<List<Season>>>
 
-    suspend fun getLibraryItems(pageNumber: Int, pageSize: Int, library: Library, genre: Genre): List<HomeSectionCard>
+    suspend fun getLibraryItems(pageNumber: Int, pageSize: Int, library: Library?, genre: Genre): List<HomeSectionCard>
 
     suspend fun getGenres(libraryId: UUID, itemType: ItemType): Flow<Resource<List<Genre>>>
 

@@ -654,9 +654,8 @@ class ViewsRepositoryImpl @Inject constructor(
         }.flowOn(networkDispatcher)
     }
 
-    override suspend fun getLibraryItems(pageNumber: Int, pageSize: Int, library: Library, genre: Genre): List<HomeSectionCard> {
-        val userId = currentUserRepository.getCurrentUserId()
-            ?: throw IllegalArgumentException("UserId cannot be null")
+    override suspend fun getLibraryItems(pageNumber: Int, pageSize: Int, library: Library?, genre: Genre): List<HomeSectionCard> {
+        val userId = currentUserRepository.getCurrentUserId() ?: throw IllegalArgumentException("UserId cannot be null")
 
         val genreId = if (genre.id == 0) null else genre.genreId
         val genres = if (genreId != null) listOf(genreId) else null
@@ -664,7 +663,7 @@ class ViewsRepositoryImpl @Inject constructor(
             userId = userId,
             sortBy = listOf("SortName,ProductionYear"),
             sortOrder = listOf(SortOrder.ASCENDING),
-            includeItemTypes = listOf(library.type.type),
+            includeItemTypes = if (library == null) null else listOf(library.type.type),
             recursive = true,
             fields = listOf(ItemFields.PRIMARY_IMAGE_ASPECT_RATIO, ItemFields.MEDIA_SOURCE_COUNT, ItemFields.BASIC_SYNC_INFO),
             genreIds = genres,
@@ -672,7 +671,7 @@ class ViewsRepositoryImpl @Inject constructor(
             enableImageTypes = listOf(ImageType.PRIMARY, ImageType.BACKDROP, ImageType.BANNER, ImageType.THUMB),
             startIndex = pageNumber * pageSize,
             limit = pageSize,
-            parentId = library.uuid,
+            parentId = library?.uuid,
         )
 
         val response = mutableListOf<HomeSectionCard>()
@@ -683,6 +682,11 @@ class ViewsRepositoryImpl @Inject constructor(
             )
             val map = if (item.imageBlurHashes.containsKey(ImageType.PRIMARY)) item.imageBlurHashes[ImageType.PRIMARY] else null
             val blurHash = if (map?.isNotEmpty() == true) map.values.first() else null
+            val itemType = when (item.type) {
+                ItemType.MOVIE.type -> ItemType.MOVIE
+                ItemType.SERIES.type -> ItemType.SERIES
+                else -> ItemType.MOVIE
+            }
             response.add(
                 HomeSectionCard(
                     id = index,
@@ -692,7 +696,7 @@ class ViewsRepositoryImpl @Inject constructor(
                     homeCardType = HomeCardType.POSTER,
                     uuid = item.id,
                     homeCardAction = HomeCardAction.DETAILS,
-                    itemType = library.type,
+                    itemType = library?.type ?: itemType,
                     blurHash = blurHash
                 )
             )

@@ -42,7 +42,9 @@ class RecentItemFragment : DaggerFragment() {
         ViewModelProvider(requireActivity(), viewModelFactory).get(HomeViewModel::class.java)
     }
 
-    private lateinit var binding: FragmentRecentItemsBinding
+    private var _binding: FragmentRecentItemsBinding? = null
+    // This property is only valid between onCreateView and onDestroyView.
+    private val binding get() = _binding!!
 
     private var position: Int = 0
 
@@ -51,13 +53,14 @@ class RecentItemFragment : DaggerFragment() {
         position = requireArguments().getInt(BUNDLE_TAG_POSITION)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentRecentItemsBinding.inflate(inflater, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentRecentItemsBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

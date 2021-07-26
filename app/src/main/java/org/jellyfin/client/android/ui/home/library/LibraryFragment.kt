@@ -8,6 +8,7 @@ import androidx.core.os.bundleOf
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
 import dagger.android.support.DaggerFragment
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,7 +27,7 @@ import javax.inject.Inject
 class LibraryFragment : DaggerFragment() {
 
     companion object {
-        fun newInstance(library: Library, genre: Genre): LibraryFragment {
+        fun newInstance(library: Library?, genre: Genre): LibraryFragment {
             val bundle = bundleOf(BUNDLE_LIBRARY to library, BUNDLE_GENRE to genre)
             val fragment = LibraryFragment()
             fragment.arguments = bundle
@@ -34,9 +35,13 @@ class LibraryFragment : DaggerFragment() {
         }
     }
 
-    private lateinit var binding: FragmentLibraryBinding
+    private var _binding: FragmentLibraryBinding? = null
+    // This property is only valid between onCreateView and onDestroyView.
+    private val binding get() = _binding!!
 
-    private lateinit var library: Library
+    private val args: LibraryFragmentArgs by navArgs()
+
+    private var library: Library? = null
 
     private lateinit var genre: Genre
 
@@ -52,16 +57,21 @@ class LibraryFragment : DaggerFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         library = requireArguments().getSerializable(BUNDLE_LIBRARY) as Library
-        genre = requireArguments().getSerializable(BUNDLE_GENRE) as Genre
+        genre = if (arguments?.containsKey(BUNDLE_GENRE) == true) {
+            requireArguments().getSerializable(BUNDLE_GENRE) as Genre
+        } else {
+            args.genre
+        }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentLibraryBinding.inflate(inflater, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentLibraryBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

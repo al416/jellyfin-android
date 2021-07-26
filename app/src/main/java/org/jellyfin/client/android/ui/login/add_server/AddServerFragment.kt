@@ -21,7 +21,9 @@ import javax.inject.Inject
 
 class AddServerFragment : DaggerFragment(), View.OnClickListener {
 
-    private lateinit var binding: FragmentAddServerBinding
+    private var _binding: FragmentAddServerBinding? = null
+    // This property is only valid between onCreateView and onDestroyView.
+    private val binding get() = _binding!!
 
     private val args: AddServerFragmentArgs by navArgs()
 
@@ -36,13 +38,14 @@ class AddServerFragment : DaggerFragment(), View.OnClickListener {
 
     private var itemTouchHelper: ItemTouchHelper? = null
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentAddServerBinding.inflate(inflater, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentAddServerBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

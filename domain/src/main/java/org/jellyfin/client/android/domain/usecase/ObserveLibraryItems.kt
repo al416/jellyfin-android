@@ -26,5 +26,5 @@ class ObserveLibraryItems @Inject constructor(private val viewsRepository: Views
         return Pager(config = pagingConfig, pagingSourceFactory = {pagingSource}).flow
     }
 
-    data class RequestParams(val library: Library, val genre: Genre)
+    data class RequestParams(val library: Library?, val genre: Genre)
 }

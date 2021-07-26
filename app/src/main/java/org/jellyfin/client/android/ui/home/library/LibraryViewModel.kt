@@ -26,11 +26,11 @@ class LibraryViewModel
     private val observeLibraryItems: ObserveLibraryItems
 ) : ViewModel() {
 
-    private lateinit var library: Library
+    private var library: Library? = null
     private lateinit var genre: Genre
     private var job: Job? = null
 
-    fun initialize(library: Library, genre: Genre) {
+    fun initialize(library: Library?, genre: Genre) {
         this.library = library
         this.genre = genre
     }
